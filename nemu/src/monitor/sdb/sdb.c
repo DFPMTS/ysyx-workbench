@@ -56,6 +56,8 @@ static int cmd_help(char *args);
 
 static int cmd_si(char *args);
 
+static int cmd_info(char *args);
+
 static struct {
   const char *name;
   const char *description;
@@ -64,7 +66,8 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-  { "si", "Continue the execution of the program for N steps. When not given, N is default to 1.", cmd_si}
+  { "si", "Continue the execution of the program for N steps. When not given, N is default to 1.", cmd_si},
+  { "info", "print information about registers or watchpoints.", cmd_info}
 
   /* TODO: Add more commands */
 
@@ -96,22 +99,42 @@ static int cmd_help(char *args) {
 }
 
 static int cmd_si(char *args) {
-  /* extrace the first argument */
+  /* extract the first argument */
   char *arg = strtok(NULL, " ");
 
-  if(arg == NULL){
+  if (arg == NULL) {
     // default value is 1
     cpu_exec(1);
-  }else{
+  } else {
     // read argument
     int num_steps = atoi(args);
 
-    if(num_steps <= 0){
+    if (num_steps <= 0) {
       // num_steps <= 0?
       printf("N have to a positive number\n");
-    }else{
+    } else {
       // implicit conversion is ok here
       cpu_exec(num_steps);
+    }
+  }
+
+  return 0;
+}
+
+static int cmd_info(char *args) {
+  /* extract the first argument: r/w */
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    // need argument
+    printf("Need argument: r(registers) or w(watchpoints)\n");
+  } else {
+    if (strcmp("r", arg) == 0) {
+      // print registers
+      isa_reg_display();
+    } else if (strcmp("w", arg) == 0) {
+      // TODO print watch points
+      TODO();
     }
   }
 
