@@ -151,14 +151,14 @@ static int cmd_x(char *args) {
 
   if (arg == NULL) {
     // need argument
-    printf("Format: x N [expr]");
+    printf("Format: x N [expr]\n");
   } else {
     int N = atoi(arg);
     if (N > 0) {
       // extract the second argument.
       arg = strtok(NULL, " ");
       if (arg == NULL) {
-        printf("Need expression.");
+        printf("Need expression.\n");
       } else {
         long signed_val = strtol(arg, NULL, 16);
         unsigned int addr = (uint32_t)signed_val;
@@ -167,12 +167,12 @@ static int cmd_x(char *args) {
             printf("%x:\t%X\n", addr + 4 * i, vaddr_read(addr + 4 * i, 4));
           }
         } else {
-          printf("[expr] has to be a valid address.");
+          printf("[expr] has to be a valid address.\n");
         }
       }
       // TODO enable format other than hex number
     } else {
-      printf("N has to be a positive number.");
+      printf("N has to be a positive number.\n");
     }
   }
 
