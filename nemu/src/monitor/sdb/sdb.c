@@ -18,6 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include "memory/vaddr.h"
 
 static int is_batch_mode = false;
 
@@ -58,6 +59,8 @@ static int cmd_si(char *args);
 
 static int cmd_info(char *args);
 
+static int cmd_x(char *args);
+
 static struct {
   const char *name;
   const char *description;
@@ -67,7 +70,8 @@ static struct {
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
   { "si", "Continue the execution of the program for N steps. When not given, N is default to 1.", cmd_si},
-  { "info", "print information about registers or watchpoints.", cmd_info}
+  { "info", "print information about registers or watchpoints.", cmd_info},
+  { "x", "Examine memory.", cmd_x}
 
   /* TODO: Add more commands */
 
@@ -135,6 +139,40 @@ static int cmd_info(char *args) {
     } else if (strcmp("w", arg) == 0) {
       // TODO print watch points
       TODO();
+    }
+  }
+
+  return 0;
+}
+
+static int cmd_x(char *args) {
+  // extract the first argument: N
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    // need argument
+    printf("Format: x N [expr]");
+  } else {
+    int N = atoi(arg);
+    if (N > 0) {
+      // extract the second argument.
+      arg = strtok(NULL, " ");
+      if (arg == NULL) {
+        printf("Need expression.");
+      } else {
+        long signed_val = strtol(arg, NULL, 16);
+        unsigned int addr = (uint32_t)signed_val;
+        if (signed_val >= 0) {
+          for (int i = 0; i < N; ++i) {
+            printf("%x:\t%X\n", addr + 4 * i, vaddr_read(addr + 4 * i, 4));
+          }
+        } else {
+          printf("[expr] has to be a valid address.");
+        }
+      }
+      // TODO enable format other than hex number
+    } else {
+      printf("N has to be a positive number.");
     }
   }
 
