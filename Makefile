@@ -1,5 +1,5 @@
-STUID = ysyx_22040000
-STUNAME = 张三
+STUID = NOT_ALLOCATED_YET
+STUNAME = Letong Han
 
 # DO NOT modify the following code!!!
 
