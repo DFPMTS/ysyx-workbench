@@ -164,7 +164,7 @@ static int cmd_x(char *args) {
         unsigned int addr = (uint32_t)signed_val;
         if (signed_val >= 0) {
           for (int i = 0; i < N; ++i) {
-            printf("%0x08X:\t%0x08X\n", addr + 4 * i, vaddr_read(addr + 4 * i, 4));
+            printf("%0x08X:\t0x%08X\n", addr + 4 * i, vaddr_read(addr + 4 * i, 4));
           }
         } else {
           printf("[expr] has to be a valid address.\n");
