@@ -96,20 +96,20 @@ static int cmd_help(char *args) {
 }
 
 static int cmd_si(char *args) {
-  /* extrace the first argument */
+  /* extract the first argument */
   char *arg = strtok(NULL, " ");
 
-  if(arg == NULL){
+  if (arg == NULL) {
     // default value is 1
     cpu_exec(1);
-  }else{
+  } else {
     // read argument
     int num_steps = atoi(args);
 
-    if(num_steps <= 0){
+    if (num_steps <= 0) {
       // num_steps <= 0?
       printf("N have to a positive number\n");
-    }else{
+    } else {
       // implicit conversion is ok here
       cpu_exec(num_steps);
     }
