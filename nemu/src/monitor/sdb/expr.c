@@ -278,6 +278,7 @@ static word_t eval_expr(int l, int r) {
       break;
 
     default:
+      Log("Invalid binary operator");
       break;
     }
 
