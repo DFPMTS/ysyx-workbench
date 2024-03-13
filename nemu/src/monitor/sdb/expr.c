@@ -21,8 +21,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ,
-
+  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_NUM, 
   /* TODO: Add more token types */
 
 };
@@ -37,7 +36,13 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
+  {"[0-9]+", TK_NUM},   // decimal number
   {"\\+", '+'},         // plus
+  {"-", '-'},           // minus
+  {"*", '*'},           // mutiply
+  {"/", '/'},           // divide
+  {"\\(", '('},         // left parenthesis
+  {")", ')'},           // right parenthesis
   {"==", TK_EQ},        // equal
 };
 
@@ -93,9 +98,22 @@ static bool make_token(char *e) {
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
-
+        Token* cur_token;
         switch (rules[i].token_type) {
-          default: TODO();
+        case TK_NOTYPE:
+          // skip empty token
+          break;
+        default:
+          if (nr_token >= ARRLEN(tokens)) {
+            panic("Too many tokens in expression!");
+          }                    
+          cur_token = &tokens[nr_token];
+          if(pmatch.rm_eo >= ARRLEN(cur_token->str)){
+            panic("Token too long!");
+          }
+          memcpy(cur_token->str, substr_start, substr_len);
+          cur_token->type = rules[i].token_type;
+          break;
         }
 
         break;
@@ -119,7 +137,20 @@ word_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  // TODO();
+  for (int i = 0; i < nr_token; ++i) {
+    printf("%8d", i);
+  }
+  puts("");
+
+  for (int i = 0; i < nr_token; ++i) {
+    if (tokens[i].type == 256) {
+      printf("%8s", tokens[i].str);
+    } else {
+      printf("%8c", tokens[i].type);
+    }
+  }
+  puts("");
 
   return 0;
 }
