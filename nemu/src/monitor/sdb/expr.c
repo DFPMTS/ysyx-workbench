@@ -297,8 +297,8 @@ static word_t eval_expr(int l, int r) {
 static void fix_op_types() {
   static int before_expr_op_list[] = {'+', '-', '*', '/', TK_EQ, ')'};
   for (int i = nr_token - 1; i >= 0; --i) {
-    if (i == 0 || (tokens[i].type == '-' &&
-                   op_in_list(tokens[i - 1].type, before_expr_op_list,
+    if (tokens[i].type == '-' &&
+        (i == 0 || op_in_list(tokens[i - 1].type, before_expr_op_list,
                               ARRLEN(before_expr_op_list)))) {
       tokens[i].type = TK_UNARY_MINUS;
     }
