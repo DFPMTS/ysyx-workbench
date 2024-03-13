@@ -155,7 +155,7 @@ static word_t eval_single_token(int i) {
 #endif
     return (word_t)val_ul;
   } else {
-    Log("Invalid single token type.");
+    Log("Invalid single token type: %d", token->type);
     eval_success = false;
     // invalid single token
     return -1;
