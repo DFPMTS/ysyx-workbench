@@ -145,14 +145,10 @@ word_t expr(char *e, bool *success) {
   puts("");
 
   for (int i = 0; i < nr_token; ++i) {
-    if (tokens[i].type == 256) {
-      printf("%8s", tokens[i].str);
-    } else {
-      printf("%8c", tokens[i].type);
-    }
+    printf("%8s", tokens[i].str);
   }
   puts("");
-  
+
   *success = true;
   return 0;
 }
