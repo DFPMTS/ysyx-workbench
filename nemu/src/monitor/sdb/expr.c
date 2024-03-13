@@ -214,11 +214,11 @@ static int get_op_with_lowest_precedence(int l, int r) {
   if (pos != -1)
     return pos;
 
-  find_leftmost_split(l, r, add_sub_op_list, ARRLEN(add_sub_op_list));
+  pos = find_leftmost_split(l, r, add_sub_op_list, ARRLEN(add_sub_op_list));
   if (pos != -1)
     return pos;
 
-  find_leftmost_split(l, r, mul_div_op_list, ARRLEN(mul_div_op_list));
+  pos = find_leftmost_split(l, r, mul_div_op_list, ARRLEN(mul_div_op_list));
   if (pos != -1)
     return pos;
   
