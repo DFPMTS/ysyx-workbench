@@ -19,6 +19,7 @@ void init_monitor(int, char *[]);
 void am_init_monitor();
 void engine_start();
 int is_exit_status_bad();
+word_t expr(char *e, bool *success);
 
 int main(int argc, char *argv[]) {
   /* Initialize the monitor. */
@@ -29,7 +30,11 @@ int main(int argc, char *argv[]) {
 #endif
 
   /* Start engine. */
-  engine_start();
+  // engine_start();
+  bool success;
+  char *s = "1+2+(3/3)+5*1-4";
+  expr(s, &success);
+  Assert(success,"Token recognition failed.");
 
   return is_exit_status_bad();
 }
