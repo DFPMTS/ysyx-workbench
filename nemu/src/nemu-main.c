@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   bool success;
   char *s = "1+2+(3/3)+5*1--4";
   printf("expr value: %u\n",expr(s, &success));
-  Assert(success,"Token recognition failed.");
+  Assert(success,"Eval failed.");
 
   return is_exit_status_bad();
 }

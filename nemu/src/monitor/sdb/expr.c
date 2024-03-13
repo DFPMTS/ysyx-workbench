@@ -228,6 +228,8 @@ static int get_op_with_lowest_precedence(int l, int r) {
 
 static word_t eval_expr(int l, int r) {
   printf("Now evaluating %d, %d\n",l,r);
+  // the binary operator with lowest precedence
+  int pos = -1;
   if (l > r) {
     // bad expression
     eval_success = false;
@@ -241,14 +243,7 @@ static word_t eval_expr(int l, int r) {
   } else if(tokens[l].type == '(' && tokens[r].type == ')' && is_paren_match(l + 1, r - 1)){
     // remove paren
     return eval_expr(l + 1, r - 1);
-  } else {
-    // find the operator with lowest precedence
-    int pos = get_op_with_lowest_precedence(l, r);
-    if (pos == -1) {
-      // failed
-      eval_success = false;
-      return -1;
-    }
+  } else if((pos = get_op_with_lowest_precedence(l, r)) != -1){    
     // "main" operator
     int op_type = tokens[pos].type;
 
@@ -287,6 +282,14 @@ static word_t eval_expr(int l, int r) {
     }
 
     return expr_val;
+  } else {
+    // unary operator
+    if (tokens[l].type == TK_UNARY_MINUS) {
+      return -eval_expr(l + 1, r);
+    } else {
+      eval_success = false;
+      return -1;
+    }
   }
 }
 
