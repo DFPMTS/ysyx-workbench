@@ -31,12 +31,9 @@ int main(int argc, char *argv[]) {
 
   /* Start engine. */
   // engine_start();
-  if(argc != 2){
-    panic("Wrong parameter, need expression.");
-  }
   bool success;
-  expr(argv[1], &success);
-
+  char *s = "1+2+(3/3)+5*1-4";
+  expr(s, &success);
 
   return is_exit_status_bad();
 }
