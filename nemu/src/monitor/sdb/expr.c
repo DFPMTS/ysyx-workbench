@@ -182,7 +182,7 @@ static bool is_paren_match(int l, int r) {
   return true;
 }
 
-static bool match_op_list(int type, int *op_list, int op_list_len) {
+static bool op_in_list(int type, int *op_list, int op_list_len) {
   for (int i = 0; i < op_list_len; ++i) {
     if (type == op_list[i])
       return true;
@@ -192,7 +192,7 @@ static bool match_op_list(int type, int *op_list, int op_list_len) {
 
 static int find_leftmost_split(int l, int r, int *op_list, int op_list_len) {
   for (int i = r; i >= l; --i) {
-    if (match_op_list(tokens[i].type, op_list, op_list_len) &&
+    if (op_in_list(tokens[i].type, op_list, op_list_len) &&
         is_paren_match(l, i - 1) && is_paren_match(i + 1, r)) {
       // can split here
       return i;
@@ -290,6 +290,18 @@ static word_t eval_expr(int l, int r) {
   }
 }
 
+// minus -> unary minus
+static void fix_op_types() {
+  static int before_expr_op_list[] = {'+', '-', '*', '/', TK_EQ, ')'};
+  for (int i = nr_token - 1; i >= 0; --i) {
+    if (i == 0 || (tokens[i].type == '-' &&
+                   op_in_list(tokens[i - 1].type, before_expr_op_list,
+                              ARRLEN(before_expr_op_list)))) {
+      tokens[i].type = TK_UNARY_MINUS;
+    }
+  }
+}
+
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
@@ -308,8 +320,9 @@ word_t expr(char *e, bool *success) {
   }
   puts("");
 
-  eval_success = true;
+  fix_op_types();
 
+  eval_success = true;  
   word_t val = eval_expr(0, nr_token - 1);
   *success = eval_success;
   
