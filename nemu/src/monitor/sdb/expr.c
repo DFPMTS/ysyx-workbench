@@ -288,6 +288,7 @@ static word_t eval_expr(int l, int r) {
       return -eval_expr(l + 1, r);
     } else {
       eval_success = false;
+      Log("Invalid unary minus");
       return -1;
     }
   }
