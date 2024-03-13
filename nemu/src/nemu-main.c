@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   // engine_start();
   bool success;
   char *s = "1+2+(3/3)+5*1-4";
-  expr(s, &success);
+  printf("expr value: %u\n",expr(s, &success));
   Assert(success,"Token recognition failed.");
 
   return is_exit_status_bad();
