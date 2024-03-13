@@ -151,6 +151,7 @@ word_t expr(char *e, bool *success) {
     }
   }
   puts("");
-
+  
+  *success = true;
   return 0;
 }
