@@ -39,7 +39,7 @@ static struct rule {
   {"[0-9]+", TK_NUM},   // decimal number
   {"\\+", '+'},         // plus
   {"-", '-'},           // minus
-  {"*", '*'},           // mutiply
+  {"\\*", '*'},           // mutiply
   {"/", '/'},           // divide
   {"\\(", '('},         // left parenthesis
   {")", ')'},           // right parenthesis
