@@ -32,7 +32,9 @@ static char *code_format =
 "}";
 
 static void gen_rand_expr() {
-  buf[0] = '\0';
+  // buf[0] = '\0';
+  char *s = "10/0";
+  memcpy(buf,s,strlen(s));
 }
 
 int main(int argc, char *argv[]) {
@@ -53,7 +55,7 @@ int main(int argc, char *argv[]) {
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
+    int ret = system("gcc /tmp/.code.c -Wdiv-by-zero -Werror -o /tmp/.expr 2> /dev/null");
     if (ret != 0) continue;
 
     fp = popen("/tmp/.expr", "r");
