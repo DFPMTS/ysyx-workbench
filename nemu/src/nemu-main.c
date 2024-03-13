@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   /* Start engine. */
   // engine_start();
   bool success;
-  char *s = "-1+-2+(-3/3)+-5*-1--4";
+  char *s = "-1+-2+(-3/3)+-5*-1+4";
   printf("expr value: %u\n",expr(s, &success));
   Assert(success,"Eval failed.");
 
