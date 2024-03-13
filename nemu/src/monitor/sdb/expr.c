@@ -227,6 +227,7 @@ static int get_op_with_lowest_precedence(int l, int r) {
 }
 
 static word_t eval_expr(int l, int r) {
+  printf("Now evaluating %d, %d\n",l,r);
   if (l > r) {
     // bad expression
     eval_success = false;
