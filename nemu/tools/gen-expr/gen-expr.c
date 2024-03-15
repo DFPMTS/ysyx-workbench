@@ -63,24 +63,38 @@ static void gen_rand_uint32(char** s, int* len)
   *len = num_len + 1;
 }
 
-static char get_rand_op()
+static void gen_rand_op(char **s, int*len)
 {
-    static char ops[] = { '+', '-', '*', '/' };
-    return ops[rand() % ARRLEN(ops)];
+  static char *ops[] = {"*", "-", "*", "/", "=="};
+  int id = rand() % ARRLEN(ops);
+  char *str;
+  int str_len = strlen(ops[id]);
+  str = malloc(str_len + 1);
+  memcpy(str, ops[id], str_len + 1);
+  *s = str;
+  *len = str_len;
 }
 
 static void gen_rand_expr_worker(char** s, int* len, int level)
 {
     char* s_l;
     int len_l;
+
     char* s_r;
     int len_r;
+
     char* str;
+
     int decision = level > 10 ? 0 : (rand() % 3 + 1);
+
     char *space_s;
     int space_l, space_r;
+
     char *s_expr;
     int len_expr;
+
+    char *s_op;
+    int len_op;
     switch (decision) {
     case 0:
         gen_rand_uint32(&s_l, &len_l);
@@ -91,16 +105,21 @@ static void gen_rand_expr_worker(char** s, int* len, int level)
     case 1:
         gen_rand_expr_worker(&s_l, &len_l, level + 1);
         gen_rand_expr_worker(&s_r, &len_r, level + 1);
-
-        *s = malloc(len_l + len_r + 1 + 1);
-        str = *s;
+        gen_rand_op(&s_op, &len_op);
+        str = malloc(len_l + len_r + len_op + 1);
+        
         memcpy(str, s_l, len_l);
-        str[len_l] = get_rand_op();
-        memcpy(str + len_l + 1, s_r, len_r);
-        str[len_l + len_r + 1] = '\0';
-        *len = len_l + len_r + 1;
+
+        memcpy(str + len_l, s_op, len_op);
+
+        memcpy(str + len_l + len_op, s_r, len_r);
+        str[len_l + len_r + len_op] = '\0';
+
+        *s = str;
+        *len = len_l + len_r + len_op;
         free(s_l);
         free(s_r);
+        free(s_op);
         break;
 
     case 2:
