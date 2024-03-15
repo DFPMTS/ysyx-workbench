@@ -29,9 +29,9 @@ int main(int argc, char *argv[]) {
     uint32_t ref;
     char *buf = malloc(65536);
     printf("%s\n",test_expr_path);
+    Log("HELLO\n");
     FILE *test_input = fopen(test_expr_path, "r");
     Assert(test_input, "Failed to open file");
-    Log("%lu\n", (uint64_t)test_input);
     Assert(fscanf(test_input, "%u", &ref), "Read reference output failed");
     Log("%u\n",ref);
     Assert(fscanf(test_input, "%s", buf), "Read reference output failed");
