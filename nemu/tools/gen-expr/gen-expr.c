@@ -60,7 +60,7 @@ static char *gen_rand_expr_worker(int level) {
   char *s_r;
   char *str;
 
-  int decision = level > 10 ? 0 : (rand() % 3 + 1);
+  int decision = level > 3 ? 0 : (rand() % 3 + 1);
   int space_l, space_r;
   char *s_expr;
   char *s_op;
