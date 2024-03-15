@@ -27,7 +27,8 @@ int main(int argc, char *argv[]) {
   if ((test_expr_path = getenv("TEST_EXPR"))) {
     // format: [ref]  [expr]
     uint32_t ref;
-    char *buf = malloc(65536);
+    // char *buf = malloc(65536);
+    char buf[1000];
     printf("%s\n",test_expr_path);
     FILE *test_input = fopen(test_expr_path, "r");
     Assert(test_input, "Failed to open file");
@@ -39,7 +40,6 @@ int main(int argc, char *argv[]) {
     bool success;
     printf("expr value: %u\n", expr(buf, &success));
     Assert(success, "Eval failed.");
-    free(buf);
   } else {
     /* Initialize the monitor. */
 #ifdef CONFIG_TARGET_AM
