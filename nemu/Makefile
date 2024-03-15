@@ -59,3 +59,9 @@ else
 # Include rules to build NEMU
 include $(NEMU_HOME)/scripts/native.mk
 endif
+
+count:
+	@echo "Total LOC    : "`find . -name "*.[ch]" | xargs cat | wc -l`
+	@echo "Non-empty LOC: "`find . -name "*.[ch]" | xargs cat | grep -vcE "$$\s*^"`
+
+.PHONY: count
