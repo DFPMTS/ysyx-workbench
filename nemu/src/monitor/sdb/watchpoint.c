@@ -49,7 +49,6 @@ void wp_check(vaddr_t pc) {
   WP *cur = head;
   bool changed = false;
   while (cur) {
-    cur = cur->next;
     bool success = true;
     printf("%s\n",cur->expr);
     word_t new_val = expr(cur->expr, &success);
@@ -64,6 +63,7 @@ void wp_check(vaddr_t pc) {
         changed = true;
       }
     }
+    cur = cur->next;
   }
 
   if (changed) {
