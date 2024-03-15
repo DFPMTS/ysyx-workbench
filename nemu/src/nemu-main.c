@@ -24,6 +24,13 @@ word_t expr(char *e, bool *success);
 
 int main(int argc, char *argv[]) {
   char *test_expr_path;
+  /* Initialize the monitor. */
+#ifdef CONFIG_TARGET_AM
+  am_init_monitor();
+#else
+  init_monitor(argc, argv);
+#endif
+
   if ((test_expr_path = getenv("TEST_EXPR"))) {
     // format: [ref]  [expr]
     uint32_t ref;
@@ -42,12 +49,6 @@ int main(int argc, char *argv[]) {
     Assert(success, "Eval failed.");
     free(buf);
   } else {
-    /* Initialize the monitor. */
-#ifdef CONFIG_TARGET_AM
-    am_init_monitor();
-#else
-    init_monitor(argc, argv);
-#endif
 
     /* Start engine. */
     engine_start();
