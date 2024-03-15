@@ -21,7 +21,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_UNSIGNED_NUM, 
+  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_UNSIGNED_NUM, TK_HEX,
   /* TODO: Add more token types */
 
 };
@@ -36,7 +36,8 @@ static struct rule {
    */
 
   {"\\s+", TK_NOTYPE},    // spaces
-  {"0x[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
+  {"[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
+  {"0[xX][0-9a-fA-F]+u", TK_HEX},   // decimal number
   {"\\+", '+'},         // plus
   {"-", '-'},           // minus
   {"\\*", '*'},         // mutiply
@@ -137,12 +138,13 @@ static bool eval_success;
 static word_t eval_single_token(int i) {
   char *endptr;
   Token *token = &tokens[i];
+  unsigned long val_ul = 0;
   if (token->type == TK_UNSIGNED_NUM) {
     // first put in UL
-    unsigned long val_ul = strtoul(tokens[i].str, &endptr, 10);
+    val_ul = strtoul(tokens[i].str, &endptr, 10);
     if (endptr == tokens[i].str) {
       // invalid number
-      Log("Invalid unsigned decimal number."); 
+      Log("Invalid unsigned decimal number.");
       eval_success = false;
     }
 
@@ -154,13 +156,31 @@ static word_t eval_single_token(int i) {
       eval_success = false;
     }
 #endif
-    return (word_t)val_ul;
+  } else if (token->type == TK_HEX) {
+    // first put in UL
+    val_ul = strtoul(tokens[i].str, &endptr, 16);
+    if (endptr == tokens[i].str) {
+      // invalid number
+      Log("Invalid unsigned hexadecimal number.");
+      eval_success = false;
+    }
   } else {
     Log("Invalid single token type: %d", token->type);
     eval_success = false;
     // invalid single token
-    return -1;
+    val_ul = -1;
   }
+  if (eval_success) {
+#ifndef CONFIG_ISA64
+    // check for UL to word_t overflow
+    if (val_ul > UINT32_MAX) {
+      // overflow
+      Log("Decimal number overflow.");
+      eval_success = false;
+    }
+#endif
+  }
+  return (word_t)val_ul;
 }
 
 static bool is_paren_match(int l, int r) {  
