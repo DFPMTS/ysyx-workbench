@@ -14,13 +14,14 @@
 ***************************************************************************************/
 
 #include "sdb.h"
+#include <cpu/cpu.h>
 
 #define NR_WP 32
 
 typedef struct watchpoint {
   int NO;
   struct watchpoint *next;
-
+  word_t last_value;
   /* TODO: Add more members if necessary */
 
 } WP;
@@ -41,3 +42,4 @@ void init_wp_pool() {
 
 /* TODO: Implement the functionality of watchpoint */
 
+void watch(vaddr_t pc) { set_nemu_state(NEMU_STOP, pc, -1); }

@@ -161,9 +161,9 @@ static int cmd_x(char *args) {
       if (arg == NULL) {
         printf("Need expression.\n");
       } else {
-        long signed_val = strtol(arg, NULL, 16);
-        unsigned int addr = (uint32_t)signed_val;
-        if (signed_val >= 0) {
+        bool success = true;
+        vaddr_t addr = expr(arg, &success);
+        if (success) {
           for (int i = 0; i < N; ++i) {
             printf("0x%08X\n", vaddr_read(addr + 4 * i, 4));
           }
