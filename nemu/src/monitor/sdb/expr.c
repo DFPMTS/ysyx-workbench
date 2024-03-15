@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include <memory/vaddr.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
@@ -141,8 +142,7 @@ static word_t eval_single_token(int i) {
   char *endptr;
   Token *token = &tokens[i];
   unsigned long val_ul = 0;
-  switch (token->type)
-  { 
+  switch (token->type) {
   case TK_DECIMAL:
     // first put in UL
     val_ul = strtoul(tokens[i].str, &endptr, 10);
@@ -153,7 +153,7 @@ static word_t eval_single_token(int i) {
     }
     break;
   case TK_HEX:
-  // first put in UL
+    // first put in UL
     val_ul = strtoul(tokens[i].str, &endptr, 16);
     if (endptr == tokens[i].str) {
       // invalid number
@@ -164,14 +164,15 @@ static word_t eval_single_token(int i) {
   case TK_REG:
     val_ul = isa_reg_str2val(tokens[i].str + 1, &eval_success);
     break;
+
   default:
     // invalid single token
     Log("Invalid single token type: %d", token->type);
-    eval_success = false;    
+    eval_success = false;
     val_ul = -1;
     break;
   }
-  
+
   if (eval_success) {
 #ifndef CONFIG_ISA64
     // check for UL to word_t overflow
