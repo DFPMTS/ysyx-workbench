@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
     bool success;
     printf("expr value: %u\n", expr(buf, &success));
     Assert(success, "Eval failed.");
+    free(buf);
   } else {
     /* Initialize the monitor. */
 #ifdef CONFIG_TARGET_AM
