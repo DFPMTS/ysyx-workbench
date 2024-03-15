@@ -29,7 +29,7 @@ typedef struct watchpoint {
 
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
-// static int next_NO = NR_WP; 
+static int next_NO = NR_WP; 
 
 void init_wp_pool() {
   int i;
@@ -101,6 +101,30 @@ void wp_display() {
     } else {
       printf("%u\n",val);
     }
+    cur = cur->next;
+  }
+}
+
+void wp_delete(int NO)
+{
+  WP *cur = head;
+  WP *prev = NULL;
+  while (cur) {
+    if(cur->NO == NO){
+      // found
+      if(prev){        
+        prev->next = cur->next;
+      }else{
+        // prev not exist, removing head
+        head = cur->next;
+      }
+      free(cur->expr);
+      cur->next = free_;
+      free_ = cur;
+      cur->NO = next_NO++;
+      printf("Watch point [%d] deleted.\n", NO);
+    }
+    prev = cur;
     cur = cur->next;
   }
 }

@@ -26,4 +26,6 @@ void wp_add(char *s);
 
 void wp_display();
 
+void wp_delete(int NO);
+
 #endif
