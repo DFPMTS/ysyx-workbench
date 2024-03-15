@@ -47,7 +47,7 @@ static char *gen_rand_decimal_uint32() {
 }
 
 static char *gen_rand_op() {
-  static char *ops[] = {"*", "-", "*", "/", "==","!=", "&&"};
+  static char *ops[] = {"*", "-", "*", "/", "==", "!=", "&&"};
   int id = rand() % ARRLEN(ops);
   int len = strlen(ops[id]) + 1;
   char *buf = malloc(len);
