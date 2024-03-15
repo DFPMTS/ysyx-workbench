@@ -35,7 +35,7 @@ static struct rule {
    * Pay attention to the precedence level of different rules.
    */
 
-  {" +", TK_NOTYPE},    // spaces
+  {"\\s+", TK_NOTYPE},    // spaces
   {"[0-9]+", TK_NUM},   // decimal number
   {"\\+", '+'},         // plus
   {"-", '-'},           // minus
@@ -155,7 +155,7 @@ static word_t eval_single_token(int i) {
 #endif
     return (word_t)val_ul;
   } else {
-    Log("Invalid single token type.");
+    Log("Invalid single token type: %d", token->type);
     eval_success = false;
     // invalid single token
     return -1;
@@ -182,7 +182,7 @@ static bool is_paren_match(int l, int r) {
   return true;
 }
 
-static bool match_op_list(int type, int *op_list, int op_list_len) {
+static bool op_in_list(int type, int *op_list, int op_list_len) {
   for (int i = 0; i < op_list_len; ++i) {
     if (type == op_list[i])
       return true;
@@ -192,7 +192,7 @@ static bool match_op_list(int type, int *op_list, int op_list_len) {
 
 static int find_leftmost_split(int l, int r, int *op_list, int op_list_len) {
   for (int i = r; i >= l; --i) {
-    if (match_op_list(tokens[i].type, op_list, op_list_len) &&
+    if (op_in_list(tokens[i].type, op_list, op_list_len) &&
         is_paren_match(l, i - 1) && is_paren_match(i + 1, r)) {
       // can split here
       return i;
@@ -228,6 +228,8 @@ static int get_op_with_lowest_precedence(int l, int r) {
 
 static word_t eval_expr(int l, int r) {
   printf("Now evaluating %d, %d\n",l,r);
+  // the binary operator with lowest precedence
+  int pos = -1;
   if (l > r) {
     // bad expression
     eval_success = false;
@@ -241,14 +243,7 @@ static word_t eval_expr(int l, int r) {
   } else if(tokens[l].type == '(' && tokens[r].type == ')' && is_paren_match(l + 1, r - 1)){
     // remove paren
     return eval_expr(l + 1, r - 1);
-  } else {
-    // find the operator with lowest precedence
-    int pos = get_op_with_lowest_precedence(l, r);
-    if (pos == -1) {
-      // failed
-      eval_success = false;
-      return -1;
-    }
+  } else if((pos = get_op_with_lowest_precedence(l, r)) != -1){    
     // "main" operator
     int op_type = tokens[pos].type;
 
@@ -283,10 +278,33 @@ static word_t eval_expr(int l, int r) {
       break;
 
     default:
+      Log("Invalid binary operator");
+      eval_success = false;
       break;
     }
 
     return expr_val;
+  } else {
+    // unary operator
+    if (tokens[l].type == TK_UNARY_MINUS) {
+      return -eval_expr(l + 1, r);
+    } else {
+      eval_success = false;
+      Log("Invalid unary minus");
+      return -1;
+    }
+  }
+}
+
+// minus -> unary minus
+static void fix_op_types() {
+  static int before_expr_op_list[] = {'+', '-', '*', '/', TK_EQ, '(', ')'};
+  for (int i = nr_token - 1; i >= 0; --i) {
+    if (tokens[i].type == '-' &&
+        (i == 0 || op_in_list(tokens[i - 1].type, before_expr_op_list,
+                              ARRLEN(before_expr_op_list)))) {
+      tokens[i].type = TK_UNARY_MINUS;
+    }
   }
 }
 
@@ -308,8 +326,9 @@ word_t expr(char *e, bool *success) {
   }
   puts("");
 
-  eval_success = true;
+  fix_op_types();
 
+  eval_success = true;  
   word_t val = eval_expr(0, nr_token - 1);
   *success = eval_success;
   
