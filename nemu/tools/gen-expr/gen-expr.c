@@ -20,6 +20,8 @@
 #include <assert.h>
 #include <string.h>
 
+#define ARRLEN(x) (sizeof(x)/sizeof(x[0]))
+
 // this should be enough
 static char buf[65536] = {};
 static char code_buf[65536 + 128] = {}; // a little larger than `buf`
@@ -31,10 +33,122 @@ static char *code_format =
 "  return 0; "
 "}";
 
-static void gen_rand_expr() {
-  // buf[0] = '\0';
-  char *s = "10/0";
-  memcpy(buf,s,strlen(s));
+static void gen_rand_uint32(char** s, int* len)
+{
+  uint32_t num = (uint32_t)((uint64_t)rand() * (uint64_t)rand()) % UINT32_MAX;
+
+  int num_len = 0;
+  if(num == 0){
+    char *num_str = malloc(3);
+    num_str[0] = '0';
+    num_str[1] = 'u';
+    num_str[2] = '\0';
+    *s = num_str;
+    *len = 2;
+    return ;
+  }
+  uint32_t t = num;
+  char buf[20];
+  while(t){
+    buf[num_len++] = (t % 10) + '0';
+    t /= 10;
+  }
+  char *num_str = malloc(num_len + 2);
+  for (int i = 0; i < num_len; ++i) {
+    num_str[i] = buf[num_len - i - 1];
+  }
+  num_str[num_len] = 'u';
+  num_str[num_len + 1] = '\0';
+  *s = num_str;
+  *len = num_len + 1;
+}
+
+static char get_rand_op()
+{
+    static char ops[] = { '+', '-', '*', '/' };
+    return ops[rand() % ARRLEN(ops)];
+}
+
+static void gen_rand_expr_worker(char** s, int* len, int level)
+{
+    char* s_l;
+    int len_l;
+    char* s_r;
+    int len_r;
+    char* str;
+    int decision = level > 10 ? 0 : (rand() % 3 + 1);
+    char *space_s;
+    int space_l, space_r;
+    char *s_expr;
+    int len_expr;
+    switch (decision) {
+    case 0:
+        gen_rand_uint32(&s_l, &len_l);
+        *s = s_l;
+        *len = len_l;
+        break;
+
+    case 1:
+        gen_rand_expr_worker(&s_l, &len_l, level + 1);
+        gen_rand_expr_worker(&s_r, &len_r, level + 1);
+
+        *s = malloc(len_l + len_r + 1 + 1);
+        str = *s;
+        memcpy(str, s_l, len_l);
+        str[len_l] = get_rand_op();
+        memcpy(str + len_l + 1, s_r, len_r);
+        str[len_l + len_r + 1] = '\0';
+        *len = len_l + len_r + 1;
+        free(s_l);
+        free(s_r);
+        break;
+
+    case 2:
+        gen_rand_expr_worker(&s_l, &len_l, level + 1);
+        *s = malloc(len_l + 3);
+        str = *s;
+        memcpy(str + 1, s_l, len_l);
+        str[0] = '(';
+        str[len_l + 1] = ')';
+        str[len_l + 2] = '\0';
+        *len = len_l + 2;
+        free(s_l);
+        break;
+
+    default:
+      gen_rand_expr_worker(&s_expr, &len_expr, level + 1);
+      space_l = rand() % 5 + 1;
+      space_r = rand() % 5 + 1;
+      space_s = malloc(len_expr + space_l + space_r + 1);
+      for (int i = 0; i < space_l; ++i) {
+        space_s[i] = ' ';
+      }
+
+      for (int i = space_l; i < space_l + len_expr; ++i) {
+        space_s[i] = s_expr[i - space_l];
+      }
+      memcpy(space_s + space_l, s_expr, len_expr);
+
+      for (int i = space_l + len_expr; i < space_l + len_expr + space_r; ++i) {
+        space_s[i] = ' ';
+      }
+      space_s[space_l + len_expr + space_r] = '\0';
+      free(s_expr);
+      *s = space_s;
+      *len = len_expr + space_l + space_r;
+      break;
+    }
+    
+}
+
+static void gen_rand_expr()
+{
+    char* s;
+    int len;
+    gen_rand_expr_worker(&s, &len, 0);
+    memcpy(buf, s, len);
+    buf[len] = '\0';
+    free(s);
 }
 
 int main(int argc, char *argv[]) {
