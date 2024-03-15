@@ -36,7 +36,7 @@ static struct rule {
    */
 
   {"\\s+", TK_NOTYPE},    // spaces
-  {"[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
+  {"0x[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
   {"\\+", '+'},         // plus
   {"-", '-'},           // minus
   {"\\*", '*'},         // mutiply
