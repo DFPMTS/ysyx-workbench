@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
     char *buf = malloc(65536);
     printf("%s\n",test_expr_path);
     FILE *test_input = fopen(test_expr_path, "r");
+    Assert(test_input, "Failed to open file");
     Assert(fscanf(test_input, "%u", &ref), "Read reference output failed");
     Assert(fgets(buf, 65536, test_input), "Read expr failed");
     bool success;
