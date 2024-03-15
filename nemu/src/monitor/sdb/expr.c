@@ -163,6 +163,9 @@ static word_t eval_single_token(int i) {
     break;
   case TK_REG:
     val_ul = isa_reg_str2val(tokens[i].str + 1, &eval_success);
+    if (!eval_success) {
+      Log("Invalid register: %s", tokens[i].str + 1);
+    }
     break;
 
   default:
