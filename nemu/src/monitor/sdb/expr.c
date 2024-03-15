@@ -112,6 +112,7 @@ static bool make_token(char *e) {
             panic("Token too long!");
           }
           memcpy(cur_token->str, substr_start, substr_len);
+          cur_token->str[substr_len] = '\0';
           cur_token->type = rules[i].token_type;
           ++nr_token;
           break;
