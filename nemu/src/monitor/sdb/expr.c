@@ -217,7 +217,8 @@ static int find_leftmost_split(int l, int r, int *op_list, int op_list_len) {
 
 static int get_op_with_lowest_precedence(int l, int r) {
   // op precedence list
-  static int cmp_op_list[] = {TK_EQ, TK_NEQ, TK_AND};
+  static int cmp_op_list[] = {TK_EQ, TK_NEQ};
+  static int logic_op_list[] ={ TK_AND};
   static int add_sub_op_list[] = {'+', '-'};
   static int mul_div_op_list[] = {'*', '/'};
 
@@ -225,6 +226,10 @@ static int get_op_with_lowest_precedence(int l, int r) {
   int pos = -1;
 
   pos = find_leftmost_split(l, r, cmp_op_list, ARRLEN(cmp_op_list));
+  if (pos != -1)
+    return pos;
+
+  pos = find_leftmost_split(l, r, logic_op_list, ARRLEN(logic_op_list));
   if (pos != -1)
     return pos;
 
