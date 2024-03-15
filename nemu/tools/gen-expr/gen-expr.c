@@ -113,7 +113,7 @@ static void gen_rand_expr_worker(char** s, int* len, int level)
         memcpy(str + len_l, s_op, len_op);
 
         memcpy(str + len_l + len_op, s_r, len_r);
-        str[len_l + len_r + 1] = '\0';
+        str[len_l + len_r + len_op] = '\0';
 
         *s = str;
         *len = len_l + len_r + len_op;
