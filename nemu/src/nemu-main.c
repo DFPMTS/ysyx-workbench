@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <common.h>
+#include <stdio.h>
 
 void init_monitor(int, char *[]);
 void am_init_monitor();
@@ -22,19 +23,28 @@ int is_exit_status_bad();
 word_t expr(char *e, bool *success);
 
 int main(int argc, char *argv[]) {
-  /* Initialize the monitor. */
+  char *test_expr_path;
+  if ((test_expr_path = getenv("TEST_EXPR"))) {
+    // format: [ref]  [expr]
+    uint32_t ref;
+    char *buf = malloc(65536);
+    FILE * test_input = fopen(test_expr_path,"r");
+    Assert(fscanf(test_input, "%u", &ref), "Read reference output failed");
+    Assert(fgets(buf, 65536, test_input), "Read expr failed");
+    bool success;
+    printf("expr value: %u\n", expr(buf, &success));
+    Assert(success, "Eval failed.");
+  } else {
+    /* Initialize the monitor. */
 #ifdef CONFIG_TARGET_AM
-  am_init_monitor();
+    am_init_monitor();
 #else
-  init_monitor(argc, argv);
+    init_monitor(argc, argv);
 #endif
 
-  /* Start engine. */
-  // engine_start();
-  bool success;
-  char *s = "-1+-2+(-3/3)+-5*-1+4";
-  printf("expr value: %u\n",expr(s, &success));
-  Assert(success,"Eval failed.");
+    /* Start engine. */
+    engine_start();
 
-  return is_exit_status_bad();
+    return is_exit_status_bad();
+  }
 }
