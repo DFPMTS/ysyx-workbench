@@ -16,7 +16,7 @@
 #include "sdb.h"
 #include <cpu/cpu.h>
 
-#define NR_WP 3
+#define NR_WP 32
 
 typedef struct watchpoint {
   int NO;
