@@ -171,7 +171,6 @@ static int cmd_x(char *args) {
           printf("[expr] has to be a valid address.\n");
         }
       }
-      // TODO enable format other than hex number
     } else {
       printf("N has to be a positive number.\n");
     }
