@@ -147,15 +147,6 @@ static word_t eval_single_token(int i) {
       Log("Invalid unsigned decimal number.");
       eval_success = false;
     }
-
-#ifndef CONFIG_ISA64
-    // check for UL to word_t overflow
-    if (val_ul > UINT32_MAX) {
-      // overflow
-      Log("Decimal number overflow.");
-      eval_success = false;
-    }
-#endif
   } else if (token->type == TK_HEX) {
     // first put in UL
     val_ul = strtoul(tokens[i].str, &endptr, 16);
