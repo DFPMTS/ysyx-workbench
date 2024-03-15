@@ -75,7 +75,7 @@ void wp_add(char *s)
     bool success = true;    
     free_->last_value = expr(s, &success);
     if(!success){
-      printf("Invalid expr.");      
+      printf("Invalid expr.\n");      
       return;
     }
     int len = strlen(s) + 1;
@@ -85,7 +85,7 @@ void wp_add(char *s)
     free_->next = head;
     free_ = next_free;
   }else{
-    printf("Too many watch points!");
+    printf("Too many watch points!\n");
   }
 }
 
