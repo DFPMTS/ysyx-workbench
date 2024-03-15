@@ -21,7 +21,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_NUM, 
+  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_UNSIGNED_NUM, 
   /* TODO: Add more token types */
 
 };
@@ -36,7 +36,7 @@ static struct rule {
    */
 
   {"\\s+", TK_NOTYPE},    // spaces
-  {"[0-9]+", TK_NUM},   // decimal number
+  {"[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
   {"\\+", '+'},         // plus
   {"-", '-'},           // minus
   {"\\*", '*'},         // mutiply
@@ -72,7 +72,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[32] __attribute__((used)) = {};
+static Token tokens[4096] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -108,10 +108,11 @@ static bool make_token(char *e) {
             panic("Too many tokens in expression!");
           }                    
           cur_token = &tokens[nr_token];
-          if(substr_len >= ARRLEN(cur_token->str)){
+          if (substr_len + 1 >= ARRLEN(cur_token->str)) {
             panic("Token too long!");
           }
           memcpy(cur_token->str, substr_start, substr_len);
+          cur_token->str[substr_len] = '\0';
           cur_token->type = rules[i].token_type;
           ++nr_token;
           break;
@@ -136,12 +137,12 @@ static bool eval_success;
 static word_t eval_single_token(int i) {
   char *endptr;
   Token *token = &tokens[i];
-  if (token->type == TK_NUM) {
+  if (token->type == TK_UNSIGNED_NUM) {
     // first put in UL
     unsigned long val_ul = strtoul(tokens[i].str, &endptr, 10);
-    if (*endptr != '\0') {
+    if (endptr == tokens[i].str) {
       // invalid number
-      Log("Invalid decimal number."); 
+      Log("Invalid unsigned decimal number."); 
       eval_success = false;
     }
 
@@ -298,7 +299,7 @@ static word_t eval_expr(int l, int r) {
 
 // minus -> unary minus
 static void fix_op_types() {
-  static int before_expr_op_list[] = {'+', '-', '*', '/', TK_EQ, '(', ')'};
+  static int before_expr_op_list[] = {'+', '-', '*', '/', TK_EQ, '('};
   for (int i = nr_token - 1; i >= 0; --i) {
     if (tokens[i].type == '-' &&
         (i == 0 || op_in_list(tokens[i - 1].type, before_expr_op_list,
