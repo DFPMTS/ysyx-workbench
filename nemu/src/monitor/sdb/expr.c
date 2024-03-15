@@ -21,7 +21,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_NUM, 
+  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_UNSIGNED_NUM, 
   /* TODO: Add more token types */
 
 };
@@ -36,7 +36,7 @@ static struct rule {
    */
 
   {"\\s+", TK_NOTYPE},    // spaces
-  {"[0-9]+", TK_NUM},   // decimal number
+  {"[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
   {"\\+", '+'},         // plus
   {"-", '-'},           // minus
   {"\\*", '*'},         // mutiply
@@ -136,7 +136,7 @@ static bool eval_success;
 static word_t eval_single_token(int i) {
   char *endptr;
   Token *token = &tokens[i];
-  if (token->type == TK_NUM) {
+  if (token->type == TK_UNSIGNED_NUM) {
     // first put in UL
     unsigned long val_ul = strtoul(tokens[i].str, &endptr, 10);
     if (*endptr != '\0') {
