@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
         break;
       bool success;
       uint32_t expr_val = expr(buf, &success);
+      Log("expect value: %u\n", ref);
       Log("expr value: %u\n", expr_val);
       Assert(success, "Eval failed.");
       Assert(ref == expr_val, "Wrong answer");
