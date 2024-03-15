@@ -108,7 +108,7 @@ static bool make_token(char *e) {
             panic("Too many tokens in expression!");
           }                    
           cur_token = &tokens[nr_token];
-          if(substr_len >= ARRLEN(cur_token->str)){
+          if (substr_len + 1 >= ARRLEN(cur_token->str)) {
             panic("Token too long!");
           }
           memcpy(cur_token->str, substr_start, substr_len);
