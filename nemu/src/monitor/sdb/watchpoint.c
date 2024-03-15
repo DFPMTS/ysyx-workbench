@@ -57,7 +57,7 @@ void wp_check(vaddr_t pc) {
     } else {
       if (new_val != cur->last_value) {
         // stop
-        printf("Watch point %d triggered on %u, value: %u\n", cur->NO, pc,
+        printf("Watch point %d triggered on 0x%X, value: %u\n", cur->NO, pc,
                new_val);
         cur->last_value = new_val;
         changed = true;
