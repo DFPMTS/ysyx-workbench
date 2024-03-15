@@ -27,21 +27,19 @@ int main(int argc, char *argv[]) {
   if ((test_expr_path = getenv("TEST_EXPR"))) {
     // format: [ref]  [expr]
     uint32_t ref;
-    char *buf = malloc(65536+10);
+    char *buf = malloc(65536);
     printf("%s\n",test_expr_path);
     FILE *test_input = fopen(test_expr_path, "r");
     Assert(test_input, "Failed to open file");
-
     Assert(fscanf(test_input, "%u", &ref), "Read reference output failed");
-    Log("%u\n",ref);    
-
-    
-    Assert(fgets(buf, 65536, test_input), "Read expr failed");    
+    Log("%u\n",ref);
+    Assert(fscanf(test_input, "%s", buf), "Read reference output failed");
     Log("%s\n",buf);
-    
+    // Assert(fgets(buf, 65536, test_input), "Read expr failed");    
     bool success;
     printf("expr value: %u\n", expr(buf, &success));
     Assert(success, "Eval failed.");
+    free(buf);
   } else {
     /* Initialize the monitor. */
 #ifdef CONFIG_TARGET_AM
