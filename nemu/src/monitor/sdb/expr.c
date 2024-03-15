@@ -21,7 +21,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_UNSIGNED_NUM, TK_HEX,
+  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_UNSIGNED_NUM, TK_HEX, TK_NEQ, TK_AND, TK_DEREF, TK_REG
   /* TODO: Add more token types */
 
 };
@@ -34,7 +34,7 @@ static struct rule {
   /* TODO: Add more rules.
    * Pay attention to the precedence level of different rules.
    */
-
+  {"\\$[\\$a-z][0-9a-z]", TK_REG},
   {"\\s+", TK_NOTYPE},    // spaces
   {"[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
   {"0[xX][0-9a-fA-F]+u", TK_HEX},   // decimal number
@@ -45,6 +45,8 @@ static struct rule {
   {"\\(", '('},         // left parenthesis
   {")", ')'},           // right parenthesis
   {"==", TK_EQ},        // equal
+  {"!=", TK_NEQ},        // not equal
+  {"&&", TK_AND},        // and
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -147,15 +149,6 @@ static word_t eval_single_token(int i) {
       Log("Invalid unsigned decimal number.");
       eval_success = false;
     }
-
-#ifndef CONFIG_ISA64
-    // check for UL to word_t overflow
-    if (val_ul > UINT32_MAX) {
-      // overflow
-      Log("Decimal number overflow.");
-      eval_success = false;
-    }
-#endif
   } else if (token->type == TK_HEX) {
     // first put in UL
     val_ul = strtoul(tokens[i].str, &endptr, 16);
