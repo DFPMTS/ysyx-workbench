@@ -180,6 +180,26 @@ static int cmd_x(char *args) {
   return 0;
 }
 
+static int cmd_p(char *args) {
+  // extract the first argument: [expr]
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    // need argument
+    printf("Format: p [expr]\n");
+  } else {
+    bool success = true;
+    word_t value = expr(arg, &success);
+    if(success){
+      printf("%u\n",value);
+    }else{
+      printf("[expr] not valid!\n");
+    }
+  }
+
+  return 0;
+}
+
 void sdb_set_batch_mode() {
   is_batch_mode = true;
 }
