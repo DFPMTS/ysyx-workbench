@@ -16,7 +16,7 @@
 #include "sdb.h"
 #include <cpu/cpu.h>
 
-#define NR_WP 32
+#define NR_WP 3
 
 typedef struct watchpoint {
   int NO;
@@ -115,7 +115,7 @@ void wp_delete(int NO)
       if(prev){        
         prev->next = cur->next;
       }else{
-        // prev not exist, removing head
+        // prev not exist, we are deleting head
         head = cur->next;
       }
       free(cur->expr);
