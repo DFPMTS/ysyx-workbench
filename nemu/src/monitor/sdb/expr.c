@@ -139,9 +139,9 @@ static word_t eval_single_token(int i) {
   if (token->type == TK_UNSIGNED_NUM) {
     // first put in UL
     unsigned long val_ul = strtoul(tokens[i].str, &endptr, 10);
-    if (*endptr != '\0') {
+    if (*endptr != 'u') {
       // invalid number
-      Log("Invalid decimal number."); 
+      Log("Invalid unsigned decimal number."); 
       eval_success = false;
     }
 
