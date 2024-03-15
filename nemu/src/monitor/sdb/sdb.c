@@ -66,6 +66,8 @@ static int cmd_p(char *args);
 
 static int cmd_w(char *args);
 
+static int cmd_d(char *args);
+
 static struct {
   const char *name;
   const char *description;
@@ -78,7 +80,8 @@ static struct {
   { "info", "print information about registers or watchpoints.", cmd_info},
   { "p", "Evaluate expression.", cmd_p},
   { "x", "Examine memory.", cmd_x},
-  { "w", "Set watch point.", cmd_w}
+  { "w", "Set watch point.", cmd_w},
+  { "d", "Delete watch point", cmd_d}
 
   /* TODO: Add more commands */
 
@@ -214,6 +217,21 @@ static int cmd_w(char *args) {
     printf("Format: w [expr]\n");
   } else {
     wp_add(arg);
+  }
+
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  // extract the first argument: watch point NO
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    // need argument
+    printf("Format: d NO\n");
+  } else {
+    int NO = atoi(arg);
+    wp_delete(NO);
   }
 
   return 0;

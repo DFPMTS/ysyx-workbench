@@ -16,7 +16,7 @@
 #include "sdb.h"
 #include <cpu/cpu.h>
 
-#define NR_WP 32
+#define NR_WP 3
 
 typedef struct watchpoint {
   int NO;
@@ -28,8 +28,8 @@ typedef struct watchpoint {
 } WP;
 
 static WP wp_pool[NR_WP] = {};
-static WP *head = NULL, *free_ = NULL;
-// static int next_NO = NR_WP; 
+static WP *head = NULL, *free_ = NULL, *free_last = NULL;
+static int next_NO = NR_WP; 
 
 void init_wp_pool() {
   int i;
@@ -40,6 +40,7 @@ void init_wp_pool() {
 
   head = NULL;
   free_ = wp_pool;
+  free_last = &wp_pool[NR_WP - 1];
 }
 
 /* TODO: Implement the functionality of watchpoint */
@@ -85,6 +86,10 @@ void wp_add(char *s)
     free_->next = head;
     head = free_;
     free_ = next_free;
+    if(!free_){
+      // running out of free watch points
+      free_last = NULL;
+    }
   }else{
     printf("Too many watch points!\n");
   }
@@ -101,6 +106,34 @@ void wp_display() {
     } else {
       printf("%u\n",val);
     }
+    cur = cur->next;
+  }
+}
+
+void wp_delete(int NO) {
+  WP *cur = head;
+  WP *prev = NULL;
+  while (cur) {
+    if (cur->NO == NO) {
+      // found
+      if (prev) {
+        prev->next = cur->next;
+      } else {
+        // prev not exist, we are deleting head
+        head = cur->next;
+      }
+      cur->next = NULL;
+      cur->NO = next_NO++;
+      free(cur->expr);
+      if (free_) {
+        free_last->next = cur;
+      } else {
+        free_ = cur;
+        free_last = cur;
+      }
+      printf("Watch point [%d] deleted.\n", NO);
+    }
+    prev = cur;
     cur = cur->next;
   }
 }
