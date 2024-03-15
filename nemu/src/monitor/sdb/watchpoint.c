@@ -45,6 +45,7 @@ void init_wp_pool() {
 /* TODO: Implement the functionality of watchpoint */
 
 void wp_check(vaddr_t pc) {
+  puts("Checking");
   WP *cur = head;
   bool changed = false;
   while (cur) {
