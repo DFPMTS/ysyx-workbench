@@ -20,6 +20,8 @@
 
 word_t expr(char *e, bool *success);
 
-void watch(vaddr_t pc);
+void wp_check(vaddr_t pc);
+
+void wp_add(char *s);
 
 #endif

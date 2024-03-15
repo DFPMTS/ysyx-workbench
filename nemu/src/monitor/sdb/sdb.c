@@ -64,6 +64,8 @@ static int cmd_x(char *args);
 
 static int cmd_p(char *args);
 
+static int cmd_w(char *args);
+
 static struct {
   const char *name;
   const char *description;
@@ -75,7 +77,8 @@ static struct {
   { "si", "Continue the execution of the program for N steps. When not given, N is default to 1.", cmd_si},
   { "info", "print information about registers or watchpoints.", cmd_info},
   { "p", "Evaluate expression.", cmd_p},
-  { "x", "Examine memory.", cmd_x}
+  { "x", "Examine memory.", cmd_x},
+  { "w", "Set watch point.", cmd_w}
 
   /* TODO: Add more commands */
 
@@ -197,6 +200,20 @@ static int cmd_p(char *args) {
     }else{
       printf("[expr] not valid!\n");
     }
+  }
+
+  return 0;
+}
+
+static int cmd_w(char *args) {
+  // extract the first argument: [expr]
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    // need argument
+    printf("Format: w [expr]\n");
+  } else {
+    wp_add(arg);
   }
 
   return 0;

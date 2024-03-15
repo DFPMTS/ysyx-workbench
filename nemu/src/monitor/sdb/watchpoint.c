@@ -22,12 +22,14 @@ typedef struct watchpoint {
   int NO;
   struct watchpoint *next;
   word_t last_value;
+  char *expr;
   /* TODO: Add more members if necessary */
 
 } WP;
 
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
+// static int next_NO = NR_WP; 
 
 void init_wp_pool() {
   int i;
@@ -42,4 +44,51 @@ void init_wp_pool() {
 
 /* TODO: Implement the functionality of watchpoint */
 
-void watch(vaddr_t pc) { set_nemu_state(NEMU_STOP, pc, -1); }
+void wp_check(vaddr_t pc) {
+  WP *cur = head;
+  bool changed = false;
+  while (cur) {
+    cur = cur->next;
+    bool success = true;
+    word_t new_val = expr(cur->expr, &success);
+    if (!success) {
+      Log("Invalid expr.");
+    } else {
+      if (new_val != cur->last_value) {
+        // stop
+        printf("Watch point %d trigger on %u, value: %u\n", cur->NO, pc,
+               new_val);
+        cur->last_value = new_val;
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
+    set_nemu_state(NEMU_STOP, pc, -1);
+  }
+}
+
+void wp_add(char *s)
+{  
+  if(free_){
+    bool success = true;    
+    free_->last_value = expr(s, &success);
+    if(!success){
+      printf("Invalid expr.");      
+      return;
+    }
+    int len = strlen(s) + 1;
+    free_->expr = malloc(len);
+    memcpy(free_->expr, s, len);
+    WP *next_free = free_->next;
+    free_->next = head;
+    free_ = next_free;
+  }else{
+    printf("Too many watch points!");
+  }
+}
+
+void wp_display(){
+
+}
