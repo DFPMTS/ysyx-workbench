@@ -21,7 +21,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_UNSIGNED_NUM, TK_HEX,
+  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_UNSIGNED_NUM, TK_HEX, TK_NEQ, TK_AND, TK_DEREF, TK_REG
   /* TODO: Add more token types */
 
 };
@@ -34,7 +34,7 @@ static struct rule {
   /* TODO: Add more rules.
    * Pay attention to the precedence level of different rules.
    */
-
+  {"\\$[\\$a-z][0-9a-z]+", TK_REG},
   {"\\s+", TK_NOTYPE},    // spaces
   {"[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
   {"0[xX][0-9a-fA-F]+u", TK_HEX},   // decimal number
@@ -45,6 +45,8 @@ static struct rule {
   {"\\(", '('},         // left parenthesis
   {")", ')'},           // right parenthesis
   {"==", TK_EQ},        // equal
+  {"!=", TK_NEQ},        // not equal
+  {"&&", TK_AND},        // and
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -215,12 +217,17 @@ static int find_leftmost_split(int l, int r, int *op_list, int op_list_len) {
 
 static int get_op_with_lowest_precedence(int l, int r) {
   // op precedence list
-  static int cmp_op_list[] = {TK_EQ};
+  static int logic_op_list[] = {TK_AND};
+  static int cmp_op_list[] = {TK_EQ, TK_NEQ};  
   static int add_sub_op_list[] = {'+', '-'};
   static int mul_div_op_list[] = {'*', '/'};
 
   // split pos
   int pos = -1;
+
+  pos = find_leftmost_split(l, r, logic_op_list, ARRLEN(logic_op_list));
+  if (pos != -1)
+    return pos;
 
   pos = find_leftmost_split(l, r, cmp_op_list, ARRLEN(cmp_op_list));
   if (pos != -1)
@@ -261,6 +268,9 @@ static word_t eval_expr(int l, int r) {
 
     // eval left part and right part
     word_t left_val = eval_expr(l, pos - 1);
+    if(op_type == TK_AND && !left_val)
+      return 0;
+
     word_t right_val = eval_expr(pos + 1, r);
     word_t expr_val = -1;
     if(!eval_success)
@@ -287,6 +297,14 @@ static word_t eval_expr(int l, int r) {
       break;
     case TK_EQ:
       expr_val = (left_val == right_val);
+      break;
+
+    case TK_NEQ:
+      expr_val = (left_val != right_val);
+      break;
+
+    case TK_AND:
+      expr_val = (left_val && right_val);
       break;
 
     default:
