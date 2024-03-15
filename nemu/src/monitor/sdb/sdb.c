@@ -163,7 +163,7 @@ static int cmd_x(char *args) {
     int N = atoi(arg);
     if (N > 0) {
       // extract the second argument.
-      arg = strtok(NULL, " ");
+      arg = strtok(NULL, "");
       if (arg == NULL) {
         printf("Need expression.\n");
       } else {
@@ -186,8 +186,8 @@ static int cmd_x(char *args) {
 }
 
 static int cmd_p(char *args) {
-  // extract the first argument: [expr]
-  char *arg = strtok(NULL, " ");
+  // the rest of line is the first argument: [expr]
+  char *arg = args;
 
   if (arg == NULL) {
     // need argument
@@ -206,8 +206,8 @@ static int cmd_p(char *args) {
 }
 
 static int cmd_w(char *args) {
-  // extract the first argument: [expr]
-  char *arg = strtok(NULL, " ");
+   // the rest of line is the first argument: [expr]
+  char *arg = args;
 
   if (arg == NULL) {
     // need argument
