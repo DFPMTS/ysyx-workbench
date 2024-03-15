@@ -28,4 +28,6 @@ void wp_display();
 
 void wp_delete(int NO);
 
+void wp_destroy();
+
 #endif

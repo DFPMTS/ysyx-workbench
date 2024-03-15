@@ -137,3 +137,11 @@ void wp_delete(int NO) {
     cur = cur->next;
   }
 }
+
+void wp_destroy() {
+  WP *cur = head;
+  while (cur) {
+    free(cur->expr);
+    cur = cur->next;
+  }
+}
