@@ -46,13 +46,24 @@ static char *gen_rand_decimal_uint32() {
   return buf;
 }
 
-static char *gen_rand_op() {
-  static char *ops[] = {"*", "-", "*", "/", "==", "!=", "&&"};
-  int id = rand() % ARRLEN(ops);
-  int len = strlen(ops[id]) + 1;
+static char *gen_rand_from_list(char *list[], int list_len) 
+{
+  int id = rand() % list_len;
+  int len = strlen(list[id]) + 1;
   char *buf = malloc(len);
-  snprintf(buf, len, "%s", ops[id]);
+  snprintf(buf, len, "%s", list[id]);
   return buf;
+}
+
+static char *gen_rand_binary_op() {
+  static char *binary_ops[] = {"*", "-", "*", "/", "==", "!=", "&&"};
+  return gen_rand_from_list(binary_ops, ARRLEN(binary_ops));
+}
+
+
+static char *gen_rand_unary_op() {
+  static char *unary_ops[] = {/*"*",*/ "-"};
+  return gen_rand_from_list(unary_ops, ARRLEN(unary_ops));
 }
 
 static char *gen_rand_expr_worker(int level) {
@@ -60,7 +71,7 @@ static char *gen_rand_expr_worker(int level) {
   char *s_r;
   char *str;
 
-  int decision = level > 10 ? 0 : (rand() % 3 + 1);
+  int decision = level > 10 ? 0 : (rand() % 4 + 1);
   int space_l, space_r;
   char *s_expr;
   char *s_op;
@@ -73,7 +84,7 @@ static char *gen_rand_expr_worker(int level) {
 
   case 1:
     s_l = gen_rand_expr_worker(level + 1);
-    s_op = gen_rand_op();
+    s_op = gen_rand_binary_op();
     s_r = gen_rand_expr_worker(level + 1);
 
     len = strlen(s_l) + strlen(s_r) + strlen(s_op) + 1;
@@ -91,6 +102,17 @@ static char *gen_rand_expr_worker(int level) {
     str = malloc(len);
     snprintf(str, len, "(%s)", s_expr);
     free(s_expr);
+    return str;
+    break;
+
+  case 3:
+    s_expr = gen_rand_expr_worker(level + 1);
+    s_op = gen_rand_unary_op();
+    len = strlen(s_expr) + strlen(s_op) + 1;
+    str = malloc(len);
+    snprintf(str, len, "%s%s", s_op, s_expr);
+    free(s_expr);
+    free(s_op);
     return str;
     break;
 
