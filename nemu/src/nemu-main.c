@@ -15,12 +15,12 @@
 
 #include <common.h>
 #include <stdio.h>
+#include "monitor/sdb/sdb.h"
 
 void init_monitor(int, char *[]);
 void am_init_monitor();
 void engine_start();
 int is_exit_status_bad();
-word_t expr(char *e, bool *success);
 
 static char buf [65536+10];
 
