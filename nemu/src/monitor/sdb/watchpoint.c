@@ -44,20 +44,18 @@ void init_wp_pool() {
 
 /* TODO: Implement the functionality of watchpoint */
 
-void wp_check(vaddr_t pc) {
-  puts("Checking");
+void wp_check(vaddr_t pc) {  
   WP *cur = head;
   bool changed = false;
   while (cur) {
     bool success = true;
-    printf("%s\n",cur->expr);
     word_t new_val = expr(cur->expr, &success);
     if (!success) {
       Log("Invalid expr.");
     } else {
       if (new_val != cur->last_value) {
         // stop
-        printf("Watch point %d triggered on 0x%X, value: %u\n", cur->NO, pc,
+        printf("Watch point [%d] triggered on 0x%X, value: %u\n", cur->NO, pc,
                new_val);
         cur->last_value = new_val;
         changed = true;
@@ -92,6 +90,17 @@ void wp_add(char *s)
   }
 }
 
-void wp_display(){
-
+void wp_display() {
+  WP *cur = head;
+  while (cur) {
+    printf("Watch point [%d]: expr=%s, value=", cur->NO, cur->expr);
+    bool success = true;
+    word_t val = expr(cur->expr, &success);
+    if (!success) {
+      printf("Not Available\n") ;
+    } else {
+      printf("%u\n",val);
+    }
+    cur = cur->next;
+  }
 }

@@ -24,4 +24,6 @@ void wp_check(vaddr_t pc);
 
 void wp_add(char *s);
 
+void wp_display();
+
 #endif

@@ -144,8 +144,8 @@ static int cmd_info(char *args) {
       // print registers
       isa_reg_display();
     } else if (strcmp("w", arg) == 0) {
-      // TODO print watch points
-      TODO();
+      // print watch points
+      wp_display();
     }
   }
 
