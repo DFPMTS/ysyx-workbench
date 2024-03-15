@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include <memory/vaddr.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
@@ -21,7 +22,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_UNSIGNED_NUM, TK_HEX, TK_NEQ, TK_AND, TK_DEREF, TK_REG
+  TK_NOTYPE = 256, TK_EQ, TK_UNARY_MINUS, TK_DECIMAL, TK_HEX, TK_NEQ, TK_AND, TK_DEREF, TK_REG
   /* TODO: Add more token types */
 
 };
@@ -36,7 +37,7 @@ static struct rule {
    */
   {"\\$[\\$a-z][0-9a-z]+", TK_REG},
   {"\\s+", TK_NOTYPE},    // spaces
-  {"[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
+  {"[0-9]+u", TK_DECIMAL},   // decimal number
   {"0[xX][0-9a-fA-F]+u", TK_HEX},   // decimal number
   {"\\+", '+'},         // plus
   {"-", '-'},           // minus
@@ -141,7 +142,8 @@ static word_t eval_single_token(int i) {
   char *endptr;
   Token *token = &tokens[i];
   unsigned long val_ul = 0;
-  if (token->type == TK_UNSIGNED_NUM) {
+  switch (token->type) {
+  case TK_DECIMAL:
     // first put in UL
     val_ul = strtoul(tokens[i].str, &endptr, 10);
     if (endptr == tokens[i].str) {
@@ -149,7 +151,8 @@ static word_t eval_single_token(int i) {
       Log("Invalid unsigned decimal number.");
       eval_success = false;
     }
-  } else if (token->type == TK_HEX) {
+    break;
+  case TK_HEX:
     // first put in UL
     val_ul = strtoul(tokens[i].str, &endptr, 16);
     if (endptr == tokens[i].str) {
@@ -157,12 +160,22 @@ static word_t eval_single_token(int i) {
       Log("Invalid unsigned hexadecimal number.");
       eval_success = false;
     }
-  } else {
+    break;
+  case TK_REG:
+    val_ul = isa_reg_str2val(tokens[i].str + 1, &eval_success);
+    if (!eval_success) {
+      Log("Invalid register: %s", tokens[i].str + 1);
+    }
+    break;
+
+  default:
+    // invalid single token
     Log("Invalid single token type: %d", token->type);
     eval_success = false;
-    // invalid single token
     val_ul = -1;
+    break;
   }
+
   if (eval_success) {
 #ifndef CONFIG_ISA64
     // check for UL to word_t overflow
@@ -173,6 +186,7 @@ static word_t eval_single_token(int i) {
     }
 #endif
   }
+
   return (word_t)val_ul;
 }
 
