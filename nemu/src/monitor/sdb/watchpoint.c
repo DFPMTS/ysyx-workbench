@@ -110,25 +110,24 @@ void wp_display() {
   }
 }
 
-void wp_delete(int NO)
-{
+void wp_delete(int NO) {
   WP *cur = head;
   WP *prev = NULL;
   while (cur) {
-    if(cur->NO == NO){
+    if (cur->NO == NO) {
       // found
-      if(prev){        
+      if (prev) {
         prev->next = cur->next;
-      }else{
+      } else {
         // prev not exist, we are deleting head
         head = cur->next;
       }
       cur->next = NULL;
       cur->NO = next_NO++;
       free(cur->expr);
-      if (free_) {        
-        free_last->next = cur;        
-      }else{
+      if (free_) {
+        free_last->next = cur;
+      } else {
         free_ = cur;
         free_last = cur;
       }
