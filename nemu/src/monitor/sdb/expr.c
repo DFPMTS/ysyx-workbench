@@ -318,12 +318,12 @@ word_t expr(char *e, bool *success) {
   /* TODO: Insert codes to evaluate the expression. */
   // TODO();
   for (int i = 0; i < nr_token; ++i) {
-    printf("%20d", i);
+    printf("%10d", i);
   }
   puts("");
 
   for (int i = 0; i < nr_token; ++i) {
-    printf("%20s", tokens[i].str);
+    printf("%10s", tokens[i].str);
   }
   puts("");
 
