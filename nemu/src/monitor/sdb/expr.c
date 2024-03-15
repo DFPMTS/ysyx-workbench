@@ -34,7 +34,7 @@ static struct rule {
   /* TODO: Add more rules.
    * Pay attention to the precedence level of different rules.
    */
-  {"\\$[\\$a-z][0-9a-z]", TK_REG},
+  {"\\$[\\$a-z][0-9a-z]+", TK_REG},
   {"\\s+", TK_NOTYPE},    // spaces
   {"[0-9]+u", TK_UNSIGNED_NUM},   // decimal number
   {"0[xX][0-9a-fA-F]+u", TK_HEX},   // decimal number
