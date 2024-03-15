@@ -37,13 +37,12 @@ static void gen_rand_decimal_uint32(char** s, int* len)
 {
   uint32_t num = (uint32_t)((uint64_t)rand() * (uint64_t)rand()) % UINT32_MAX;
 
-  char *buf = malloc(20);
+  char *buf = malloc(25);
 
-  snprintf(buf, 15, "%u", num);
-  int str_len = strlen(buf);
-  buf[str_len] = 'u';
+  if(rand()&1) { snprintf(buf, 20, "%uu", num);}
+  else  { snprintf(buf, 20, "0x%xu", num);}
   *s = buf;
-  *len = str_len + 1;
+  *len = strlen(buf);
 }
 
 static void gen_rand_op(char **s, int*len)
