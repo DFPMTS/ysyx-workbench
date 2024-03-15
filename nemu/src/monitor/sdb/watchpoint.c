@@ -93,9 +93,9 @@ void wp_add(char *s)
 void wp_display() {
   WP *cur = head;
   while (cur) {
-    printf("Watch point [%d]: expr=%s, value=", cur->NO, cur->expr);
     bool success = true;
     word_t val = expr(cur->expr, &success);
+    printf("Watch point [%d]: expr=%s, value=", cur->NO, cur->expr);    
     if (!success) {
       printf("Not Available\n") ;
     } else {
