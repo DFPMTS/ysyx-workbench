@@ -33,39 +33,17 @@ static char *code_format =
 "  return 0; "
 "}";
 
-static void gen_rand_uint32(char** s, int* len)
+static void gen_rand_decimal_uint32(char** s, int* len)
 {
   uint32_t num = (uint32_t)((uint64_t)rand() * (uint64_t)rand()) % UINT32_MAX;
 
-  int num_len = 0;
-  if (num == 0) {
-    char *num_str = malloc(5);
-    num_str[0] = '0';
-    num_str[1] = 'x';
-    num_str[2] = '0';
-    num_str[3] = 'u';
-    num_str[4] = '\0';
-    *s = num_str;
-    *len = 4;
-    return;
-  }
+  char *buf = malloc(20);
 
-  uint32_t t = num;
-  char buf[20];
-  while (t) {
-    buf[num_len++] = (t % 10) + '0';
-    t /= 10;
-  }
-  char *num_str = malloc(num_len + 4);
-  num_str[0] = '0';
-  num_str[1] = 'x';
-  for (int i = 0; i < num_len; ++i) {
-    num_str[i + 2] = buf[num_len - i - 1];
-  }
-  num_str[num_len + 2] = 'u';
-  num_str[num_len + 3] = '\0';
-  *s = num_str;
-  *len = num_len + 3;
+  snprintf(buf, 15, "%u", num);
+  int str_len = strlen(buf);
+  buf[str_len] = 'u';
+  *s = buf;
+  *len = str_len + 1;
 }
 
 static void gen_rand_op(char **s, int*len)
@@ -102,7 +80,7 @@ static void gen_rand_expr_worker(char** s, int* len, int level)
     int len_op;
     switch (decision) {
     case 0:
-        gen_rand_uint32(&s_l, &len_l);
+        gen_rand_decimal_uint32(&s_l, &len_l);
         *s = s_l;
         *len = len_l;
         break;

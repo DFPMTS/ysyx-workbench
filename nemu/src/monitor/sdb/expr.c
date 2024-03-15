@@ -175,7 +175,7 @@ static word_t eval_single_token(int i) {
     // check for UL to word_t overflow
     if (val_ul > UINT32_MAX) {
       // overflow
-      Log("Decimal number overflow.");
+      Log("Number overflow.");
       eval_success = false;
     }
 #endif
