@@ -22,6 +22,8 @@ void engine_start();
 int is_exit_status_bad();
 word_t expr(char *e, bool *success);
 
+static char buf [65536+10];
+
 int main(int argc, char *argv[]) {
   char *test_expr_path;
   /* Initialize the monitor. */
@@ -34,19 +36,16 @@ int main(int argc, char *argv[]) {
   if ((test_expr_path = getenv("TEST_EXPR"))) {
     // format: [ref]  [expr]
     uint32_t ref;
-    char *buf = malloc(65536);
     Log("Reading input from: %s\n",test_expr_path);
-
     FILE *test_input = fopen(test_expr_path, "r");
     Assert(test_input, "Failed to open file");
     Assert(fscanf(test_input, "%u", &ref), "Read reference output failed");
     Assert(fgets(buf, 65536, test_input), "Read expr failed");    
     bool success;
     uint32_t expr_val = expr(buf, &success);
-    printf("expr value: %u\n", expr_val);
+    Log("expr value: %u\n", expr_val);
     Assert(success, "Eval failed.");
     Assert(ref == expr_val, "Wrong answer");
-    free(buf);
   } else {
 
     /* Start engine. */
