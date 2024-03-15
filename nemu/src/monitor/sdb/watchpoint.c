@@ -14,19 +14,22 @@
 ***************************************************************************************/
 
 #include "sdb.h"
+#include <cpu/cpu.h>
 
 #define NR_WP 32
 
 typedef struct watchpoint {
   int NO;
   struct watchpoint *next;
-
+  word_t last_value;
+  char *expr;
   /* TODO: Add more members if necessary */
 
 } WP;
 
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
+// static int next_NO = NR_WP; 
 
 void init_wp_pool() {
   int i;
@@ -41,3 +44,63 @@ void init_wp_pool() {
 
 /* TODO: Implement the functionality of watchpoint */
 
+void wp_check(vaddr_t pc) {  
+  WP *cur = head;
+  bool changed = false;
+  while (cur) {
+    bool success = true;
+    word_t new_val = expr(cur->expr, &success);
+    if (!success) {
+      Log("Invalid expr.");
+    } else {
+      if (new_val != cur->last_value) {
+        // stop
+        printf("Watch point [%d] triggered on 0x%X, value: %u\n", cur->NO, pc,
+               new_val);
+        cur->last_value = new_val;
+        changed = true;
+      }
+    }
+    cur = cur->next;
+  }
+
+  if (changed) {
+    set_nemu_state(NEMU_STOP, pc, -1);
+  }
+}
+
+void wp_add(char *s)
+{  
+  if(free_){
+    bool success = true;    
+    free_->last_value = expr(s, &success);
+    if(!success){
+      printf("Invalid expr.\n");      
+      return;
+    }
+    int len = strlen(s) + 1;
+    free_->expr = malloc(len);
+    memcpy(free_->expr, s, len);
+    WP *next_free = free_->next;
+    free_->next = head;
+    head = free_;
+    free_ = next_free;
+  }else{
+    printf("Too many watch points!\n");
+  }
+}
+
+void wp_display() {
+  WP *cur = head;
+  while (cur) {
+    bool success = true;
+    word_t val = expr(cur->expr, &success);
+    printf("Watch point [%d]: expr=%s, value=", cur->NO, cur->expr);    
+    if (!success) {
+      printf("Not Available\n") ;
+    } else {
+      printf("%u\n",val);
+    }
+    cur = cur->next;
+  }
+}
