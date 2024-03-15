@@ -32,7 +32,9 @@ int main(int argc, char *argv[]) {
     FILE *test_input = fopen(test_expr_path, "r");
     Assert(test_input, "Failed to open file");
     Assert(fscanf(test_input, "%u", &ref), "Read reference output failed");
+    Log("%u\n",ref);
     Assert(fgets(buf, 65536, test_input), "Read expr failed");
+    Log("%s\n",buf);
     bool success;
     printf("expr value: %u\n", expr(buf, &success));
     Assert(success, "Eval failed.");
