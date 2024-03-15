@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     Assert(fscanf(test_input, "%u", &ref), "Read reference output failed");
     Log("%u\n",ref);
     Assert(fscanf(test_input, "%s", buf), "Read reference output failed");
-    Log("%s\n",buf);
+    // Log("%s\n",buf);
     // Assert(fgets(buf, 65536, test_input), "Read expr failed");    
     bool success;
     printf("expr value: %u\n", expr(buf, &success));
