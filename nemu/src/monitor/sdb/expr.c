@@ -268,6 +268,9 @@ static word_t eval_expr(int l, int r) {
 
     // eval left part and right part
     word_t left_val = eval_expr(l, pos - 1);
+    if(op_type == TK_AND && !left_val)
+      return 0;
+
     word_t right_val = eval_expr(pos + 1, r);
     word_t expr_val = -1;
     if(!eval_success)
