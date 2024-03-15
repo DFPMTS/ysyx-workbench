@@ -186,8 +186,8 @@ static int cmd_x(char *args) {
 }
 
 static int cmd_p(char *args) {
-  // extract the first argument: [expr]
-  char *arg = strtok(NULL, " ");
+  // the rest of line is the first argument: [expr]
+  char *arg = args;
 
   if (arg == NULL) {
     // need argument
