@@ -260,7 +260,7 @@ static int get_op_with_lowest_precedence(int l, int r) {
 }
 
 static word_t eval_expr(int l, int r) {
-  printf("Now evaluating %d, %d\n",l,r);
+  // printf("Now evaluating %d, %d\n",l,r);
   // the binary operator with lowest precedence
   int pos = -1;
   if (l > r) {
@@ -366,15 +366,15 @@ word_t expr(char *e, bool *success) {
 
   /* TODO: Insert codes to evaluate the expression. */
   // TODO();
-  for (int i = 0; i < nr_token; ++i) {
-    printf("%10d", i);
-  }
-  puts("");
+  // for (int i = 0; i < nr_token; ++i) {
+  //   printf("%10d", i);
+  // }
+  // puts("");
 
-  for (int i = 0; i < nr_token; ++i) {
-    printf("%10s", tokens[i].str);
-  }
-  puts("");
+  // for (int i = 0; i < nr_token; ++i) {
+  //   printf("%10s", tokens[i].str);
+  // }
+  // puts("");
 
   fix_op_types();
 
