@@ -84,6 +84,7 @@ void wp_add(char *s)
     memcpy(free_->expr, s, len);
     WP *next_free = free_->next;
     free_->next = head;
+    head = free_;
     free_ = next_free;
   }else{
     printf("Too many watch points!\n");
