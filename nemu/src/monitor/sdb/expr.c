@@ -332,9 +332,12 @@ static word_t eval_expr(int l, int r) {
     // unary operator
     if (tokens[l].type == TK_UNARY_MINUS) {
       return -eval_expr(l + 1, r);
+    } else if (tokens[l].type == TK_DEREF) {
+      word_t addr = eval_expr(l + 1, r);    
+      return eval_success ? vaddr_read(addr, 4) : -1;
     } else {
       eval_success = false;
-      Log("Invalid unary minus");
+      Log("Invalid unary operator: %d\n", tokens[l].type);
       return -1;
     }
   }
