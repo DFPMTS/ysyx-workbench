@@ -23,13 +23,14 @@
 #define Mw vaddr_write
 
 enum {
-  TYPE_R, TYPE_I, TYPE_U, TYPE_S, TYPE_J, TYPE_B,
+  TYPE_R, TYPE_I, TYPE_I_SHIFT, TYPE_U, TYPE_S, TYPE_J, TYPE_B, 
   TYPE_N, // none
 };
 
 #define src1R() do { *src1 = R(rs1); } while (0)
 #define src2R() do { *src2 = R(rs2); } while (0)
 #define immI() do { *imm = SEXT(BITS(i, 31, 20), 12); } while(0)
+#define immI_SHIFT() do { *imm = BITS(i, 24, 20); } while(0)
 #define immU() do { *imm = SEXT(BITS(i, 31, 12), 20) << 12; } while(0)
 #define immS() do { *imm = (SEXT(BITS(i, 31, 25), 7) << 5) | BITS(i, 11, 7); } while(0)
 #define immB() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 12)\
@@ -48,6 +49,7 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
   *rd     = BITS(i, 11, 7);
   switch (type) {
     case TYPE_I: src1R();          immI(); break;
+    case TYPE_I_SHIFT: src1R();    immI_SHIFT(); break;
     case TYPE_U:                   immU(); break;
     case TYPE_S: src1R(); src2R(); immS(); break;
     case TYPE_B: src1R(); src2R(); immB(); break;
@@ -77,6 +79,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 010 ????? 00000 11", lw     , I, R(rd) = Mr(src1 + imm, 4));
   INSTPAT("??????? ????? ????? 000 ????? 00100 11", addi   , I, R(rd) = src1 + imm);
   INSTPAT("??????? ????? ????? 111 ????? 00100 11", andi   , I, R(rd) = src1 & imm);
+  INSTPAT("??????? ????? ????? 101 ????? 00100 11", srai   , I_SHIFT, R(rd) = (int32_t)src1 >> imm);
   INSTPAT("??????? ????? ????? ??? ????? 11001 11", jalr   , I, R(rd) = s->pc + 4, s->dnpc = src1 + imm);
   INSTPAT("??????? ????? ????? 011 ????? 00100 11", sltiu  , I, R(rd) = src1 < imm);
   INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, Mw(src1 + imm, 1, src2));
