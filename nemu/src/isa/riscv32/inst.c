@@ -48,6 +48,7 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
   int rs2 = BITS(i, 24, 20);
   *rd     = BITS(i, 11, 7);
   switch (type) {
+    case TYPE_R: src1R(); src2R();         break;
     case TYPE_I: src1R();          immI(); break;
     case TYPE_I_SHIFT: src1R();    immI_SHIFT(); break;
     case TYPE_U:                   immU(); break;
