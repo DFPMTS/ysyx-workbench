@@ -6,7 +6,7 @@ html:
 .PHONY: html
 
 ## 1. Basic Setup and Checks
-# export CONFIG_TARGET_AM = 1
+
 ### Default to create a bare-metal kernel image
 ifeq ($(MAKECMDGOALS),)
   MAKECMDGOALS  = image
