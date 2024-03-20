@@ -9,10 +9,10 @@ COLOR_RED   := $(shell tput setaf 1)
 COLOR_GREEN := $(shell tput setaf 2)
 COLOR_NONE  := $(shell tput sgr0)
 
-ifdef DUMP
+# ifdef DUMP
 OLD_SHELL := $(SHELL)
 SHELL = $(warning $(COLOR_RED)[$@]$(COLOR_NONE)  $(COLOR_GREEN)($^)$(COLOR_NONE))  $(OLD_SHELL) -x 
-endif
+# endif
 
 ## 1. Basic Setup and Checks
 
