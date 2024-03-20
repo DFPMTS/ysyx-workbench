@@ -1,5 +1,9 @@
+# ifdef DUMP
+OLD_SHELL := $(SHELL)
+export SHELL = $(warning [$@] ($^))$(OLD_SHELL) -x
+# endif
 # Makefile for AbstractMachine Kernels and Libraries
-$(warning "shell is:$(SHELL)")
+
 ### *Get a more readable version of this Makefile* by `make html` (requires python-markdown)
 html:
 	cat Makefile | sed 's/^\([^#]\)/    \1/g' | markdown_py > Makefile.html
