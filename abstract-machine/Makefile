@@ -1,5 +1,5 @@
 # Makefile for AbstractMachine Kernels and Libraries
-
+$(warning $SHELL)
 ### *Get a more readable version of this Makefile* by `make html` (requires python-markdown)
 html:
 	cat Makefile | sed 's/^\([^#]\)/    \1/g' | markdown_py > Makefile.html
