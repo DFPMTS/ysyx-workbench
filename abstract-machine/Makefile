@@ -12,7 +12,7 @@ COLOR_NONE  := $(shell tput sgr0)
 
 # ifdef DUMP
 OLD_SHELL := $(SHELL)
-SHELL = $(info $(COLOR_NONE))$(warning $(COLOR_RED)[$@]$(COLOR_NONE)  $(COLOR_GREEN)($^)$(COLOR_NONE)$(COLOR_BLUE))  $(OLD_SHELL) -x 
+SHELL = $(info $(COLOR_RED))$(warning $(COLOR_RED)[$@]$(COLOR_NONE)  $(COLOR_GREEN)($^)$(COLOR_NONE)$(COLOR_BLUE))  $(OLD_SHELL) -x 
 # endif
 
 ## 1. Basic Setup and Checks
