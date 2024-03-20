@@ -1,15 +1,5 @@
 .DEFAULT_GOAL = app
 
-COLOR_RED   := $(shell tput setaf 1)
-COLOR_GREEN := $(shell tput setaf 2)
-COLOR_BLUE := $(shell tput setaf 4)
-COLOR_NONE  := $(shell tput sgr0)
-
-# ifdef DUMP
-OLD_SHELL := $(SHELL)
-SHELL = $(info $(COLOR_BLUE))$(warning $(COLOR_RED)[$@]$(COLOR_NONE)  $(COLOR_GREEN)($^)$(COLOR_NONE))  $(OLD_SHELL) -x 
-# endif
-
 # Add necessary options if the target is a shared library
 ifeq ($(SHARE),1)
 SO = -so
