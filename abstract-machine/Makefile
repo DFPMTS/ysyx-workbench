@@ -1,8 +1,16 @@
-# # ifdef DUMP
-# OLD_SHELL := $(SHELL)
-# export SHELL = $(warning [$@] ($^))$(OLD_SHELL) -x
-# # endif
-# Makefile for AbstractMachine Kernels and Libraries
+COLOR_RED   = \033[1;31m
+COLOR_GREEN = \033[1;32m
+COLOR_NONE  = \033[0m
+
+COLOR_RED   := $(shell tput setaf 1)
+COLOR_GREEN := $(shell tput setaf 2)
+COLOR_NONE  := $(shell tput sgr0)
+
+# ifdef DUMP
+OLD_SHELL := $(SHELL)
+SHELL = $(warning $(COLOR_RED)[$@]$(COLOR_NONE)  $(COLOR_GREEN)($^)$(COLOR_NONE))  $(OLD_SHELL) -x 
+# SHELL =  $(OLD_SHELL) -x
+# endif
 
 ### *Get a more readable version of this Makefile* by `make html` (requires python-markdown)
 html:
