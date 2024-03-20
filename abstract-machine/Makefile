@@ -7,11 +7,12 @@ html:
 
 COLOR_RED   := $(shell tput setaf 1)
 COLOR_GREEN := $(shell tput setaf 2)
+COLOR_BLUE := $(shell tput setaf 4)
 COLOR_NONE  := $(shell tput sgr0)
 
 # ifdef DUMP
 OLD_SHELL := $(SHELL)
-SHELL = $(warning $(COLOR_RED)[$@]$(COLOR_NONE)  $(COLOR_GREEN)($^)$(COLOR_NONE))  $(OLD_SHELL) -x 
+SHELL = $(info $(COLOR_NONE))$(warning $(COLOR_RED)[$@]$(COLOR_NONE)  $(COLOR_GREEN)($^)$(COLOR_NONE)$(COLOR_BLUE))  $(OLD_SHELL) -x 
 # endif
 
 ## 1. Basic Setup and Checks
