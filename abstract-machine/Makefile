@@ -1,7 +1,3 @@
-# ifdef DUMP
-OLD_SHELL := $(SHELL)
-SHELL = $(warning [$@])$(OLD_SHELL) -x
-# endif
 # Makefile for AbstractMachine Kernels and Libraries
 
 ### *Get a more readable version of this Makefile* by `make html` (requires python-markdown)
