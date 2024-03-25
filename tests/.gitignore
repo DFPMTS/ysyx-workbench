@@ -1,0 +1,3 @@
+!*.c
+/klib/include
+/sput-1.4.0
