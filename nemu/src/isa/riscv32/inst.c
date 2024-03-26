@@ -22,6 +22,8 @@
 #define Mr vaddr_read
 #define Mw vaddr_write
 
+void itrace_generate(Decode *s);
+
 enum {
   TYPE_R, TYPE_R_SHIFT, TYPE_I, TYPE_I_SHIFT, TYPE_U, TYPE_S, TYPE_J, TYPE_B, 
   TYPE_N, // none
@@ -129,5 +131,6 @@ static int decode_exec(Decode *s) {
 
 int isa_exec_once(Decode *s) {
   s->isa.inst.val = inst_fetch(&s->snpc, 4);
+  itrace_generate(s);
   return decode_exec(s);
 }
