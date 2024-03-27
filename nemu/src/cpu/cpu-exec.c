@@ -40,6 +40,7 @@ void device_update();
 void wp_check(vaddr_t pc);
 void iringbuf_log(char *log);
 void iringbuf_display();
+char *func_sym_search(word_t pc);
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
@@ -143,6 +144,54 @@ void itrace_generate(Decode *s)
   p[0] = '\0'; // the upstream llvm does not support loongarch32r
 #endif
   iringbuf_log(s->logbuf);
+#endif
+}
+
+void ftrace_log(Decode *s, int rd, int rs1, word_t offset) {
+  /*  only under these circumstances:
+      [call]
+      jal  x1,      offset
+      jalr x1, rs1, offset
+      [ret]
+      jalr x0, x1,  0
+  */
+#ifdef CONFIG_FTRACE
+  static int level = 0;
+  static char dst_addr[128];
+
+  bool call = (rd == 1) ? true : false;
+  bool ret = (rd == 0 && rs1 == 1 && offset == 0) ? true : false;
+
+  // ignore non call/ret jal/jalr
+  if (!call && !ret)
+    return;
+
+  Assert(!(call && ret), "Wrong logic for deciding call/ret");
+
+ /*
+  example:
+  0x8000016c:                       call [f2@0x800000a4]
+  0x800000f0:                         call [f1@0x8000005c]
+  0x80000058:                         ret  [f0]
+  0x80000100:                       ret  [f2]
+  */
+
+  // the @0x80000000 part
+  if (call) {
+    assert(sprintf(dst_addr, "@" FMT_WORD, s->dnpc));
+  } else {
+    dst_addr[0] = '\0';
+  }
+
+  // for call, func_name is func to jump to; for ret, func_name is func to
+  // return from
+  char *func_name = call ? func_sym_search(s->dnpc) : func_sym_search(s->pc);
+
+  // indent level
+  int indent = call ? (level++) * 2 : (--level) * 2;
+  
+  log_write(FMT_WORD ": %*s%s [%s%s]\n", s->pc, indent, "",
+            call ? "call" : "ret ", func_name, dst_addr);
 #endif
 }
 
