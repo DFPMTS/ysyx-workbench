@@ -18,7 +18,12 @@
 #include "../local-include/reg.h"
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
-  return memcmp(&cpu, ref_r, sizeof(CPU_state)) == 0;
+  bool succ = true;
+  for (int i = 0; i < 32; ++i) {
+    succ &= difftest_check_reg(reg_name(i), pc, ref_r->gpr[i], gpr(i));
+  }
+  succ &= difftest_check_reg("pc", pc, ref_r->pc, cpu.pc);
+  return succ;
 }
 
 void isa_difftest_attach() {
