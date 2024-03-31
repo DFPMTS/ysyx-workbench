@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAXN 1000000
+#define ELF_BUF_SIZE 32 * 1024 * 1024
 
-static char buf[MAXN + 10];
+static char buf[ELF_BUF_SIZE + 10];
 
 static Elf32_Ehdr elf_hdr;
 static Elf32_Shdr shstrtab_hdr;
@@ -71,6 +71,9 @@ void init_func_sym(char *elf_file) {
   fseek(fp, 0, SEEK_END);
   long size = ftell(fp);
   Log("The ELF is %s, size = %ld", elf_file, size);
+  if(size > ELF_BUF_SIZE){
+    panic("ELF buffer too small. Current size: %u\n",ELF_BUF_SIZE);
+  }
 
   fseek(fp, 0, SEEK_SET);
   int ret = fread(buf, size, 1, fp);
