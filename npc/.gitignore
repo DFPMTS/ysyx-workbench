@@ -7,13 +7,18 @@
 !*.[cSh]
 !*.v
 !*.cpp
+!*.hpp
 !*.cc
 !.gitignore
 !.scalafmt.conf
 !.mill-version
 !build.sc
 !README.md
+!decode.ipynb
+!decode.csv
+!single_cycle.circ
 build/
+vsrc/
 
 # mill
 out/
