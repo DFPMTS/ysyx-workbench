@@ -14,6 +14,7 @@ Context* __am_irq_handle(Context *c) {
       case -1:
         // yield
         ev.event = EVENT_YIELD;
+        c->mepc += 4;
         break;
       }
       break;
