@@ -26,6 +26,7 @@ typedef struct FormatOptions{
   
   // length modifier
   // TODO
+  int l;
 
   // conversion specifiers are handled in xprintf main body
 
@@ -39,6 +40,12 @@ typedef struct FormatOptions{
 static int isdigit(char c)
 {
   return  '0' <= c && c <= '9';
+}
+
+unsigned long long abs_u(long long x)
+{
+  // safely get unsigned abs(x) value
+  return x < 0 ? 0ULL - x : x;
 }
 
 static const char *str_to_int(const char *s, int *x) {
@@ -58,7 +65,11 @@ static void reset_opts(FormatOptions *opt)
   opt->is_right = 0;
   opt->is_blank = 0;
   opt->is_sign = 0;
+
   opt->width = 0;
+
+  opt->l = 0;
+
   opt->base = 10;
   opt->padding = ' ';  
   opt->neg = 0;
@@ -111,6 +122,23 @@ static void collect_width(FormatOptions *opt)
   }  
 }
 
+// TODO now only supports l/ll
+static void collect_length_modifier(FormatOptions *opt)
+{
+  while(*opt->fmt != '\0'){
+    switch (*opt->fmt)
+    {
+    case 'l':
+      opt->l++;      
+      break;
+    
+    default:
+      return;
+    }
+    opt->fmt++;
+  }
+}
+
 // don't do padding
 static void out_char(FormatOptions *opt, char c)
 {
@@ -137,7 +165,7 @@ static void out_str(FormatOptions *opt, char *s)
   }
 }
 
-static void out_int(FormatOptions *opt, unsigned int x) {
+static void out_int(FormatOptions *opt, unsigned long long x) {
   static char decimal[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
   static char hex_lower[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
                                '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -196,13 +224,13 @@ static void out_int(FormatOptions *opt, unsigned int x) {
   }
 }
 
-
 static int xprintf(char *out, const char *fmt, va_list ap) {
   int printed = 0;
   FormatOptions opt;
   opt.fmt = fmt;
   opt.out = out;
-  int x;
+  long long x_s;
+  unsigned long long x_u;
   while (*opt.fmt != '\0') {
     char c = *opt.fmt;
     if (c == '%') {
@@ -212,7 +240,7 @@ static int xprintf(char *out, const char *fmt, va_list ap) {
       collect_flags(&opt);
       collect_width(&opt);      
       // TODO precision
-      // TODO length modifier
+      collect_length_modifier(&opt);
       // conversion
       c = *opt.fmt;
       switch (c){
@@ -220,19 +248,57 @@ static int xprintf(char *out, const char *fmt, va_list ap) {
         case 'i':
           ++printed;
           opt.base = 10;
-          x = va_arg(ap, int);
-          opt.neg = x < 0 ? 1 : 0; // neg sign
-          out_int(&opt, (unsigned int)abs(x));
+
+          switch (opt.l)
+          {
+          case 0:
+            x_s = va_arg(ap, int);
+            break;
+
+          case 1:
+            x_s = va_arg(ap, long int);
+            break;
+
+          case 2:
+            x_s = va_arg(ap, long long);
+            break;
+
+          default:
+            panic("Invalid number of 'l' in length modifier");
+            break;
+          }
+
+          opt.neg = x_s < 0 ? 1 : 0; // neg sign
+          out_int(&opt, abs_u(x_s));
           break;
 
         case 'u':
         case 'x':
         case 'X':
           ++printed;
+
+          switch (opt.l) {
+          case 0:
+            x_u = va_arg(ap, unsigned int);
+            break;
+
+          case 1:
+            x_u = va_arg(ap, unsigned long);
+            break;
+
+          case 2:
+            x_u = va_arg(ap, unsigned long long);
+            break;
+
+          default:
+            panic("Invalid number of 'l' in length modifier");
+            break;
+          }
+
           opt.neg = 0;
           opt.base = (c == 'u') ? 10 : 16;
           opt.upper_case = (c == 'X') ? 1 : 0;
-          out_int(&opt, va_arg(ap, unsigned int));
+          out_int(&opt, x_u);
           break;
 
         case 'p':
