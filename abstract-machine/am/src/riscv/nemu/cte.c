@@ -39,8 +39,29 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
   return true;
 }
 
-Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
-  return NULL;
+#if __riscv_xlen == 32
+#define XLEN  4
+#else
+#define XLEN  8
+#endif 
+
+#ifdef __riscv_e
+#define NR_REGS 16
+#else
+#define NR_REGS 32
+#endif
+
+Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {  
+  Context **cp = kstack.start;
+  Context *c = kstack.end - (NR_REGS + 3) * XLEN;
+
+  c->mepc = (uintptr_t)entry;
+  c->mstatus = 0x1800;
+  c->gpr[2] = (uintptr_t)kstack.end;
+  c->gpr[10] = (uintptr_t)arg;
+
+  *cp = c;
+  return c;
 }
 
 void yield() {
