@@ -7,12 +7,12 @@ class RegFile extends Module {
     val rs2_sel = Input(UInt(5.W))
     val wr_sel  = Input(UInt(5.W))
     val reg_we  = Input(UInt(1.W))
-    val wb_data = Input(SInt(32.W))
-    val rs1     = Output(SInt(32.W))
-    val rs2     = Output(SInt(32.W))
+    val wb_data = Input(UInt(32.W))
+    val rs1     = Output(UInt(32.W))
+    val rs2     = Output(UInt(32.W))
   })
 
-  val regs = RegInit(VecInit(Seq.fill(16)(0.S(32.W))))
+  val regs = Reg(Vec(32, UInt(32.W)))
 
   when(io.wr_sel =/= 0.U && io.reg_we.asBool) {
     regs(io.wr_sel) := io.wb_data

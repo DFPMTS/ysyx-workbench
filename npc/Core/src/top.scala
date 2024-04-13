@@ -12,8 +12,11 @@ class top extends Module {
   val mem     = Module(new MEM)
   val wb_pc   = Module(new WB_PC)
   val wb_reg  = Module(new WB_REG)
-  val cmp     = Module(new Comparator)
   val ebreak  = Module(new EBREAK)
+
+  val ctrl    = dec.io.ctrl
+  val mem_len = dec.io.mem_len
+  val load_U  = dec.io.load_U
 
   pc.io.dnpc := wb_pc.io.dnpc
 
@@ -22,49 +25,43 @@ class top extends Module {
   dec.io.inst := ifu.io.inst
 
   immgen.io.inst      := ifu.io.inst
-  immgen.io.inst_type := dec.io.ctl.inst_type
+  immgen.io.inst_type := ctrl.inst_type
 
   regfile.io.rs1_sel := dec.io.rs1
   regfile.io.rs2_sel := dec.io.rs2
-  regfile.io.reg_we  := dec.io.ctl.reg_we
+  regfile.io.reg_we  := ctrl.reg_we
   regfile.io.wr_sel  := dec.io.rd
   regfile.io.wb_data := wb_reg.io.wb_data
 
-  alu.io.rs1     := regfile.io.rs1
-  alu.io.rs2     := regfile.io.rs2
-  alu.io.imm     := immgen.io.imm
-  alu.io.pc      := pc.io.pc
-  alu.io.cmp_U   := dec.io.ctl.cmp_U
-  alu.io.op1_sel := dec.io.ctl.op1_sel
-  alu.io.op2_sel := dec.io.ctl.op2_sel
-  alu.io.alu_sel := dec.io.ctl.alu_sel
+  val rs1     = regfile.io.rs1
+  val rs2     = regfile.io.rs2
+  val imm     = immgen.io.imm.asUInt
+  val alu_op1 = MuxLookup(ctrl.alu_sel1, 0.U)(Seq("b00".U -> rs1, "b01".U -> pc.io.pc, "b10".U -> 0.U))
+  val alu_op2 = MuxLookup(ctrl.alu_sel2, 0.U)(Seq("b0".U -> rs2, "b1".U -> imm))
 
-  cmp.io.in1   := regfile.io.rs1
-  cmp.io.in2   := regfile.io.rs2
-  cmp.io.cmp_U := dec.io.ctl.cmp_U
+  alu.io.op1      := alu_op1
+  alu.io.op2      := alu_op2
+  alu.io.cmp_U    := ctrl.cmp_U
+  alu.io.alu_func := ctrl.alu_func
 
-  mem.io.addr   := alu.io.alu_out.asUInt
-  mem.io.len    := dec.io.ctl.len
-  mem.io.load_U := dec.io.ctl.load_U
-  mem.io.mr     := dec.io.ctl.mr
-  mem.io.mw     := dec.io.ctl.mw
-  mem.io.data_w := regfile.io.rs2
+  mem.io.addr   := alu.io.out
+  mem.io.len    := mem_len
+  mem.io.load_U := load_U
+  mem.io.mr     := ctrl.mr
+  mem.io.mw     := ctrl.mw
+  mem.io.data_w := rs2
 
-  wb_pc.io.alu     := alu.io.alu_out.asUInt
-  wb_pc.io.is_beq  := dec.io.ctl.is_beq
-  wb_pc.io.is_bne  := dec.io.ctl.is_bne
-  wb_pc.io.is_blt  := dec.io.ctl.is_blt
-  wb_pc.io.is_bge  := dec.io.ctl.is_bge
-  wb_pc.io.is_jump := dec.io.ctl.is_jump
-  wb_pc.io.snpc    := pc.io.snpc
-  wb_pc.io.lt      := cmp.io.lt
-  wb_pc.io.ge      := cmp.io.ge
-  wb_pc.io.eq      := cmp.io.eq
+  val target = Mux(ctrl.jalr.asBool, rs1 + imm, pc.io.pc + imm)
+  wb_pc.io.target      := target
+  wb_pc.io.snpc        := pc.io.snpc
+  wb_pc.io.jal         := ctrl.jal
+  wb_pc.io.jalr        := ctrl.jalr
+  wb_pc.io.take_branch := ctrl.branch & alu.io.cmp_out
 
-  wb_reg.io.alu    := alu.io.alu_out
+  wb_reg.io.alu    := alu.io.out
   wb_reg.io.mem    := mem.io.data_r
-  wb_reg.io.snpc   := pc.io.snpc.asSInt
-  wb_reg.io.wb_sel := dec.io.ctl.wb_sel
+  wb_reg.io.snpc   := pc.io.snpc
+  wb_reg.io.wb_sel := ctrl.wb_sel
 
-  ebreak.io.ebreak := dec.io.ctl.break
+  ebreak.io.ebreak := ctrl.ebreak
 }

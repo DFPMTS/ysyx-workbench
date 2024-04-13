@@ -3,61 +3,73 @@ import chisel3.util._
 
 class ALU extends Module {
   val io = IO(new Bundle {
-    val pc      = Input(UInt(32.W))
-    val rs1     = Input(SInt(32.W))
-    val rs2     = Input(SInt(32.W))
-    val op1_sel = Input(UInt(2.W))
-    val op2_sel = Input(UInt(1.W))
-    val alu_sel = Input(UInt(4.W))
-    val imm     = Input(SInt(32.W))
-    val cmp_U   = Input(UInt(1.W))
-    val alu_out = Output(SInt(32.W))
+    val op1      = Input(UInt(32.W))
+    val op2      = Input(UInt(32.W))
+    val alu_func = Input(UInt(4.W))
+    val cmp_U    = Input(UInt(1.W))
+    val out      = Output(UInt(32.W))
+    val cmp_out  = Output(Bool())
   })
-  val add :: sub :: left :: right :: arith :: lt :: and :: or :: xor :: mul :: mulh :: div :: rem :: Nil = Enum(13)
+  val add :: sub :: left :: right :: arith :: eq :: ne :: lt :: ge :: and :: or :: xor :: Nil =
+    Enum(12)
 
-  val op1 = MuxLookup(io.op1_sel, 0.S)(Seq("b00".U -> io.rs1, "b01".U -> io.pc.asSInt, "b10".U -> 0.S))
-  val op2 = MuxLookup(io.op2_sel, 0.S)(Seq("b0".U -> io.rs2, "b1".U -> io.imm))
+  // [adder] add / sub
+  val is_sub    = ~(io.alu_func === add) // for cmp
+  val op2_adder = Mux(is_sub, ~io.op2, io.op2)
+  val adder_res = io.op1 + op2_adder + is_sub
 
-  io.alu_out := 0.S(32.W)
-  switch(io.alu_sel) {
-    is(add) {
-      io.alu_out := op1 + op2
-    }
-    is(sub) {
-      io.alu_out := op1 - op2
-    }
+  // [shift] left / right / arith
+  val shamt = io.op2(4, 0)
+  // [logic] and / or / xor
+  val xor_res = io.op1 ^ io.op2
+  // [cmp] eq / ne / lt / ge
+  val eq_res = xor_res === 0.U
+  val ne_res = ~eq_res
+  /*                 lt
+     op1_msb | op2_msb |   U   |   S
+        0         0     sub_msb sub_msb
+        1         1     sub_msb sub_msb
+        0         1        1       0
+        1         0        0       1
+   */
+  val op1_msb = io.op1(31);
+  val op2_msb = io.op2(31);
+  val sub_msb = adder_res(31);
+  val lt_res  = Mux(op1_msb === op2_msb, sub_msb, Mux(io.cmp_U.asBool, op2_msb, op1_msb))
+  val ge_res  = ~lt_res
+
+  io.out := adder_res
+  switch(io.alu_func) {
     is(left) {
-      io.alu_out := (op1.asUInt << op2(4, 0)).asSInt
+      io.out := (io.op1 << shamt)
     }
     is(right) {
-      io.alu_out := (op1.asUInt >> op2(4, 0)).asSInt
+      io.out := (io.op1 >> shamt)
     }
     is(arith) {
-      io.alu_out := op1 >> op2(4, 0)
+      io.out := (io.op1.asSInt >> shamt).asUInt
+    }
+    is(eq) {
+      io.out := eq_res
+    }
+    is(ne) {
+      io.out := ne_res
     }
     is(lt) {
-      io.alu_out := Mux(io.cmp_U.asBool, (op1.asUInt < op2.asUInt).zext, (op1 < op2).zext)
+      io.out := lt_res
+    }
+    is(ge) {
+      io.out := ge_res
     }
     is(and) {
-      io.alu_out := op1 & op2
+      io.out := io.op1 & io.op2
     }
     is(or) {
-      io.alu_out := op1 | op2
+      io.out := io.op1 | io.op2
     }
     is(xor) {
-      io.alu_out := op1 ^ op2
-    }
-    is(mul) {
-      io.alu_out := op1 * op2
-    }
-    is(mulh) {
-      io.alu_out := (op1 * op2)(63, 32).asSInt
-    }
-    is(div) {
-      io.alu_out := op1 / op2
-    }
-    is(rem) {
-      io.alu_out := op1 % op2
+      io.out := xor_res
     }
   }
+  io.cmp_out := io.out(0)
 }

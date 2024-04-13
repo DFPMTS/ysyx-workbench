@@ -8,8 +8,8 @@ class MEM extends Module {
     val mw     = Input(UInt(1.W))
     val len    = Input(UInt(2.W))
     val load_U = Input(UInt(1.W))
-    val data_r = Output(SInt(32.W))
-    val data_w = Input(SInt(32.W))
+    val data_r = Output(UInt(32.W))
+    val data_w = Input(UInt(32.W))
   })
   val mem_read    = Module(new MemRead)
   val mem_write   = Module(new MemWrite)
@@ -28,9 +28,9 @@ class MEM extends Module {
 
   io.data_r := raw_data
   when(io.len === "b00".U) {
-    io.data_r := Cat(Fill(24, ~io.load_U & raw_data(7)), raw_data(7, 0)).asSInt
+    io.data_r := Cat(Fill(24, ~io.load_U & raw_data(7)), raw_data(7, 0))
   }.elsewhen(io.len === "b01".U) {
-    io.data_r := Cat(Fill(16, ~io.load_U & raw_data(15)), raw_data(15, 0)).asSInt
+    io.data_r := Cat(Fill(16, ~io.load_U & raw_data(15)), raw_data(15, 0))
   }
 
   mem_write.io.addr  := io.addr
@@ -43,7 +43,7 @@ class MemRead extends HasBlackBoxPath {
   val io = IO(new Bundle {
     val addr   = Input(UInt(32.W))
     val en     = Input(UInt(1.W))
-    val data_r = Output(SInt(32.W))
+    val data_r = Output(UInt(32.W))
   })
   addPath("Core/src/MemRead.v")
 }
@@ -51,7 +51,7 @@ class MemRead extends HasBlackBoxPath {
 class MemWrite extends HasBlackBoxPath {
   val io = IO(new Bundle {
     val addr  = Input(UInt(32.W))
-    val wdata = Input(SInt(32.W))
+    val wdata = Input(UInt(32.W))
     val en    = Input(UInt(1.W))
     val wmask = Input(UInt(4.W))
   })
