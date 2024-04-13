@@ -51,7 +51,7 @@ static word_t clock_read(paddr_t offset) {
 }
 void serial_write(paddr_t offset, word_t wdata) {
   assert(offset == 0);
-  putchar(wdata & BYTE_MASK);
+  putc(wdata & BYTE_MASK, stderr);
 }
 
 void load_img(const char *img) {
