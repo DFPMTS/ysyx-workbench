@@ -12,10 +12,12 @@ class top extends Module {
   val wb_pc   = Module(new WB_PC)
   val wb_reg  = Module(new WB_REG)
   val ebreak  = Module(new EBREAK)
+  val csr     = Module(new CSR)
 
   val ctrl    = dec.io.ctrl
   val mem_len = dec.io.mem_len
   val load_U  = dec.io.load_U
+  val inst    = ifu.io.inst
 
   // IF
   val pc   = RegInit(UInt(32.W), "h80000000".U)
@@ -57,7 +59,19 @@ class top extends Module {
   mem.io.data_w := rs2
 
   // WB
+  csr.io.ren   := ctrl.csr.asBool & dec.io.rd =/= 0.U
+  csr.io.addr  := imm(11, 0)
+  csr.io.wen   := ctrl.csr.asBool & dec.io.rs1 =/= 0.U
+  csr.io.wtype := inst(13, 12)
+  csr.io.wdata := rs1
+  csr.io.ecall := ctrl.ecall.asBool
+  csr.io.pc    := pc
+
   val target = Mux(ctrl.jalr.asBool, rs1, pc) + imm
+  wb_pc.io.mtvec       := csr.io.mtvec
+  wb_pc.io.ecall       := ctrl.ecall.asBool
+  wb_pc.io.mepc        := csr.io.mepc
+  wb_pc.io.mret        := ctrl.mret.asBool
   wb_pc.io.target      := target
   wb_pc.io.snpc        := snpc
   wb_pc.io.jal         := ctrl.jal
@@ -65,6 +79,7 @@ class top extends Module {
   wb_pc.io.take_branch := ctrl.branch & alu.io.cmp_out
 
   wb_reg.io.alu    := alu.io.out
+  wb_reg.io.csr    := csr.io.rdata
   wb_reg.io.mem    := mem.io.data_r
   wb_reg.io.snpc   := snpc
   wb_reg.io.wb_sel := ctrl.wb_sel
