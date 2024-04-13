@@ -12,25 +12,25 @@ ref_difftest_raise_intr_t ref_difftest_raise_intr;
 void init_difftest() {
   const char *nemu_so = "/home/dfpmts/Documents/ysyx-workbench/nemu/build/"
                         "riscv32-nemu-interpreter-so";
-  auto ref_hanle = dlopen(nemu_so, RTLD_LAZY);
-  assert(ref_hanle);
+  auto ref_handle = dlopen(nemu_so, RTLD_LAZY);
+  assert(ref_handle);
 
-  ref_difftest_init = (ref_difftest_init_t)dlsym(ref_hanle, "difftest_init");
+  ref_difftest_init = (ref_difftest_init_t)dlsym(ref_handle, "difftest_init");
   assert(ref_difftest_init);
 
   ref_difftest_memcpy =
-      (ref_difftest_memcpy_t)dlsym(ref_hanle, "difftest_memcpy");
+      (ref_difftest_memcpy_t)dlsym(ref_handle, "difftest_memcpy");
   assert(ref_difftest_memcpy);
 
   ref_difftest_regcpy =
-      (ref_difftest_regcpy_t)dlsym(ref_hanle, "difftest_regcpy");
+      (ref_difftest_regcpy_t)dlsym(ref_handle, "difftest_regcpy");
   assert(ref_difftest_regcpy);
 
-  ref_difftest_exec = (ref_difftest_exec_t)dlsym(ref_hanle, "difftest_exec");
+  ref_difftest_exec = (ref_difftest_exec_t)dlsym(ref_handle, "difftest_exec");
   assert(ref_difftest_exec);
 
   ref_difftest_raise_intr =
-      (ref_difftest_raise_intr_t)dlsym(ref_hanle, "difftest_raise_intr");
+      (ref_difftest_raise_intr_t)dlsym(ref_handle, "difftest_raise_intr");
   assert(ref_difftest_raise_intr);
 
   ref_difftest_init(0);
