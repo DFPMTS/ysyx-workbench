@@ -3,7 +3,6 @@ import chisel3.util._
 
 class top extends Module {
   val io      = IO(new Bundle {})
-  val pc      = Module(new PC)
   val ifu     = Module(new InstFetch)
   val dec     = Module(new Decode)
   val immgen  = Module(new ImmGen)
@@ -18,10 +17,14 @@ class top extends Module {
   val mem_len = dec.io.mem_len
   val load_U  = dec.io.load_U
 
-  pc.io.dnpc := wb_pc.io.dnpc
+  // IF
+  val pc   = RegInit(UInt(32.W), "h80000000".U)
+  val snpc = pc + 4.U
+  pc := wb_pc.io.dnpc
 
-  ifu.io.pc := pc.io.pc
+  ifu.io.pc := pc
 
+  // DE
   dec.io.inst := ifu.io.inst
 
   immgen.io.inst      := ifu.io.inst
@@ -33,10 +36,11 @@ class top extends Module {
   regfile.io.wr_sel  := dec.io.rd
   regfile.io.wb_data := wb_reg.io.wb_data
 
+  // EX
   val rs1     = regfile.io.rs1
   val rs2     = regfile.io.rs2
   val imm     = immgen.io.imm.asUInt
-  val alu_op1 = MuxLookup(ctrl.alu_sel1, 0.U)(Seq("b00".U -> rs1, "b01".U -> pc.io.pc, "b10".U -> 0.U))
+  val alu_op1 = MuxLookup(ctrl.alu_sel1, 0.U)(Seq("b00".U -> rs1, "b01".U -> pc, "b10".U -> 0.U))
   val alu_op2 = MuxLookup(ctrl.alu_sel2, 0.U)(Seq("b0".U -> rs2, "b1".U -> imm))
 
   alu.io.op1      := alu_op1
@@ -44,6 +48,7 @@ class top extends Module {
   alu.io.cmp_U    := ctrl.cmp_U
   alu.io.alu_func := ctrl.alu_func
 
+  // MEM
   mem.io.addr   := alu.io.out
   mem.io.len    := mem_len
   mem.io.load_U := load_U
@@ -51,16 +56,17 @@ class top extends Module {
   mem.io.mw     := ctrl.mw
   mem.io.data_w := rs2
 
-  val target = Mux(ctrl.jalr.asBool, rs1 + imm, pc.io.pc + imm)
+  // WB
+  val target = Mux(ctrl.jalr.asBool, rs1, pc) + imm
   wb_pc.io.target      := target
-  wb_pc.io.snpc        := pc.io.snpc
+  wb_pc.io.snpc        := snpc
   wb_pc.io.jal         := ctrl.jal
   wb_pc.io.jalr        := ctrl.jalr
   wb_pc.io.take_branch := ctrl.branch & alu.io.cmp_out
 
   wb_reg.io.alu    := alu.io.out
   wb_reg.io.mem    := mem.io.data_r
-  wb_reg.io.snpc   := pc.io.snpc
+  wb_reg.io.snpc   := snpc
   wb_reg.io.wb_sel := ctrl.wb_sel
 
   ebreak.io.ebreak := ctrl.ebreak

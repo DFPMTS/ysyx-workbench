@@ -12,7 +12,7 @@ class RegFile extends Module {
     val rs2     = Output(UInt(32.W))
   })
 
-  val regs = Reg(Vec(32, UInt(32.W)))
+  val regs = Reg(Vec(16, UInt(32.W)))
 
   when(io.wr_sel =/= 0.U && io.reg_we.asBool) {
     regs(io.wr_sel) := io.wb_data

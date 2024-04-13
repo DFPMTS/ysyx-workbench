@@ -12,7 +12,7 @@ extern VerilatedVcdC *vcd;
 
 #define concat_temp(x, y) (x##y)
 #define REG(x) (concat_temp(top->rootp->top__DOT__regfile__DOT__regs_, x))
-#define PC (top->rootp->top__DOT__pc__DOT__pc)
+#define PC (top->rootp->top__DOT__pc)
 #define INST (top->rootp->top__DOT___ifu_inst)
 #define IF_RETURN(x)                                                           \
   do {                                                                         \
