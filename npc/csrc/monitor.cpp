@@ -1,4 +1,5 @@
 #include "monitor.hpp"
+#include "debug.hpp"
 #include "difftest.hpp"
 #include "mem.hpp"
 #include <cstddef>
@@ -46,6 +47,7 @@ void parse_args(int argc, char *argv[]) {
 
 void init_monitor(int argc, char *argv[]) {
   parse_args(argc, argv);
+  init_log(log_file);
   load_img(img_file);
   init_cpu();
   init_difftest(diff_so_file);
