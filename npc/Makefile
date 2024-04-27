@@ -62,6 +62,8 @@ clean:
 
 .PHONY: test verilog help compile bsp reformat checkformat clean
 
+MAINARGS += -h  --diff /home/dfpmts/Documents/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
+
 sim: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$^ $(MAINARGS)

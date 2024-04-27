@@ -9,10 +9,9 @@ ref_difftest_regcpy_t ref_difftest_regcpy;
 ref_difftest_exec_t ref_difftest_exec;
 ref_difftest_raise_intr_t ref_difftest_raise_intr;
 
-void init_difftest() {
-  const char *nemu_so = "/home/dfpmts/Documents/ysyx-workbench/nemu/build/"
-                        "riscv32-nemu-interpreter-so";
-  auto ref_handle = dlopen(nemu_so, RTLD_LAZY);
+void init_difftest(const char *diff_so_file) {
+  assert(diff_so_file != NULL);
+  auto ref_handle = dlopen(diff_so_file, RTLD_LAZY);
   assert(ref_handle);
 
   ref_difftest_init = (ref_difftest_init_t)dlsym(ref_handle, "difftest_init");
