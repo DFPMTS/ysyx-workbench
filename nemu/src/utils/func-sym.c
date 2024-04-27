@@ -15,7 +15,6 @@ static Elf32_Ehdr elf_hdr;
 static Elf32_Shdr shstrtab_hdr;
 static Elf32_Shdr strtab_hdr;
 static Elf32_Shdr symtab_hdr;
-static Elf32_Shdr strtab_hdr;
 
 static char *get_section_name(Elf32_Shdr *shdr) {
   return buf + shstrtab_hdr.sh_offset + shdr->sh_name;
