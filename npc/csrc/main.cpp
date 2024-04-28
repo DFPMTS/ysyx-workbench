@@ -1,3 +1,4 @@
+#include "debug.hpp"
 #include "difftest.hpp"
 #include "disasm.hpp"
 #include "mem.hpp"
@@ -12,8 +13,10 @@ int main(int argc, char *argv[]) {
   // init_cpu();
   // init_cpu must happens **before** init_difftest
   // init_difftest();
+  trace_and_difftest();
   while (running) {
     cpu_step();
+
     ref_difftest_exec(1);
     trace_and_difftest();
   }
@@ -23,9 +26,9 @@ int main(int argc, char *argv[]) {
   vcd->close();
 
   if (retval == 0) {
-    printf("Hit GOOD trap.\n");
+    Log("Hit GOOD trap.\n");
   } else {
-    printf("Hit BAD trap.\n");
+    Log("Hit BAD trap.\n");
   }
 
   return retval;

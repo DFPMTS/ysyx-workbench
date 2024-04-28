@@ -1,4 +1,5 @@
 #include "mem.hpp"
+#include "debug.hpp"
 #include <cassert>
 #include <cstring>
 #include <ctime>
@@ -94,11 +95,24 @@ void host_write(uint8_t *addr, word_t wdata, unsigned char wmask) {
 extern "C" {
 word_t mem_read(paddr_t addr) {
   addr &= ADDR_MASK;
-  if (in_pmem(addr))
-    return host_read(guest_to_host(addr));
-  if (in_clock(addr))
-    return clock_read(addr - RTC_ADDR);
-
+  log_write("read:  0x%08x : ", addr);
+  bool valid = false;
+  word_t retval = 0;
+  if (in_pmem(addr)) {
+    valid = true;
+    retval = host_read(guest_to_host(addr));
+  }
+  if (in_clock(addr)) {
+    valid = true;
+    retval = clock_read(addr - RTC_ADDR);
+  }
+  if (valid)
+    log_write("0x%08x / %u\n", retval, retval);
+  else
+    log_write("NOT VALID / NOT VALID\n");
+  if (valid) {
+    return retval;
+  }
   if (running)
     assert(0);
   return 0;
@@ -107,6 +121,7 @@ word_t mem_read(paddr_t addr) {
 void mem_write(paddr_t addr, word_t wdata, unsigned char wmask) {
   if (!running)
     return;
+  log_write("write: 0x%08x - %x : 0x%08x / %u\n", addr, wmask, wdata, wdata);
   addr &= ADDR_MASK;
   if (in_pmem(addr)) {
     host_write(guest_to_host(addr), wdata, wmask);

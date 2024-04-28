@@ -5,6 +5,8 @@
 
 extern FILE *log_fd;
 
+#define FMT_WORD "0x%08x"
+
 #define _Log(...)                                                              \
   do {                                                                         \
     log_write(__VA_ARGS__);                                                    \
@@ -23,6 +25,8 @@ extern FILE *log_fd;
 #define Assert(cond, ...)                                                      \
   do {                                                                         \
   } while (0)
+
+#define panic(format, ...) Assert(0, format, ##__VA_ARGS__)
 
 void init_log(const char *log_file);
 

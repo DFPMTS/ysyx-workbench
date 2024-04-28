@@ -2,7 +2,14 @@ import chisel3._
 import chisel3.util._
 
 class top extends Module {
-  val io      = IO(new Bundle {})
+  val io = IO(new Bundle {
+    val rs1  = Output(UInt(5.W))
+    val rs2  = Output(UInt(5.W))
+    val rd   = Output(UInt(5.W))
+    val jalr = Output(UInt(1.W))
+    val jal  = Output(UInt(1.W))
+    val imm  = Output(UInt(32.W))
+  })
   val ifu     = Module(new InstFetch)
   val dec     = Module(new Decode)
   val immgen  = Module(new ImmGen)
@@ -37,6 +44,13 @@ class top extends Module {
   regfile.io.reg_we  := ctrl.reg_we
   regfile.io.wr_sel  := dec.io.rd
   regfile.io.wb_data := wb_reg.io.wb_data
+
+  io.rs1  := dec.io.rs1
+  io.rs2  := dec.io.rs2
+  io.rd   := dec.io.rd
+  io.jal  := dec.io.ctrl.jal
+  io.jalr := dec.io.ctrl.jalr
+  io.imm  := immgen.io.imm.asUInt;
 
   // EX
   val rs1     = regfile.io.rs1

@@ -1,5 +1,8 @@
 #include "difftest.hpp"
 #include "cpu.hpp"
+#include "debug.hpp"
+#include "ftrace.hpp"
+#include "itrace.hpp"
 #include "mem.hpp"
 #include <dlfcn.h>
 
@@ -64,8 +67,14 @@ void trace_and_difftest() {
   difftest_context_t ref;
   get_context(&dut);
   ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
-  // isa_reg_display(&dut);
+  static char buf[128];
+  itrace_generate(buf, PC, INST);
+  log_write("%s\n", buf);
+  if (JAL || JALR) {
+    ftrace_log(PC, DNPC, INST, RD, RS1, IMM);
+  }
   if (!check_context(&ref, &dut)) {
+    isa_reg_display(&dut);
     assert(0);
   }
 }

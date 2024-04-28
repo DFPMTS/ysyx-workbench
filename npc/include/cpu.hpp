@@ -13,6 +13,13 @@ extern VerilatedVcdC *vcd;
 #define concat_temp(x, y) (x##y)
 #define REG(x) (concat_temp(top->rootp->top__DOT__regfile__DOT__regs_, x))
 #define PC (top->rootp->top__DOT__pc)
+#define DNPC (top->rootp->top__DOT___wb_pc_io_dnpc)
+#define RD (top->io_rd)
+#define RS1 (top->io_rs1)
+#define RS2 (top->io_rs2)
+#define JAL (top->io_jal)
+#define JALR (top->io_jalr)
+#define IMM (top->io_imm)
 #define INST (top->rootp->top__DOT___ifu_inst)
 #define IF_RETURN(x)                                                           \
   do {                                                                         \

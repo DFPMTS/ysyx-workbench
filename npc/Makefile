@@ -21,7 +21,7 @@ CORE_SRCS = $(shell find $(abspath $(CORE_SRC_DIR)) -name "*.scala")
 VSRCS = $(shell find $(abspath $(VSRC_DIR)) -name "*.v" -or -name "*.sv")
 VSRCS_FLAG = $(VSRC_DIR)/.vsrc_flag
 CSRCS = $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-
+CINCS = $(shell find $(abspath ./include) -name "*.h" -or -name "*.hpp")
 test:
 	mill -i __.test
 
@@ -29,7 +29,7 @@ $(VSRCS_FLAG): $(CORE_SRCS)
 	make verilog 
 	touch $@
 
-$(BIN): $(VSRCS_FLAG) $(CSRCS)
+$(BIN): $(VSRCS_FLAG) $(CSRCS) $(CINCS)
 	rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $(VSRCS) $(CSRCS) \
@@ -62,10 +62,11 @@ clean:
 
 .PHONY: test verilog help compile bsp reformat checkformat clean
 
-MAINARGS += -h  --diff /home/dfpmts/Documents/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
+override MAINARGS += --diff /home/dfpmts/Documents/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
 
 sim: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
+	echo $(MAINARGS)
 	$^ $(MAINARGS)
 
 -include ../Makefile

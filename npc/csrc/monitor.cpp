@@ -1,6 +1,7 @@
 #include "monitor.hpp"
 #include "debug.hpp"
 #include "difftest.hpp"
+#include "func_sym.hpp"
 #include "mem.hpp"
 #include <cstddef>
 #include <cstdio>
@@ -49,6 +50,7 @@ void init_monitor(int argc, char *argv[]) {
   parse_args(argc, argv);
   init_log(log_file);
   load_img(img_file);
+  init_func_sym(elf_file);
   init_cpu();
   init_difftest(diff_so_file);
 }
