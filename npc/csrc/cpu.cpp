@@ -69,17 +69,17 @@ void cpu_step() {
   static uint64_t sim_time = 1;
   top->clock = 0;
   top->eval();
-  vcd->dump(sim_time * 10 - 2);
+  // vcd->dump(sim_time * 10 - 2);
 
   top->clock = 1;
   top->eval();
-  vcd->dump(sim_time * 10);
+  // vcd->dump(sim_time * 10);
 
   top->clock = 0;
   top->eval();
-  vcd->dump(sim_time * 10 + 2);
+  // vcd->dump(sim_time * 10 + 2);
 
-  vcd->flush();
+  // vcd->flush();
   ++sim_time;
 }
 

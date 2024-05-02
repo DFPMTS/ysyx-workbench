@@ -8,6 +8,7 @@
 typedef struct FormatOptions{
   char *out;
   const char *fmt;
+  int printed;
   
   // flags
   int is_sharp; //  #  The value should be converted to an "alternate form".
@@ -142,6 +143,7 @@ static void collect_length_modifier(FormatOptions *opt)
 // don't do padding
 static void out_char(FormatOptions *opt, char c)
 {
+  ++opt->printed;
   if(opt->out == NULL){
     putch(c);
   }else{
@@ -225,10 +227,10 @@ static void out_int(FormatOptions *opt, unsigned long long x) {
 }
 
 static int xprintf(char *out, const char *fmt, va_list ap) {
-  int printed = 0;
   FormatOptions opt;
   opt.fmt = fmt;
   opt.out = out;
+  opt.printed = 0;
   long long x_s;
   unsigned long long x_u;
   while (*opt.fmt != '\0') {
@@ -246,7 +248,6 @@ static int xprintf(char *out, const char *fmt, va_list ap) {
       switch (c){
         case 'd':
         case 'i':
-          ++printed;
           opt.base = 10;
 
           switch (opt.l)
@@ -275,7 +276,6 @@ static int xprintf(char *out, const char *fmt, va_list ap) {
         case 'u':
         case 'x':
         case 'X':
-          ++printed;
 
           switch (opt.l) {
           case 0:
@@ -303,7 +303,6 @@ static int xprintf(char *out, const char *fmt, va_list ap) {
 
         case 'p':
           // this only works on 32-bit platforms
-          ++printed;
           opt.neg = 0;
           opt.base =  16;
           opt.upper_case = 1;
@@ -314,12 +313,10 @@ static int xprintf(char *out, const char *fmt, va_list ap) {
           break;
 
         case 's':
-          ++printed;
           out_str(&opt, va_arg(ap, char *));
         break;
 
         case 'c':
-          ++printed;
           // ! we have to pad here since out_char don't do padding
           pad(&opt, 1);
           out_char(&opt, (char)va_arg(ap, int));
@@ -339,7 +336,7 @@ static int xprintf(char *out, const char *fmt, va_list ap) {
   }
   if (opt.out != NULL)
     *opt.out = '\0';
-  return printed;
+  return opt.printed;
 }
 
 int printf(const char *fmt, ...) {

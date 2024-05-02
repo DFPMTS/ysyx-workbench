@@ -12,6 +12,9 @@ ref_difftest_regcpy_t ref_difftest_regcpy;
 ref_difftest_exec_t ref_difftest_exec;
 ref_difftest_raise_intr_t ref_difftest_raise_intr;
 
+difftest_context_t ref;
+difftest_context_t dut;
+
 void init_difftest(const char *diff_so_file) {
   assert(diff_so_file != NULL);
   auto ref_handle = dlopen(diff_so_file, RTLD_LAZY);
@@ -63,18 +66,27 @@ bool check_context(difftest_context_t *ref, difftest_context_t *dut) {
 }
 
 void trace_and_difftest() {
-  difftest_context_t dut;
-  difftest_context_t ref;
-  get_context(&dut);
-  ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
+  difftest_step();
   static char buf[128];
   itrace_generate(buf, PC, INST);
   log_write("%s\n", buf);
-  if (JAL || JALR) {
-    ftrace_log(PC, DNPC, INST, RD, RS1, IMM);
-  }
+  // if (JAL || JALR) {
+  //   ftrace_log(PC, DNPC, INST, RD, RS1, IMM);
+  // }
+  get_context(&dut);
+  ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
   if (!check_context(&ref, &dut)) {
     isa_reg_display(&dut);
     assert(0);
+  }
+}
+
+void difftest_step() {
+  if (!access_device) {
+    ref_difftest_exec(1);
+  } else {
+    get_context(&dut);
+    ref_difftest_regcpy(&dut, DIFFTEST_TO_REF);
+    access_device = false;
   }
 }

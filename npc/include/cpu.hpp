@@ -20,7 +20,8 @@ extern VerilatedVcdC *vcd;
 #define JAL (top->io_jal)
 #define JALR (top->io_jalr)
 #define IMM (top->io_imm)
-#define INST (top->rootp->top__DOT___ifu_inst)
+#define INST (top->io_inst)
+#define VALID (top->io_valid)
 #define IF_RETURN(x)                                                           \
   do {                                                                         \
     if (id == x)                                                               \

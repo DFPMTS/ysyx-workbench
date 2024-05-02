@@ -43,10 +43,10 @@ int strncmp(const char *s1, const char *s2, size_t n) {
   const unsigned char *us1 = (const unsigned char *)s1, *us2 = (const unsigned char *)s2;
   for (i = 0; us1[i] == us2[i] && i < n; ++i) {
     if (us1[i] == '\0') {
-      return us1[i] - us2[i];
+      return 0;
     }
   }
-  return us1[i] - us2[i];
+  return (i == n) ? 0 : us1[i] - us2[i];
 }
 
 void *memset(void *s, int c, size_t n) {

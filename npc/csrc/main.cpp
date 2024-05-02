@@ -13,12 +13,15 @@ int main(int argc, char *argv[]) {
   // init_cpu();
   // init_cpu must happens **before** init_difftest
   // init_difftest();
-  trace_and_difftest();
+  // trace_and_difftest();
+
+  int T = 1000;
   while (running) {
     cpu_step();
-
-    ref_difftest_exec(1);
-    trace_and_difftest();
+    if (VALID) {
+      cpu_step();
+      trace_and_difftest();
+    }
   }
   // a0
   int retval = gpr(10);

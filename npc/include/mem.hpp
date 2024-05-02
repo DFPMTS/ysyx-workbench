@@ -17,6 +17,7 @@ using paddr_t = uint32_t;
 #define RESET_VECTOR 0x80000000
 
 extern uint8_t mem[MEM_SIZE];
+extern bool access_device;
 
 void load_img(const char *img);
 

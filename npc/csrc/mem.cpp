@@ -21,6 +21,7 @@ static uint32_t image[128] = {
     0xdeadbeef, // some data
 };
 
+bool access_device = false;
 uint8_t mem[MEM_SIZE];
 #define ADDR_MASK (~0x3u)
 #define BYTE_MASK (0xFFu)
@@ -103,6 +104,8 @@ word_t mem_read(paddr_t addr) {
     retval = host_read(guest_to_host(addr));
   }
   if (in_clock(addr)) {
+    access_device = true;
+    log_write("|clock| ", addr);
     valid = true;
     retval = clock_read(addr - RTC_ADDR);
   }
@@ -128,6 +131,8 @@ void mem_write(paddr_t addr, word_t wdata, unsigned char wmask) {
     return;
   }
   if (in_serial(addr) && wmask == 1) {
+    access_device = true;
+    log_write("|serial|\n", addr);
     serial_write(addr - SERIAL_PORT, wdata);
     return;
   }
