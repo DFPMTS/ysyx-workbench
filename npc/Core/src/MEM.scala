@@ -39,21 +39,67 @@ class MEM extends Module {
   mem_write.io.wmask := mask
 }
 
-class MemRead extends HasBlackBoxPath {
+class MemRead extends HasBlackBoxInline {
   val io = IO(new Bundle {
+    val clk    = Input(Clock())
     val addr   = Input(UInt(32.W))
     val en     = Input(UInt(1.W))
     val data_r = Output(UInt(32.W))
   })
-  addPath("Core/src/MemRead.v")
+  // addPath("Core/src/MemRead.v")
+  setInline(
+    "MemRead.v",
+    """module MemRead (
+      |    input clk,
+      |    input  [31:0] addr,
+      |    input         en,
+      |    output reg [31:0] data_r
+      |);
+      |
+      |    import "DPI-C" function int mem_read(input int addr);
+      |    
+      |    always @(posedge clk) begin
+      |        if (en) data_r = mem_read(addr);
+      |        else data_r =  32'b0;
+      |    end
+      |    //assign data_r = en ? mem_read(addr) : 32'b0;
+      |
+      |endmodule
+  """.stripMargin
+  )
+  // addPath("/home/dfpmts/Documents/ysyx-workbench/npc/Core/src/MemRead.v");
 }
 
-class MemWrite extends HasBlackBoxPath {
+class MemWrite extends HasBlackBoxInline {
   val io = IO(new Bundle {
+    val clk   = Input(Clock())
     val addr  = Input(UInt(32.W))
     val wdata = Input(UInt(32.W))
     val en    = Input(UInt(1.W))
     val wmask = Input(UInt(4.W))
   })
-  addPath("Core/src/MemWrite.v")
+  setInline(
+    "MemWrite.v",
+    """module MemWrite (
+      |    input clk,
+      |    input [31:0] addr,
+      |    input [31:0] wdata,
+      |    input        en,
+      |    input [ 3:0] wmask
+      |);
+      |
+      |    import "DPI-C" function void mem_write(
+      |        input int  addr,
+      |        input int  wdata,
+      |        input byte wmask
+      |    );
+      |    always @(posedge clk) begin
+      |        if (en) mem_write(addr, wdata, {4'b0, wmask});
+      |    end
+      |
+      |endmodule
+      |
+  """.stripMargin
+  )
+  // addPath("Core/src/MemWrite.v")
 }

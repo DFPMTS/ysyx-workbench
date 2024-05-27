@@ -15,8 +15,8 @@ extern FILE *log_fd;
 
 #define log_write(...)                                                         \
   do {                                                                         \
-    /*fprintf(log_fd, __VA_ARGS__);                                            \
-    fflush(log_fd); */                                                         \
+    fprintf(log_fd, __VA_ARGS__);                                              \
+    fflush(log_fd);                                                            \
   } while (0)
 
 #define Log(format, ...)                                                       \

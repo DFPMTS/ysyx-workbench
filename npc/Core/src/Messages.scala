@@ -46,3 +46,27 @@ class WBU_Message extends Bundle {
   val reg_we  = Bool()
   val ebreak  = Bool()
 }
+
+class AXI_Lite extends Bundle {
+  val ar = Decoupled(new Bundle {
+    val addr = UInt(32.W)
+  })
+
+  val r = Flipped(Decoupled(new Bundle {
+    val data = UInt(32.W)
+    val resp = UInt(2.W)
+  }))
+
+  val aw = Decoupled(new Bundle {
+    val addr = UInt(32.W)
+  })
+
+  val w = Decoupled(new Bundle {
+    val data = UInt(32.W)
+    val strb = UInt(4.W)
+  })
+
+  val b = Flipped(Decoupled(new Bundle {
+    val resp = UInt(2.W)
+  }))
+}

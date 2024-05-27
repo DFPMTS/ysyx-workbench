@@ -4,6 +4,7 @@
 
 Vtop *top;
 VerilatedVcdC *vcd;
+uint64_t eval_time;
 
 static const char *regs[] = {
     "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
@@ -68,18 +69,21 @@ void get_context(difftest_context_t *dut) {
 void cpu_step() {
   static uint64_t sim_time = 1;
   top->clock = 0;
+  eval_time = sim_time * SIM_T - 2;
   top->eval();
-  // vcd->dump(sim_time * 10 - 2);
+  vcd->dump(eval_time);
 
   top->clock = 1;
+  eval_time = sim_time * SIM_T;
   top->eval();
-  // vcd->dump(sim_time * 10);
+  vcd->dump(eval_time);
 
   top->clock = 0;
+  eval_time = sim_time * SIM_T + 2;
   top->eval();
-  // vcd->dump(sim_time * 10 + 2);
+  vcd->dump(eval_time);
 
-  // vcd->flush();
+  vcd->flush();
   ++sim_time;
 }
 

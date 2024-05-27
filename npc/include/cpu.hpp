@@ -10,6 +10,9 @@
 extern Vtop *top;
 extern VerilatedVcdC *vcd;
 
+#define SIM_T 10
+extern uint64_t eval_time;
+
 #define concat_temp(x, y) (x##y)
 #define REG(x) (concat_temp(top->rootp->top__DOT__regfile__DOT__regs_, x))
 #define PC (top->rootp->top__DOT__pc)

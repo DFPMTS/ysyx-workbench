@@ -16,11 +16,17 @@ int main(int argc, char *argv[]) {
   // trace_and_difftest();
 
   int T = 1000;
+  bool difftest_check = false;
   while (running) {
     cpu_step();
+    if (difftest_check) {
+      difftest();
+      difftest_check = false;
+    }
     if (VALID) {
-      cpu_step();
-      trace_and_difftest();
+      // cpu_step();
+      trace();
+      difftest_check = true;
     }
   }
   // a0

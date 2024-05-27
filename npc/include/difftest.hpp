@@ -24,7 +24,8 @@ extern difftest_context_t ref;
 extern difftest_context_t dut;
 
 void init_difftest(const char *diff_so_file);
-void trace_and_difftest();
+void trace();
+void difftest();
 void difftest_step();
 
 #endif

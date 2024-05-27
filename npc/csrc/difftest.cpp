@@ -65,14 +65,17 @@ bool check_context(difftest_context_t *ref, difftest_context_t *dut) {
   return succ;
 }
 
-void trace_and_difftest() {
-  difftest_step();
+void trace() {
   static char buf[128];
   itrace_generate(buf, PC, INST);
   log_write("%s\n", buf);
   // if (JAL || JALR) {
   //   ftrace_log(PC, DNPC, INST, RD, RS1, IMM);
   // }
+}
+
+void difftest() {
+  difftest_step();
   get_context(&dut);
   ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
   if (!check_context(&ref, &dut)) {
