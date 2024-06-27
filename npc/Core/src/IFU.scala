@@ -8,7 +8,6 @@ class IFU extends Module {
     val master = new AXI_Lite
   })
 
-  // val sram      = Module(new SRAM)
   val pc_buffer = RegEnable(io.in.bits.pc, io.master.ar.fire)
 
   io.master.ar.valid     := io.in.valid
@@ -26,18 +25,4 @@ class IFU extends Module {
   io.out.valid     := io.master.r.valid
   io.out.bits.pc   := pc_buffer
   io.out.bits.inst := io.master.r.bits.data
-  // switch(state) {
-  //   is(s_Idle) {
-  //     when(insert) {
-  //       when(sram.io.ar.fire) {}
-  //     }
-  //   }
-  //   is(s_WaitSReq) {}
-  //   is(s_WaitSReply) {}
-  // }
-
-  // val inst_fetch = Module(new InstFetch)
-  // inst_fetch.io.pc := data_buffer.pc
-  // io.out.bits.inst := inst_fetch.io.inst
-  // io.out.bits.pc   := data_buffer.pc
 }
