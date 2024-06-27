@@ -97,7 +97,7 @@ void host_write(uint8_t *addr, word_t wdata, unsigned char wmask) {
 extern "C" {
 word_t mem_read(paddr_t addr) {
   addr &= ADDR_MASK;
-  log_write("(%llu)read:  0x%08x : ", eval_time, addr);
+  log_write("(%lu)read:  0x%08x : ", eval_time, addr);
   bool valid = false;
   word_t retval = 0;
   if (in_pmem(addr)) {
@@ -106,7 +106,7 @@ word_t mem_read(paddr_t addr) {
   }
   if (in_clock(addr)) {
     access_device = true;
-    log_write("|clock| ", addr);
+    log_write("|clock| %u", addr);
     valid = true;
     retval = clock_read(addr - RTC_ADDR);
   }
@@ -126,7 +126,7 @@ void mem_write(paddr_t addr, word_t wdata, unsigned char wmask) {
   if (!running)
     return;
   addr &= ADDR_MASK;
-  log_write("(%llu)write: 0x%08x - %x : 0x%08x / %u\n", eval_time, addr, wmask,
+  log_write("(%lu)write: 0x%08x - %x : 0x%08x / %u\n", eval_time, addr, wmask,
             wdata, wdata);
   if (in_pmem(addr)) {
     host_write(guest_to_host(addr), wdata, wmask);
@@ -134,7 +134,7 @@ void mem_write(paddr_t addr, word_t wdata, unsigned char wmask) {
   }
   if (in_serial(addr) && wmask == 1) {
     access_device = true;
-    log_write("|serial|\n", addr);
+    log_write("|serial|\n");
     serial_write(addr - SERIAL_PORT, wdata);
     return;
   }

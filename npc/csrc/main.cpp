@@ -1,19 +1,11 @@
 #include "debug.hpp"
 #include "difftest.hpp"
-#include "disasm.hpp"
 #include "mem.hpp"
 #include "monitor.hpp"
 #include "status.hpp"
 
 int main(int argc, char *argv[]) {
   init_monitor(argc, argv);
-  // char *img = argc == 2 ? argv[1] : NULL;
-  // load_img(img);
-  init_disasm("riscv32-pc-linux-gnu");
-  // init_cpu();
-  // init_cpu must happens **before** init_difftest
-  // init_difftest();
-  // trace_and_difftest();
 
   int T = 1000;
   bool difftest_check = false;

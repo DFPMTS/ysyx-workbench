@@ -1,6 +1,7 @@
 #include "monitor.hpp"
 #include "debug.hpp"
 #include "difftest.hpp"
+#include "disasm.hpp"
 #include "func_sym.hpp"
 #include "mem.hpp"
 #include <cstddef>
@@ -38,12 +39,12 @@ void parse_args(int argc, char *argv[]) {
       break;
 
     default:
-      printf("Usage: %s [IMG] -l,--log [LOG] -d,--diff [DIFF_SO] -e,--elf "
+      printf("Usage: [IMG] -l,--log [LOG] -d,--diff [DIFF_SO] -e,--elf "
              "[ELF]\n");
       break;
     }
   }
-  printf("%s\n%s\n%s\n", log_file, diff_so_file, elf_file, img_file);
+  printf("%s\n%s\n%s\n%s\n", log_file, diff_so_file, elf_file, img_file);
 }
 
 void init_monitor(int argc, char *argv[]) {
@@ -53,4 +54,5 @@ void init_monitor(int argc, char *argv[]) {
   init_func_sym(elf_file);
   init_cpu();
   init_difftest(diff_so_file);
+  init_disasm("riscv32-pc-linux-gnu");
 }

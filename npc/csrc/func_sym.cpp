@@ -21,7 +21,7 @@ static char *get_section_name(Elf32_Shdr *shdr) {
   return buf + shstrtab_hdr.sh_offset + shdr->sh_name;
 }
 
-static bool section_name_eq(Elf32_Shdr *shdr, char *s) {
+static bool section_name_eq(Elf32_Shdr *shdr, const char *s) {
   return strcmp(get_section_name(shdr), s) == 0;
 }
 
