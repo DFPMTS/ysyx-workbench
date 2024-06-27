@@ -25,11 +25,6 @@ extern uint64_t eval_time;
 #define IMM (top->io_imm)
 #define INST (top->io_inst)
 #define VALID (top->io_valid)
-#define IF_RETURN(x)                                                           \
-  do {                                                                         \
-    if (id == x)                                                               \
-      return REG(x);                                                           \
-  } while (0);
 
 struct difftest_context_t {
   uint32_t gpr[16];

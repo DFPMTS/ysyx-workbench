@@ -11,6 +11,8 @@ static const char *regs[] = {
     "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
 };
 
+static uint32_t *gprs[16];
+
 void check_gpr_bound(int id) { assert(id >= 0 && id < 16); }
 
 void isa_reg_display(difftest_context_t *ctx) {
@@ -34,29 +36,32 @@ const char *reg_name(int id) {
   return regs[id];
 }
 
+void init_regs() {
+#define MAP_REG(i) gprs[i] = &REG(i);
+  MAP_REG(0);
+  MAP_REG(1);
+  MAP_REG(2);
+  MAP_REG(3);
+
+  MAP_REG(4);
+  MAP_REG(5);
+  MAP_REG(6);
+  MAP_REG(7);
+
+  MAP_REG(8);
+  MAP_REG(9);
+  MAP_REG(10);
+  MAP_REG(11);
+
+  MAP_REG(12);
+  MAP_REG(13);
+  MAP_REG(14);
+  MAP_REG(15);
+}
+
 uint32_t gpr(int id) {
   check_gpr_bound(id);
-  IF_RETURN(0);
-  IF_RETURN(1);
-  IF_RETURN(2);
-  IF_RETURN(3);
-
-  IF_RETURN(4);
-  IF_RETURN(5);
-  IF_RETURN(6);
-  IF_RETURN(7);
-
-  IF_RETURN(8);
-  IF_RETURN(9);
-  IF_RETURN(10);
-  IF_RETURN(11);
-
-  IF_RETURN(12);
-  IF_RETURN(13);
-  IF_RETURN(14);
-  IF_RETURN(15);
-
-  assert(0);
+  return *gprs[id];
 }
 
 void get_context(difftest_context_t *dut) {
@@ -89,6 +94,8 @@ void cpu_step() {
 
 void init_cpu() {
   top = new Vtop;
+  init_regs();
+
   vcd = new VerilatedVcdC;
   Verilated::traceEverOn(true);
   top->trace(vcd, 5);
