@@ -7,8 +7,8 @@ import os.stat
 class SRAM extends Module {
   val io = IO(Flipped(new AXI_Lite))
 
-  val read_lat  = 3.U
-  val write_lat = 4.U
+  val read_lat  = LFSR16(3)
+  val write_lat = LFSR16(3)
   val counter   = RegInit(0.U(3.W))
 
   val addr_buffer = Reg(UInt(32.W))
