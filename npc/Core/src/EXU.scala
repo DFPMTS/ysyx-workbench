@@ -48,7 +48,7 @@ class EXU extends Module {
   val addr_offset = addr(1, 0);
   io.master.ar.valid     := ctrl.mr & ar_valid
   io.master.ar.bits.addr := addr
-  io.master.r.ready      := io.out.ready
+  io.master.r.ready      := Mux(valid_buffer && ctrl.mr.asBool, io.out.ready, false.B)
 
   val aw_valid = RegInit(false.B)
   aw_valid := Mux(
@@ -74,7 +74,7 @@ class EXU extends Module {
       2.U(2.W) -> "b1111".U
     )
   ) << addr_offset
-  io.master.b.ready := io.out.ready
+  io.master.b.ready := Mux(valid_buffer && ctrl.mw.asBool, io.out.ready, false.B)
 
   val raw_data      = io.master.r.bits.data >> (addr_offset << 3.U)
   val sign_ext_data = WireDefault(raw_data)
