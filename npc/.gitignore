@@ -17,6 +17,7 @@
 !decode.ipynb
 !decode.csv
 !single_cycle.circ
+!xmake.lua
 build/
 vsrc/
 
