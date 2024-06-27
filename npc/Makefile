@@ -69,4 +69,9 @@ sim: $(BIN)
 	echo $(MAINARGS)
 	$^ $(MAINARGS)
 
+xmake_test: 
+	xmake build chisel
+	xmake build Vtop
+	xmake run Vtop --log ./log.txt --diff /home/dfpmts/Documents/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
+
 -include ../Makefile

@@ -20,8 +20,7 @@ extern FILE *log_fd;
   } while (0)
 
 #define Log(format, ...)                                                       \
-  _Log("[%s:%d %s] " format "\n", (__FILE__ + 38), __LINE__, __func__,         \
-       ##__VA_ARGS__)
+  _Log("[%s:%d %s] " format "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 
 #define Assert(cond, ...)                                                      \
   do {                                                                         \

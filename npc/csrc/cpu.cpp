@@ -74,21 +74,30 @@ void get_context(difftest_context_t *dut) {
 void cpu_step() {
   static uint64_t sim_time = 1;
   top->clock = 0;
-  eval_time = sim_time * SIM_T - 2;
+
   top->eval();
+#ifdef WAVE
+  eval_time = sim_time * SIM_T - 2;
   vcd->dump(eval_time);
+#endif
 
   top->clock = 1;
-  eval_time = sim_time * SIM_T;
   top->eval();
+#ifdef WAVE
+  eval_time = sim_time * SIM_T;
   vcd->dump(eval_time);
+#endif
 
   top->clock = 0;
-  eval_time = sim_time * SIM_T + 2;
   top->eval();
+#ifdef WAVE
+  eval_time = sim_time * SIM_T + 2;
   vcd->dump(eval_time);
+#endif
 
+#ifdef WAVE
   vcd->flush();
+#endif
   ++sim_time;
 }
 
@@ -96,10 +105,12 @@ void init_cpu() {
   top = new Vtop;
   init_regs();
 
+#ifdef WAVE
   vcd = new VerilatedVcdC;
   Verilated::traceEverOn(true);
   top->trace(vcd, 5);
   vcd->open("wave.vcd");
+#endif
 
   int T = 3;
   top->reset = 1;

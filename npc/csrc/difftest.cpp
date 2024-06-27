@@ -66,9 +66,11 @@ bool check_context(difftest_context_t *ref, difftest_context_t *dut) {
 }
 
 void trace() {
+#ifdef ITRACE
   static char buf[128];
   itrace_generate(buf, PC, INST);
   log_write("%s\n", buf);
+#endif
   // if (JAL || JALR) {
   //   ftrace_log(PC, DNPC, INST, RD, RS1, IMM);
   // }

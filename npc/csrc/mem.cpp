@@ -97,7 +97,9 @@ void host_write(uint8_t *addr, word_t wdata, unsigned char wmask) {
 extern "C" {
 word_t mem_read(paddr_t addr) {
   addr &= ADDR_MASK;
+#ifdef MTRACE
   log_write("(%lu)read:  0x%08x : ", eval_time, addr);
+#endif
   bool valid = false;
   word_t retval = 0;
   if (in_pmem(addr)) {
@@ -106,14 +108,18 @@ word_t mem_read(paddr_t addr) {
   }
   if (in_clock(addr)) {
     access_device = true;
+#ifdef MTRACE
     log_write("|clock| %u", addr);
+#endif
     valid = true;
     retval = clock_read(addr - RTC_ADDR);
   }
+#ifdef MTRACE
   if (valid)
     log_write("0x%08x / %u\n", retval, retval);
   else
     log_write("NOT VALID / NOT VALID\n");
+#endif
   if (valid) {
     return retval;
   }
@@ -126,15 +132,19 @@ void mem_write(paddr_t addr, word_t wdata, unsigned char wmask) {
   if (!running)
     return;
   addr &= ADDR_MASK;
+#ifdef MTRACE
   log_write("(%lu)write: 0x%08x - %x : 0x%08x / %u\n", eval_time, addr, wmask,
             wdata, wdata);
+#endif
   if (in_pmem(addr)) {
     host_write(guest_to_host(addr), wdata, wmask);
     return;
   }
   if (in_serial(addr) && wmask == 1) {
     access_device = true;
+#ifdef MTRACE
     log_write("|serial|\n");
+#endif
     serial_write(addr - SERIAL_PORT, wdata);
     return;
   }

@@ -24,7 +24,9 @@ int main(int argc, char *argv[]) {
   // a0
   int retval = gpr(10);
 
+#ifdef WAVE
   vcd->close();
+#endif
 
   if (retval == 0) {
     Log("Hit GOOD trap.\n");
