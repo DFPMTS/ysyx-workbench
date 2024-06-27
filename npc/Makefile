@@ -25,6 +25,8 @@ CINCS = $(shell find $(abspath ./include) -name "*.h" -or -name "*.hpp")
 test:
 	mill -i __.test
 
+gen_verilog: $(VSRCS_FLAG)
+
 $(VSRCS_FLAG): $(CORE_SRCS)
 	make verilog 
 	touch $@
@@ -60,18 +62,24 @@ checkformat:
 clean:
 	-rm -rf $(BUILD_DIR)
 
-.PHONY: test verilog help compile bsp reformat checkformat clean
+.PHONY: test verilog help compile bsp reformat checkformat clean gen_verilog
 
 override MAINARGS += --diff /home/dfpmts/Documents/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
 
-sim: $(BIN)
-	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	echo $(MAINARGS)
-	$^ $(MAINARGS)
+# sim: $(BIN)
+# 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
+# 	echo $(MAINARGS)
+# 	$^ $(MAINARGS)
+
+sim: 
+	xmake build chisel
+	xmake build Vtop
+	xmake run Vtop $(MAINARGS)
+	
 
 xmake_test: 
 	xmake build chisel
 	xmake build Vtop
-	xmake run Vtop --log ./log.txt --diff /home/dfpmts/Documents/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
+	xmake run Vtop --log log.txt --diff /home/dfpmts/Documents/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
 
 -include ../Makefile

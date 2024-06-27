@@ -25,7 +25,7 @@ target("Vtop")
 target("chisel")  
   set_kind("phony")
   on_build(function (target) 
-    os.exec("make verilog")
+    os.exec("make gen_verilog")
   end)
 
 option("ITrace")
