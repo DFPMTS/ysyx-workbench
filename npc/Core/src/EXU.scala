@@ -36,18 +36,37 @@ class EXU extends Module {
   val mem_len = data_buffer.inst(13, 12)
   val load_U  = data_buffer.inst(14).asBool
   val is_mem  = ctrl.mr | ctrl.mw
-  val mem_req = Reg(Bool())
-  mem_req := Mux(insert, io.in.valid, Mux(io.master.ar.fire || io.master.aw.fire || io.master.w.fire, false.B, mem_req))
+
+  // ar_valid/aw_valid/w_valid 当一个valid请求进入时置为true,在相应通道握手后为false
+  val ar_valid = RegInit(false.B)
+  ar_valid := Mux(
+    insert,
+    io.in.valid,
+    Mux(io.master.ar.fire, false.B, ar_valid)
+  )
   val addr        = alu.io.out
   val addr_offset = addr(1, 0);
-  io.master.ar.valid     := ctrl.mr & mem_req
+  io.master.ar.valid     := ctrl.mr & ar_valid
   io.master.ar.bits.addr := addr
   io.master.r.ready      := io.out.ready
 
-  io.master.aw.valid     := ctrl.mw & mem_req
+  val aw_valid = RegInit(false.B)
+  aw_valid := Mux(
+    insert,
+    io.in.valid,
+    Mux(io.master.aw.fire, false.B, aw_valid)
+  )
+  io.master.aw.valid     := ctrl.mw & aw_valid
   io.master.aw.bits.addr := addr
-  io.master.w.valid      := ctrl.mw & mem_req
-  io.master.w.bits.data  := data_buffer.rs2 << (addr_offset << 3.U)
+
+  val w_valid = RegInit(false.B)
+  w_valid := Mux(
+    insert,
+    io.in.valid,
+    Mux(io.master.w.fire, false.B, w_valid)
+  )
+  io.master.w.valid     := ctrl.mw & w_valid
+  io.master.w.bits.data := data_buffer.rs2 << (addr_offset << 3.U)
   io.master.w.bits.strb := MuxLookup(mem_len, 0.U(4.W))(
     Seq(
       0.U(2.W) -> "b0001".U,
