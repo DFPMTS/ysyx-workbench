@@ -76,6 +76,8 @@ sim:
 	xmake build Vtop
 	xmake run Vtop $(MAINARGS)
 	
+config:
+	xmake f --menu
 
 xmake_test: 
 	xmake build chisel
