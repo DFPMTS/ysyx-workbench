@@ -76,10 +76,10 @@ class AXI4(val dataBits: Int, val addrBits: Int) extends Bundle {
 
   val aw = Decoupled(new Bundle {
     val addr  = UInt(addrBits.W)
-    val id    = UInt(4.W)
-    val len   = UInt(8.W)
+    val id    = UInt(4.W) // tied to LOW
+    val len   = UInt(8.W) // tied to 0b00
     val size  = UInt(3.W)
-    val burst = UInt(2.W)
+    val burst = UInt(2.W) // tied to 0b01
   })
 
   val w = Decoupled(new Bundle {
@@ -90,22 +90,22 @@ class AXI4(val dataBits: Int, val addrBits: Int) extends Bundle {
 
   val b = Flipped(Decoupled(new Bundle {
     val resp = UInt(2.W)
-    val id   = UInt(4.W)
+    val id   = UInt(4.W) // tied to LOW
   }))
 
   val ar = Decoupled(new Bundle {
     val addr  = UInt(dataBits.W)
-    val id    = UInt(4.W)
-    val len   = UInt(8.W)
+    val id    = UInt(4.W) // tied to LOW
+    val len   = UInt(8.W) // tied to 0b00
     val size  = UInt(3.W)
-    val burst = UInt(2.W)
+    val burst = UInt(2.W) // tied to 0b01
   })
 
   val r = Flipped(Decoupled(new Bundle {
     val resp = UInt(2.W)
     val data = UInt(dataBits.W)
     val last = Bool()
-    val id   = UInt(4.W)
+    val id   = UInt(4.W) // tied to LOW
   }))
 
 }
