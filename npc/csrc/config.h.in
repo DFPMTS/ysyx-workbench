@@ -1,3 +1,4 @@
 ${define ITRACE}
 ${define MTRACE}
 ${define WAVE}
+${define DIFFTEST}

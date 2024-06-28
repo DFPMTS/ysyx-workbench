@@ -64,7 +64,7 @@ clean:
 
 .PHONY: test verilog help compile bsp reformat checkformat clean gen_verilog
 
-override MAINARGS += --diff /home/dfpmts/Documents/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
+override MAINARGS += --diff $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
 # sim: $(BIN)
 # 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
@@ -82,6 +82,6 @@ config:
 xmake_test: 
 	xmake build chisel
 	xmake build Vtop
-	xmake run Vtop --log log.txt --diff /home/dfpmts/Documents/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
+	xmake run Vtop --log log.txt --diff $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
 -include ../Makefile

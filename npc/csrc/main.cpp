@@ -15,7 +15,9 @@ int main(int argc, char *argv[]) {
     if (commit) {
       // check the comments of PC / INST
       trace(commit_pc, INST);
+#ifdef DIFFTEST
       difftest();
+#endif
       commit = false;
     }
     if (VALID) {
