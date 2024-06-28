@@ -1,5 +1,5 @@
+#include "config.hpp"
 #include "debug.hpp"
-#include "mem.hpp"
 #include <assert.h>
 #include <elf.h>
 #include <stdbool.h>

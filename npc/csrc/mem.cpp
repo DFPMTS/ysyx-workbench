@@ -34,7 +34,7 @@ static bool in_clock(paddr_t addr) {
 static bool in_serial(paddr_t addr) { return addr == SERIAL_PORT; }
 
 static uint8_t *guest_to_host(paddr_t addr) { return mem + addr - MEM_BASE; }
-static word_t clock_read(paddr_t offset) {
+static mem_word_t clock_read(paddr_t offset) {
   assert(offset == 0 || offset == 4);
   static uint64_t boot_time = 0;
 
@@ -47,12 +47,9 @@ static word_t clock_read(paddr_t offset) {
   }
   now_time -= boot_time;
 
-  if (offset == 0)
-    return (uint32_t)now_time;
-  if (offset == 4)
-    return now_time >> 32;
+  return now_time;
 }
-void serial_write(paddr_t offset, word_t wdata) {
+void serial_write(paddr_t offset, mem_word_t wdata) {
   assert(offset == 0);
   putc(wdata & BYTE_MASK, stderr);
 }
@@ -81,11 +78,11 @@ void load_img(const char *img) {
   }
 }
 
-word_t host_read(uint8_t *addr) {
+mem_word_t host_read(uint8_t *addr) {
   auto retval = *(uint64_t *)(addr);
   return retval;
 }
-void host_write(uint8_t *addr, word_t wdata, unsigned char wmask) {
+void host_write(uint8_t *addr, mem_word_t wdata, unsigned char wmask) {
   uint8_t *data = (uint8_t *)&wdata;
   for (int i = 0; i < 8; ++i) {
     if ((wmask >> i) & 1) {
@@ -95,13 +92,13 @@ void host_write(uint8_t *addr, word_t wdata, unsigned char wmask) {
 }
 
 extern "C" {
-word_t mem_read(paddr_t addr) {
-  addr &= ADDR_MASK;
+mem_word_t mem_read(paddr_t addr) {
 #ifdef MTRACE
   log_write("(%lu)read:  0x%08x : ", eval_time, addr);
 #endif
+  addr &= ADDR_MASK;
   bool valid = false;
-  word_t retval = 0;
+  mem_word_t retval = 0;
   if (in_pmem(addr)) {
     valid = true;
     retval = host_read(guest_to_host(addr));
@@ -116,7 +113,7 @@ word_t mem_read(paddr_t addr) {
   }
 #ifdef MTRACE
   if (valid)
-    log_write("0x%08x / %u\n", retval, retval);
+    log_write("0x%016lx / %lu\n", retval, retval);
   else
     log_write("NOT VALID / NOT VALID\n");
 #endif
@@ -128,7 +125,7 @@ word_t mem_read(paddr_t addr) {
   return 0;
 }
 
-void mem_write(paddr_t addr, word_t wdata, unsigned char wmask) {
+void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
   if (!running)
     return;
   addr &= ADDR_MASK;
@@ -151,7 +148,7 @@ void mem_write(paddr_t addr, word_t wdata, unsigned char wmask) {
   assert(0);
 }
 
-word_t inst_fetch(paddr_t pc) { return mem_read(pc); }
+mem_word_t inst_fetch(paddr_t pc) { return mem_read(pc); }
 
 void nemu_break() { running = 0; }
 }

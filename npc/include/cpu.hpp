@@ -15,16 +15,9 @@ extern uint64_t eval_time;
 
 #define concat_temp(x, y) (x##y)
 #define REG(x) (concat_temp(top->rootp->top__DOT__regfile__DOT__regs_, x))
-#define PC (top->rootp->top__DOT__pc)
-#define DNPC (top->rootp->top__DOT___wb_pc_io_dnpc)
-#define RD (top->io_rd)
-#define RS1 (top->io_rs1)
-#define RS2 (top->io_rs2)
-#define JAL (top->io_jal)
-#define JALR (top->io_jalr)
-#define IMM (top->io_imm)
-#define INST (top->io_inst)
-#define VALID (top->io_valid)
+#define PC (top->rootp->top__DOT__pc)            // the cycle when VALID is true
+#define INST (top->rootp->top__DOT__commit_inst) // one cycle after VALID
+#define VALID (top->rootp->top__DOT___wbu_io_out_valid)
 
 struct difftest_context_t {
   uint32_t gpr[16];
