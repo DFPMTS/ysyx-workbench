@@ -24,7 +24,7 @@ static uint32_t image[128] = {
 
 bool access_device = false;
 uint8_t mem[MEM_SIZE];
-#define ADDR_MASK (~0x3u)
+#define ADDR_MASK (~0x7u)
 #define BYTE_MASK (0xFFu)
 
 static bool in_pmem(paddr_t addr) { return addr - MEM_BASE < MEM_SIZE; }
@@ -82,12 +82,12 @@ void load_img(const char *img) {
 }
 
 word_t host_read(uint8_t *addr) {
-  auto retval = *(uint32_t *)(addr);
+  auto retval = *(uint64_t *)(addr);
   return retval;
 }
 void host_write(uint8_t *addr, word_t wdata, unsigned char wmask) {
   uint8_t *data = (uint8_t *)&wdata;
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 8; ++i) {
     if ((wmask >> i) & 1) {
       addr[i] = data[i];
     }

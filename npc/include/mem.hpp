@@ -11,7 +11,7 @@
 #include <iostream>
 #include <vector>
 
-using word_t = uint32_t;
+using word_t = uint64_t;
 using vaddr_t = uint32_t;
 using paddr_t = uint32_t;
 #define RESET_VECTOR 0x80000000

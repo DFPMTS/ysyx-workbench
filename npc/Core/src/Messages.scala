@@ -94,7 +94,7 @@ class AXI4(val dataBits: Int, val addrBits: Int) extends Bundle {
   }))
 
   val ar = Decoupled(new Bundle {
-    val addr  = UInt(dataBits.W)
+    val addr  = UInt(addrBits.W)
     val id    = UInt(4.W) // tied to LOW
     val len   = UInt(8.W) // tied to 0b00
     val size  = UInt(3.W)

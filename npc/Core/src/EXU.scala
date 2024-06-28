@@ -6,7 +6,7 @@ class EXU extends Module {
   val io = IO(new Bundle {
     val in     = Flipped(Decoupled(new IDU_Message))
     val out    = Decoupled(new EXU_Message)
-    val master = new AXI_Lite
+    val master = new AXI4(64, 32)
   })
   val insert       = Wire(Bool())
   val data_buffer  = RegEnable(io.in.bits, insert)
@@ -45,10 +45,14 @@ class EXU extends Module {
     Mux(io.master.ar.fire, false.B, ar_valid)
   )
   val addr        = alu.io.out
-  val addr_offset = addr(1, 0);
-  io.master.ar.valid     := ctrl.mr & ar_valid
-  io.master.ar.bits.addr := addr
-  io.master.r.ready      := Mux(valid_buffer && ctrl.mr.asBool, io.out.ready, false.B)
+  val addr_offset = addr(2, 0);
+  io.master.ar.valid      := ctrl.mr & ar_valid
+  io.master.ar.bits.addr  := addr
+  io.master.ar.bits.id    := 0.U
+  io.master.ar.bits.len   := 0.U
+  io.master.ar.bits.size  := mem_len
+  io.master.ar.bits.burst := "b01".U
+  io.master.r.ready       := Mux(valid_buffer && ctrl.mr.asBool, io.out.ready, false.B)
 
   val aw_valid = RegInit(false.B)
   aw_valid := Mux(
@@ -56,8 +60,12 @@ class EXU extends Module {
     io.in.valid,
     Mux(io.master.aw.fire, false.B, aw_valid)
   )
-  io.master.aw.valid     := ctrl.mw & aw_valid
-  io.master.aw.bits.addr := addr
+  io.master.aw.valid      := ctrl.mw & aw_valid
+  io.master.aw.bits.addr  := addr
+  io.master.aw.bits.id    := 0.U
+  io.master.aw.bits.len   := 0.U
+  io.master.aw.bits.size  := mem_len
+  io.master.aw.bits.burst := "b01".U
 
   val w_valid = RegInit(false.B)
   w_valid := Mux(
@@ -74,7 +82,8 @@ class EXU extends Module {
       2.U(2.W) -> "b1111".U
     )
   ) << addr_offset
-  io.master.b.ready := Mux(valid_buffer && ctrl.mw.asBool, io.out.ready, false.B)
+  io.master.w.bits.last := true.B
+  io.master.b.ready     := Mux(valid_buffer && ctrl.mw.asBool, io.out.ready, false.B)
 
   val raw_data      = io.master.r.bits.data >> (addr_offset << 3.U)
   val sign_ext_data = WireDefault(raw_data)

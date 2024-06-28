@@ -1,6 +1,5 @@
 import chisel3._
 import chisel3.util._
-import ujson.True
 
 class top extends Module {
   val io = IO(new Bundle {
@@ -22,7 +21,7 @@ class top extends Module {
     pc_valid := false.B
   }
 
-  val arbiter = Module(new AXI_Lite_Arbiter)
+  val arbiter = Module(new AXI_Arbiter)
 
   // IF
   val sram = Module(new SRAM)
@@ -30,7 +29,6 @@ class top extends Module {
   ifu.io.in.bits.pc := Mux(wbu.io.out.valid, wbu.io.out.bits.dnpc, pc)
   ifu.io.in.valid   := pc_valid && !reset.asBool
   ifu.io.master <> arbiter.io.IFU_master
-  // ifu.io.master <> sram.io
 
   // DE
   idu.io.in <> ifu.io.out
@@ -48,12 +46,10 @@ class top extends Module {
   idu_message.rs2    := regfile.io.rs2
 
   // EX
-  // val sram2 = Module(new SRAM)
   exu.io.in.bits   := idu_message
   exu.io.in.valid  := idu.io.out.valid
   idu.io.out.ready := exu.io.in.ready
   exu.io.master <> arbiter.io.EXU_master
-  // exu.io.master <> sram2.io
 
   // WB
   wbu.io.in <> exu.io.out

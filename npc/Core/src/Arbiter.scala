@@ -1,12 +1,13 @@
 import chisel3._
 import chisel3.util._
 import os.stat
+import os.truncate
 
-class AXI_Lite_Arbiter extends Module {
+class AXI_Arbiter extends Module {
   val io = IO(new Bundle {
-    val IFU_master = Flipped(new AXI_Lite)
-    val EXU_master = Flipped(new AXI_Lite)
-    val out_slave  = new AXI_Lite
+    val IFU_master = Flipped(new AXI4(64, 32))
+    val EXU_master = Flipped(new AXI4(64, 32))
+    val out_slave  = new AXI4(64, 32)
   })
 
   val s_Idle :: s_IFU :: s_EXU :: Nil = Enum(3)
@@ -39,33 +40,48 @@ class AXI_Lite_Arbiter extends Module {
     }
   }
 
-  io.IFU_master.ar.ready    := false.B
-  io.IFU_master.aw.ready    := false.B
-  io.IFU_master.w.ready     := false.B
-  io.IFU_master.r.valid     := false.B
-  io.IFU_master.r.bits.data := 0.U
-  io.IFU_master.r.bits.resp := 0.U
-  io.IFU_master.b.valid     := false.B
-  io.IFU_master.b.bits.resp := 0.U
+  for (master <- List(io.IFU_master, io.EXU_master)) {
+    master.ar.ready := false.B
 
-  io.EXU_master.ar.ready    := false.B
-  io.EXU_master.aw.ready    := false.B
-  io.EXU_master.w.ready     := false.B
-  io.EXU_master.r.valid     := false.B
-  io.EXU_master.r.bits.data := 0.U
-  io.EXU_master.r.bits.resp := 0.U
-  io.EXU_master.b.valid     := false.B
-  io.EXU_master.b.bits.resp := 0.U
+    master.aw.ready := false.B
 
-  io.out_slave.ar.valid     := false.B
-  io.out_slave.ar.bits.addr := 0.U
-  io.out_slave.aw.valid     := false.B
-  io.out_slave.aw.bits.addr := 0.U
-  io.out_slave.w.valid      := false.B
-  io.out_slave.w.bits.data  := 0.U
-  io.out_slave.w.bits.strb  := 0.U
-  io.out_slave.r.ready      := false.B
-  io.out_slave.b.ready      := false.B
+    master.w.ready := false.B
+
+    master.r.valid     := false.B
+    master.r.bits.data := 0.U
+    master.r.bits.resp := 0.U
+    master.r.bits.last := true.B
+    master.r.bits.id   := 0.U
+
+    master.b.valid     := false.B
+    master.b.bits.resp := 0.U
+    master.b.bits.id   := 0.U
+  }
+
+  for (slave <- List(io.out_slave)) {
+    slave.aw.valid      := false.B
+    slave.aw.bits.addr  := 0.U
+    slave.aw.bits.id    := 0.U
+    slave.aw.bits.len   := 0.U
+    slave.aw.bits.size  := 0.U
+    slave.aw.bits.burst := "b01".U
+
+    slave.w.valid     := false.B
+    slave.w.bits.data := 0.U
+    slave.w.bits.strb := 0.U
+    slave.w.bits.last := true.B
+
+    slave.ar.valid      := false.B
+    slave.ar.bits.addr  := 0.U
+    slave.ar.bits.id    := 0.U
+    slave.ar.bits.len   := 0.U
+    slave.ar.bits.size  := 0.U
+    slave.ar.bits.burst := "b01".U
+
+    slave.r.ready := false.B
+    slave.b.ready := false.B
+  }
+
   switch(state) {
     is(s_IFU) {
       io.IFU_master <> io.out_slave
