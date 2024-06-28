@@ -20,6 +20,8 @@
 !xmake.lua
 build/
 vsrc/
+# xmake config
+!csrc/config.h.in
 
 # mill
 out/
