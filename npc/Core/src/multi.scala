@@ -1,11 +1,10 @@
 import chisel3._
 import chisel3.util._
+import chisel3.experimental.dataview._
 
 class top extends Module {
   val io = IO(new Bundle {
-    val valid = Output(Bool())
-    val pc    = Output(UInt(32.W))
-    val inst  = Output(UInt(32.W))
+    // val master = new AXI4ysyxSoC(64, 32)
   })
 
   val ifu     = Module(new IFU)
@@ -66,8 +65,7 @@ class top extends Module {
     regfile.io.reg_we := wbu.io.out.bits.reg_we
     ebreak.io.ebreak  := wbu.io.out.bits.ebreak
   }
-
-  io.valid := wbu.io.out.valid
-  io.pc    := wbu.io.out.bits.pc
-  io.inst  := wbu.io.out.bits.inst
+  val commit_inst = RegNext(wbu.io.out.bits.inst)
+  dontTouch(commit_inst)
+  // arbiter.io.out_slave.viewAs[AXI4ysyxSoC] <> io.master
 }
