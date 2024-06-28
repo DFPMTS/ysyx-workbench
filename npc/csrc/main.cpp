@@ -8,17 +8,19 @@ int main(int argc, char *argv[]) {
   init_monitor(argc, argv);
 
   int T = 1000;
-  bool difftest_check = false;
+  bool commit = false;
+  uint32_t commit_pc = 0;
   while (running) {
     cpu_step();
-    if (difftest_check) {
+    if (commit) {
+      // check the comments of PC / INST
+      trace(commit_pc, INST);
       difftest();
-      difftest_check = false;
+      commit = false;
     }
     if (VALID) {
-      // cpu_step();
-      trace();
-      difftest_check = true;
+      commit = true;
+      commit_pc = PC;
     }
   }
   // a0

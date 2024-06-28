@@ -65,10 +65,10 @@ bool check_context(difftest_context_t *ref, difftest_context_t *dut) {
   return succ;
 }
 
-void trace() {
+void trace(uint32_t pc, uint32_t inst) {
 #ifdef ITRACE
   static char buf[128];
-  itrace_generate(buf, PC, INST);
+  itrace_generate(buf, pc, inst);
   log_write("%s\n", buf);
 #endif
   // if (JAL || JALR) {
