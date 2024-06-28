@@ -130,8 +130,8 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
     return;
   addr &= ADDR_MASK;
 #ifdef MTRACE
-  log_write("(%lu)write: 0x%08x - %x : 0x%08x / %u\n", eval_time, addr, wmask,
-            wdata, wdata);
+  log_write("(%lu)write: 0x%08x - %x : 0x%016lx / %lu\n", eval_time, addr,
+            wmask, wdata, wdata);
 #endif
   if (in_pmem(addr)) {
     host_write(guest_to_host(addr), wdata, wmask);
