@@ -161,7 +161,17 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
 
 mem_word_t inst_fetch(paddr_t pc) { return mem_read(pc); }
 
-void nemu_break() { running = 0; }
+void raise_ebreak() { running = 0; }
+
+void raise_invalid_inst() {
+  Log("Invalid instruction\n");
+  assert(0);
+}
+
+void raise_access_fault() {
+  Log("Access fault\n");
+  assert(0);
+}
 
 extern "C" void flash_read(int32_t addr, int32_t *data) { assert(0); }
 extern "C" void mrom_read(int32_t addr, int32_t *data) {

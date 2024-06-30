@@ -56,8 +56,10 @@ class WBU extends Module {
   wb_reg.io.wb_sel    := ctrl.wb_sel
   io.out.bits.wb_data := wb_reg.io.wb_data
 
-  io.out.bits.reg_we := data_buffer.ctrl.reg_we
-  io.out.bits.pc     := data_buffer.pc
-  io.out.bits.inst   := data_buffer.inst
-  io.out.bits.ebreak := ctrl.ebreak
+  io.out.bits.reg_we       := data_buffer.ctrl.reg_we
+  io.out.bits.pc           := data_buffer.pc
+  io.out.bits.inst         := data_buffer.inst
+  io.out.bits.ebreak       := ctrl.ebreak
+  io.out.bits.access_fault := data_buffer.access_fault
+  io.out.bits.invalid_inst := ctrl.invalid.asBool
 }

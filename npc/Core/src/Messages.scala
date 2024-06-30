@@ -7,45 +7,51 @@ class PC_Message extends Bundle {
 }
 
 class IFU_Message extends Bundle {
-  val pc   = UInt(32.W)
-  val inst = UInt(32.W)
+  val pc           = UInt(32.W)
+  val inst         = UInt(32.W)
+  val access_fault = Bool()
 }
 
 class IDU_Out extends Bundle {
-  val pc   = UInt(32.W)
-  val inst = UInt(32.W)
-  val imm  = UInt(32.W)
-  val ctrl = new Control
+  val pc           = UInt(32.W)
+  val inst         = UInt(32.W)
+  val imm          = UInt(32.W)
+  val ctrl         = new Control
+  val access_fault = Bool()
 }
 
 class IDU_Message extends Bundle {
-  val pc   = UInt(32.W)
-  val inst = UInt(32.W)
-  val imm  = UInt(32.W)
-  val ctrl = new Control
-  val rs1  = UInt(32.W)
-  val rs2  = UInt(32.W)
+  val pc           = UInt(32.W)
+  val inst         = UInt(32.W)
+  val imm          = UInt(32.W)
+  val ctrl         = new Control
+  val rs1          = UInt(32.W)
+  val rs2          = UInt(32.W)
+  val access_fault = Bool()
 }
 
 class EXU_Message extends Bundle {
-  val pc          = UInt(32.W)
-  val inst        = UInt(32.W)
-  val imm         = UInt(32.W)
-  val ctrl        = new Control
-  val rs1         = UInt(32.W)
-  val rs2         = UInt(32.W)
-  val alu_out     = UInt(32.W)
-  val alu_cmp_out = Bool()
-  val mem_out     = UInt(32.W)
+  val pc           = UInt(32.W)
+  val inst         = UInt(32.W)
+  val imm          = UInt(32.W)
+  val ctrl         = new Control
+  val rs1          = UInt(32.W)
+  val rs2          = UInt(32.W)
+  val alu_out      = UInt(32.W)
+  val alu_cmp_out  = Bool()
+  val mem_out      = UInt(32.W)
+  val access_fault = Bool()
 }
 
 class WBU_Message extends Bundle {
-  val pc      = UInt(32.W)
-  val inst    = UInt(32.W)
-  val dnpc    = UInt(32.W)
-  val wb_data = UInt(32.W)
-  val reg_we  = Bool()
-  val ebreak  = Bool()
+  val pc           = UInt(32.W)
+  val inst         = UInt(32.W)
+  val dnpc         = UInt(32.W)
+  val wb_data      = UInt(32.W)
+  val reg_we       = Bool()
+  val ebreak       = Bool()
+  val access_fault = Bool()
+  val invalid_inst = Bool()
 }
 
 class AXI_Lite extends Bundle {

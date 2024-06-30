@@ -35,8 +35,9 @@ class IFU extends Module {
 
   val addr_offset = pc_buffer(2)
   val ret_data    = io.master.r.bits.data
-  io.in.ready      := io.master.ar.ready
-  io.out.valid     := io.master.r.valid
-  io.out.bits.pc   := pc_buffer
-  io.out.bits.inst := Mux(addr_offset, ret_data(63, 32), ret_data(31, 0))
+  io.in.ready              := io.master.ar.ready
+  io.out.valid             := io.master.r.valid
+  io.out.bits.pc           := pc_buffer
+  io.out.bits.inst         := Mux(addr_offset, ret_data(63, 32), ret_data(31, 0))
+  io.out.bits.access_fault := io.master.r.bits.resp =/= 0.U
 }

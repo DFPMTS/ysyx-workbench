@@ -32,21 +32,22 @@ class EXU extends Module {
   io.out.bits.alu_cmp_out := alu.io.cmp_out
 
   // -------------------------- MEM --------------------------
-
-  val mem_len = data_buffer.inst(13, 12)
-  val load_U  = data_buffer.inst(14).asBool
-  val is_mem  = ctrl.mr | ctrl.mw
+  val invalid        = io.in.bits.access_fault || io.in.bits.ctrl.invalid.asBool
+  val invalid_buffer = RegEnable(invalid, insert)
+  val mem_len        = data_buffer.inst(13, 12)
+  val load_U         = data_buffer.inst(14).asBool
+  val is_mem         = ctrl.mr | ctrl.mw
 
   // ar_valid/aw_valid/w_valid 当一个valid请求进入时置为true,在相应通道握手后为false
   val ar_valid = RegInit(false.B)
   ar_valid := Mux(
     insert,
-    io.in.valid,
+    io.in.valid && io.in.bits.ctrl.mr.asBool && !invalid,
     Mux(io.master.ar.fire, false.B, ar_valid)
   )
   val addr        = alu.io.out
   val addr_offset = addr(2, 0);
-  io.master.ar.valid      := ctrl.mr & ar_valid
+  io.master.ar.valid      := ar_valid
   io.master.ar.bits.addr  := addr
   io.master.ar.bits.id    := 0.U
   io.master.ar.bits.len   := 0.U
@@ -57,10 +58,10 @@ class EXU extends Module {
   val aw_valid = RegInit(false.B)
   aw_valid := Mux(
     insert,
-    io.in.valid,
+    io.in.valid && io.in.bits.ctrl.mw.asBool && !invalid,
     Mux(io.master.aw.fire, false.B, aw_valid)
   )
-  io.master.aw.valid      := ctrl.mw & aw_valid
+  io.master.aw.valid      := aw_valid
   io.master.aw.bits.addr  := addr
   io.master.aw.bits.id    := 0.U
   io.master.aw.bits.len   := 0.U
@@ -70,7 +71,7 @@ class EXU extends Module {
   val w_valid = RegInit(false.B)
   w_valid := Mux(
     insert,
-    io.in.valid,
+    io.in.valid && io.in.bits.ctrl.mw.asBool && !invalid,
     Mux(io.master.w.fire, false.B, w_valid)
   )
   io.master.w.valid     := ctrl.mw & w_valid
@@ -94,7 +95,11 @@ class EXU extends Module {
   }
 
   io.out.bits.mem_out := sign_ext_data
-  io.out.valid        := Mux(is_mem.asBool, Mux(ctrl.mr.asBool, io.master.r.valid, io.master.b.valid), valid_buffer)
+  io.out.valid := Mux(
+    is_mem.asBool && !invalid_buffer,
+    Mux(ctrl.mr.asBool, io.master.r.valid, io.master.b.valid),
+    valid_buffer
+  )
 
   // ---------------------------------------------------------
 
@@ -104,4 +109,9 @@ class EXU extends Module {
   io.out.bits.ctrl := data_buffer.ctrl
   io.out.bits.pc   := data_buffer.pc
   io.out.bits.inst := data_buffer.inst
+  io.out.bits.access_fault := data_buffer.access_fault || Mux(
+    !invalid_buffer && ctrl.mr.asBool,
+    io.master.r.bits.resp =/= 0.U,
+    io.master.b.bits.resp =/= 0.U
+  )
 }

@@ -29,7 +29,8 @@ class IDU extends Module {
   io.out.bits.ctrl := decode.io.ctrl
 
   val immgen = Module(new ImmGen)
-  immgen.io.inst      := data_buffer.inst
-  immgen.io.inst_type := decode.io.ctrl.inst_type
-  io.out.bits.imm     := immgen.io.imm.asUInt
+  immgen.io.inst           := data_buffer.inst
+  immgen.io.inst_type      := decode.io.ctrl.inst_type
+  io.out.bits.imm          := immgen.io.imm.asUInt
+  io.out.bits.access_fault := data_buffer.access_fault
 }
