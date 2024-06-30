@@ -166,5 +166,9 @@ void nemu_break() { running = 0; }
 extern "C" void flash_read(int32_t addr, int32_t *data) { assert(0); }
 extern "C" void mrom_read(int32_t addr, int32_t *data) {
   *data = *(int32_t *)(mrom + addr - MROM_BASE);
+#ifdef MTRACE
+  log_write("(%lu)mrom_read: 0x%08x : ", eval_time, addr);
+  log_write("0x%08x / %u\n", *data, *data);
+#endif
 }
 }
