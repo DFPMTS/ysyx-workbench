@@ -19,7 +19,9 @@
 #include <memory/paddr.h>
 
 #define NR_GPR MUXDEF(CONFIG_RVE,16,32)
-
+void init_map();
+void init_mrom();
+void init_sram();
 struct diff_context_t {
   word_t gpr[NR_GPR];
   word_t pc;
@@ -71,6 +73,9 @@ __EXPORT void difftest_raise_intr(word_t NO) {
 __EXPORT void difftest_init(int port) {
   void init_mem();
   init_mem();
+  init_map();
+  IFDEF(CONFIG_HAS_MROM, init_mrom());
+  IFDEF(CONFIG_HAS_SRAM, init_sram());
   /* Perform ISA dependent initialization. */
   init_isa();
 }
