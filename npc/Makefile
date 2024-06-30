@@ -89,7 +89,7 @@ soc_test_print: soc_test_print.c
 	riscv64-linux-gnu-objcopy -O binary test.o test.bin
 	xmake build chisel
 	xmake build Vtop
-	xmake run Vtop `realpath test.bin` --log log.txt
+	xmake run Vtop `realpath test.bin` --log log.txt --diff $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
 
 -include ../Makefile
