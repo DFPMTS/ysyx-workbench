@@ -111,7 +111,7 @@ void init_cpu() {
   vcd->open("wave.vcd");
 #endif
 
-  int T = 3;
+  int T = 10;
   top->reset = 1;
   while (T--) {
     cpu_step();
