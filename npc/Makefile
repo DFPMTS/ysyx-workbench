@@ -25,9 +25,9 @@ CINCS = $(shell find $(abspath ./include) -name "*.h" -or -name "*.hpp")
 test:
 	mill -i __.test
 
-gen_verilog: $(VSRCS_FLAG)
+gen_verilog: $(VSRCS_FLAG)$(SIM_TARGET)
 
-$(VSRCS_FLAG): $(CORE_SRCS)
+$(VSRCS_FLAG)$(SIM_TARGET): $(CORE_SRCS)
 	make verilog 
 	touch $@
 
@@ -42,7 +42,7 @@ verilog:
 	$(call git_commit, "generate verilog")	
 	-rm -rf $(VSRC_DIR)
 	mkdir -p $(VSRC_DIR)
-	mill -i __.test.runMain Elaborate -td $(VSRC_DIR) --split-verilog
+	mill -i __.test.runMain Elaborate_$(SIM_TARGET) -td $(VSRC_DIR) --split-verilog
 
 help:
 	mill -i __.test.runMain Elaborate --help
@@ -83,5 +83,13 @@ xmake_test:
 	xmake build chisel
 	xmake build Vtop
 	xmake run Vtop --log log.txt --diff $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
+
+soc_test_print: soc_test_print.c
+	riscv64-linux-gnu-gcc -march=rv32e -mabi=ilp32e -O2 -c ./soc_test_print.c -o test.o
+	riscv64-linux-gnu-objcopy -O binary test.o test.bin
+	xmake build chisel
+	xmake build Vtop
+	xmake run Vtop `realpath test.bin` --log log.txt
+
 
 -include ../Makefile

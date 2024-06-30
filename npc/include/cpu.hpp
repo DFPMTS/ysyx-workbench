@@ -2,6 +2,7 @@
 #define CPU_HPP
 
 #include "Vtop.h"
+#include "config.hpp"
 #include <Vtop___024root.h>
 #include <iostream>
 #include <verilated.h>
@@ -14,11 +15,28 @@ extern VerilatedVcdC *vcd;
 extern uint64_t eval_time;
 
 #define concat_temp(x, y) (x##y)
-#define REG(x) (concat_temp(top->rootp->top__DOT__regfile__DOT__regs_, x))
-#define PC (top->rootp->top__DOT__pc)            // the cycle when VALID is true
-#define INST (top->rootp->top__DOT__commit_inst) // one cycle after VALID
-#define VALID (top->rootp->top__DOT___wbu_io_out_valid)
 
+#ifdef NPC
+#define REG(x)                                                                 \
+  (concat_temp(top->rootp->npc_top__DOT__npc__DOT__regfile__DOT__regs_, x))
+#define PC                                                                     \
+  (top->rootp->npc_top__DOT__npc__DOT__pc) // the cycle when VALID is true
+#define INST                                                                   \
+  (top->rootp->npc_top__DOT__npc__DOT__commit_inst) // one cycle after VALID
+#define VALID (top->rootp->npc_top__DOT__npc__DOT___wbu_io_out_valid)
+#else
+#define REG(x)                                                                    \
+  (concat_temp(                                                                   \
+      top->rootp                                                                  \
+          ->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__regfile__DOT__regs_, \
+      x))
+#define PC (top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc)
+#define INST                                                                   \
+  (top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit_inst)
+#define VALID                                                                  \
+  (top->rootp                                                                  \
+       ->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT___wbu_io_out_valid)
+#endif
 struct difftest_context_t {
   uint32_t gpr[16];
   uint32_t pc;

@@ -24,6 +24,8 @@ static uint32_t image[128] = {
 
 bool access_device = false;
 uint8_t mem[MEM_SIZE];
+uint8_t sram[SRAM_SIZE];
+uint8_t mrom[MROM_SIZE];
 #define ADDR_MASK (~0x7u)
 #define BYTE_MASK (0xFFu)
 
@@ -72,9 +74,18 @@ void load_img(const char *img) {
     fseek(fd, 0, SEEK_END);
     auto size = ftell(fd);
     fseek(fd, 0, SEEK_SET);
-    assert(fread(mem, 1, size, fd) == size);
+#ifdef NPC
+    assert(fread(sram, 1, size, fd) == size);
+#else
+    Log("Loading %d bytes to MROM\n", size);
+    assert(fread(mrom, 1, size, fd) == size);
+#endif
   } else {
-    memcpy(mem, image, sizeof(image));
+#ifdef NPC
+    memcpy(sram, image, sizeof(image));
+#else
+    memcpy(sram, image, sizeof(image));
+#endif
   }
 }
 
@@ -151,4 +162,9 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
 mem_word_t inst_fetch(paddr_t pc) { return mem_read(pc); }
 
 void nemu_break() { running = 0; }
+
+extern "C" void flash_read(int32_t addr, int32_t *data) { assert(0); }
+extern "C" void mrom_read(int32_t addr, int32_t *data) {
+  *data = *(int32_t *)(mrom + addr - MROM_BASE);
+}
 }

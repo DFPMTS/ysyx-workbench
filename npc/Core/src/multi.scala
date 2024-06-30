@@ -2,9 +2,11 @@ import chisel3._
 import chisel3.util._
 import chisel3.experimental.dataview._
 
-class top extends Module {
+class multi extends Module {
   val io = IO(new Bundle {
-    // val master = new AXI4ysyxSoC(64, 32)
+    val master    = new AXI4ysyxSoC(64, 32)
+    val slave     = Flipped(new AXI4ysyxSoC(64, 32))
+    val interrupt = Input(Bool())
   })
 
   val ifu     = Module(new IFU)
@@ -13,7 +15,8 @@ class top extends Module {
   val wbu     = Module(new WBU)
   val regfile = Module(new RegFile)
 
-  val pc = RegInit(UInt(32.W), "h80000000".U)
+  // val pc = RegInit(UInt(32.W), "h80000000".U)
+  val pc = RegInit(UInt(32.W), "h20000000".U)
 
   val pc_valid = RegInit(true.B)
   when(ifu.io.in.fire) {
@@ -23,8 +26,8 @@ class top extends Module {
   val arbiter = Module(new AXI_Arbiter)
 
   // IF
-  val sram = Module(new SRAM)
-  arbiter.io.out_slave <> sram.io
+  // val sram = Module(new SRAM)
+  // arbiter.io.out_slave <> sram.io
   ifu.io.in.bits.pc := Mux(wbu.io.out.valid, wbu.io.out.bits.dnpc, pc)
   ifu.io.in.valid   := pc_valid && !reset.asBool
   ifu.io.master <> arbiter.io.IFU_master
@@ -67,5 +70,22 @@ class top extends Module {
   }
   val commit_inst = RegNext(wbu.io.out.bits.inst)
   dontTouch(commit_inst)
-  // arbiter.io.out_slave.viewAs[AXI4ysyxSoC] <> io.master
+
+  // AXI4 master
+  arbiter.io.out_slave.viewAs[AXI4ysyxSoC] <> io.master
+
+  // AXI4 slave
+  io.slave.awready := false.B
+  io.slave.arready := false.B
+  io.slave.wready  := false.B
+
+  io.slave.bvalid := false.B
+  io.slave.bresp  := 0.U
+  io.slave.bid    := 0.U
+
+  io.slave.rdata  := 0.U
+  io.slave.rvalid := false.B
+  io.slave.rresp  := 0.U
+  io.slave.rid    := 0.U
+  io.slave.rlast  := true.B
 }

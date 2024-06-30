@@ -30,7 +30,6 @@ void isa_reg_display(difftest_context_t *ctx) {
   }
   printf("============================================\n");
 }
-
 const char *reg_name(int id) {
   check_gpr_bound(id);
   return regs[id];
