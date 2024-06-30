@@ -10,6 +10,7 @@ int main(int argc, char *argv[]) {
   int T = 1000;
   bool commit = false;
   uint32_t commit_pc = 0;
+  Log("Simulation begin");
   while (running) {
     cpu_step();
     if (commit) {
