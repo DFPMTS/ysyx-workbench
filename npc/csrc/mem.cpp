@@ -175,6 +175,7 @@ void raise_access_fault() {
 
 extern "C" void flash_read(int32_t addr, int32_t *data) { assert(0); }
 extern "C" void mrom_read(int32_t addr, int32_t *data) {
+  addr &= ~(0x3u);
   *data = *(int32_t *)(mrom + addr - MROM_BASE);
 #ifdef MTRACE
   log_write("(%lu)mrom_read: 0x%08x : ", eval_time, addr);

@@ -7,41 +7,57 @@ MEMORY {
 
 SECTIONS {
   /* _pmem_start and _entry_offset are defined in LDFLAGS */
-  /* . = _pmem_start + _entry_offset; */
-  . = ORIGIN(mrom);
+  /* . = _pmem_start + _entry_offset; */  
   
-  .text : {
+  .text : ALIGN(8){
     *(entry)
     *(.text*)
-  }
-  etext = .;
+  } > mrom
   
-  _etext = .;
-  .rodata : {
+  .rodata : ALIGN(8){
     *(.rodata*)
     *(.srodata*)
-  }
-
-  .data : {
+  } > mrom
+  
+  .data : ALIGN(8){
     *(.data*)
     *(.sdata*)
-  }
+  } > sram AT> mrom
 
-  edata = .;
-  _data = .;
-  .bss : {
-	_bss_start = .;
+  .bss (NOLOAD) : ALIGN(8){
     *(.bss*)
     *(.sbss*)
     *(.scommon)
-  }
+  } > sram
 
-  . = ORIGIN(sram);
+  .heap (NOLOAD) : ALIGN(8){
+    _heap_start = .;
+    . = _heap_start + 0x800;
+    _heap_end = .;
+  } > sram
 
-  _stack_top = ALIGN(0x1000);
-  . = _stack_top + LENGTH(sram)/2;
-  _stack_pointer = .;
+  /* _heap_start = ALIGN(8);
+  . = _heap_start + 0x800; 
+  _heap_end = .; */
+
+  .stack (NOLOAD) : ALIGN(8){
+    _stack_top = .;
+    . = _stack_top + 0x800;
+    _stack_pointer = .;
+  } > sram
+
+  /* _stack_top = ALIGN(8);
+  . = _stack_top + 0x800;
+  _stack_pointer = .; */
   end = .;
   _end = .;
-  _heap_start = ALIGN(0x1000);
 }
+
+_data_lma_start = LOADADDR(.data);
+_data_lma_end = _data_lma_start + SIZEOF(.data);
+_data_vma_start = ADDR(.data);
+_data_vma_end = _data_vma_start + SIZEOF(.data);
+  
+_bss_start = ADDR(.bss);
+_bss_end = _bss_start + SIZEOF(.bss);
+
