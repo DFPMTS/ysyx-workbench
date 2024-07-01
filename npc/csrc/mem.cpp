@@ -82,7 +82,7 @@ void load_img(const char *img) {
 #endif
   } else {
 #ifdef NPC
-    memcpy(sram, image, sizeof(image));
+    memcpy(mem, image, sizeof(image));
 #else
     memcpy(sram, image, sizeof(image));
 #endif
