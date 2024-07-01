@@ -26,7 +26,7 @@ void halt(int code) {
   while (1);
 }
 
-static void uart_init()
+__attribute_maybe_unused__ static void uart_init() 
 {
   int8_t LC_old = inb(UART_BASE + UART_LC);
   // the LC_DL bits should be 0 after reset
@@ -53,7 +53,7 @@ void _trm_init() {
     bss ++;
   }
 
-  uart_init();
+  // uart_init();
 
   int ret = main(mainargs);
   halt(ret);

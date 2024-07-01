@@ -31,6 +31,7 @@ void init_sdcard();
 void init_alarm();
 void init_mrom();
 void init_sram();
+void init_flash();
 
 void send_key(uint8_t, bool);
 void vga_update_screen();
@@ -88,6 +89,7 @@ void init_device() {
   IFDEF(CONFIG_HAS_SDCARD, init_sdcard());
   IFDEF(CONFIG_HAS_MROM, init_mrom());
   IFDEF(CONFIG_HAS_SRAM, init_sram());
+  IFDEF(CONFIG_HAS_FLASH, init_flash());
 
   IFNDEF(CONFIG_TARGET_AM, init_alarm());
 }

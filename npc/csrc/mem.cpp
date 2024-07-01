@@ -26,6 +26,7 @@ bool access_device = false;
 uint8_t mem[MEM_SIZE];
 uint8_t sram[SRAM_SIZE];
 uint8_t mrom[MROM_SIZE];
+uint8_t flash[FLASH_SIZE];
 #define ADDR_MASK (~0x7u)
 #define BYTE_MASK (0xFFu)
 
@@ -77,8 +78,10 @@ void load_img(const char *img) {
 #ifdef NPC
     assert(fread(sram, 1, size, fd) == size);
 #else
-    Log("Loading %d bytes to MROM\n", size);
-    assert(fread(mrom, 1, size, fd) == size);
+    // Log("Loading %d bytes to MROM\n", size);
+    // assert(fread(mrom, 1, size, fd) == size);
+    Log("Loading %ld bytes to Flash\n", size);
+    assert(fread(flash, 1, size, fd) == size);
 #endif
   } else {
 #ifdef NPC
@@ -173,7 +176,15 @@ void raise_access_fault() {
   assert(0);
 }
 
-extern "C" void flash_read(int32_t addr, int32_t *data) { assert(0); }
+extern "C" void flash_read(int32_t addr, int32_t *data) {
+  addr &= ~(0x3u);
+  *data = *(int32_t *)(flash + addr);
+#ifdef MTRACE
+  log_write("(%lu)flash_read: 0x%08x : ", eval_time, FLASH_BASE + addr);
+  log_write("0x%08x / %u\n", *data, *data);
+#endif
+}
+
 extern "C" void mrom_read(int32_t addr, int32_t *data) {
   addr &= ~(0x3u);
   *data = *(int32_t *)(mrom + addr - MROM_BASE);

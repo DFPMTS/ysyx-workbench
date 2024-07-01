@@ -19,6 +19,7 @@ using paddr_t = uint32_t;
 extern uint8_t mem[MEM_SIZE];
 extern uint8_t sram[SRAM_SIZE];
 extern uint8_t mrom[MROM_SIZE];
+extern uint8_t flash[FLASH_SIZE];
 extern bool access_device;
 
 void load_img(const char *img);

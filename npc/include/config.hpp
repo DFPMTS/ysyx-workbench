@@ -14,6 +14,9 @@ constexpr size_t SRAM_BASE = 0x08000000;
 constexpr size_t MROM_SIZE = 0x00001000;
 constexpr size_t MROM_BASE = 0x20000000;
 
+constexpr size_t FLASH_SIZE = 0x00100000;
+constexpr size_t FLASH_BASE = 0x30000000;
+
 using word_t = uint32_t;
 
 #endif

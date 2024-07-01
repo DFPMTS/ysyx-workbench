@@ -17,7 +17,7 @@ class multi extends Module {
 
   // val pc = RegInit(UInt(32.W), "h80000000".U)
   // val pc = RegInit(UInt(32.W), "h0ff00000".U)
-  val pc = RegInit(UInt(32.W), "h20000000".U)
+  val pc = RegInit(UInt(32.W), "h30000000".U)
 
   val pc_valid = RegInit(true.B)
   when(ifu.io.in.fire) {

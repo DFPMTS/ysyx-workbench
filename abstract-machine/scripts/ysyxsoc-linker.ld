@@ -1,8 +1,9 @@
 ENTRY(_start)
 
 MEMORY {
-  mrom : ORIGIN = 0x20000000, LENGTH = 4k
-  sram : ORIGIN = 0x0f000000, LENGTH = 8k
+  mrom  : ORIGIN = 0x20000000, LENGTH = 4k
+  sram  : ORIGIN = 0x0f000000, LENGTH = 8k
+  flash : ORIGIN = 0x30000000, LENGTH = 1M
 }
 
 SECTIONS {
@@ -12,17 +13,17 @@ SECTIONS {
   .text : ALIGN(8){
     *(entry)
     *(.text*)
-  } > mrom
+  } > flash
   
   .rodata : ALIGN(8){
     *(.rodata*)
     *(.srodata*)
-  } > mrom
+  } > flash
   
   .data : ALIGN(8){
     *(.data*)
     *(.sdata*)
-  } > sram AT> mrom
+  } > sram AT> flash
 
   .bss (NOLOAD) : ALIGN(8){
     *(.bss*)

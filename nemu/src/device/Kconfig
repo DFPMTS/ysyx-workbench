@@ -179,5 +179,18 @@ config SRAM_SIZE
   default 0x20000
 endif # HAS_SRAM
 
+menuconfig HAS_FLASH
+  bool "Enable FLASH"
+  default n
+
+if HAS_FLASH
+config FLASH_ADDR
+  hex "Physical address of the FLASH"
+  default 0x30000000
+
+config FLASH_SIZE
+  hex "Size of the FLASH"
+  default 0x100000
+endif # HAS_FLASH
 
 endif # DEVICE
