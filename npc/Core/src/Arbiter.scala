@@ -20,7 +20,8 @@ class AXI_Arbiter extends Module {
 
   val IFU_reply = io.IFU_master.r.fire || io.IFU_master.b.fire
   val EXU_reply = io.EXU_master.r.fire || io.EXU_master.b.fire
-
+  // 注意这里有问题：假设一个master能发出多个请求（如ar通道多次握手），当第一个请求得到回复后就会直接变为Idle状态，这是错误的
+  // 修改方法1：让ar aw w仅能握手一次，即在ar aw w握手后将其ready置为false
   next_state := state
   switch(state) {
     is(s_Idle) {
