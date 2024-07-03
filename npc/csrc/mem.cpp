@@ -27,6 +27,7 @@ uint8_t mem[MEM_SIZE];
 uint8_t sram[SRAM_SIZE];
 uint8_t mrom[MROM_SIZE];
 uint8_t flash[FLASH_SIZE];
+uint8_t psram[PSRAM_SIZE];
 #define ADDR_MASK (~0x7u)
 #define BYTE_MASK (0xFFu)
 
@@ -176,7 +177,7 @@ void raise_access_fault() {
   assert(0);
 }
 
-extern "C" void flash_read(int32_t addr, int32_t *data) {
+void flash_read(int32_t addr, int32_t *data) {
   addr &= ~(0x3u);
   *data = *(int32_t *)(flash + addr);
 #ifdef MTRACE
@@ -185,12 +186,29 @@ extern "C" void flash_read(int32_t addr, int32_t *data) {
 #endif
 }
 
-extern "C" void mrom_read(int32_t addr, int32_t *data) {
+void mrom_read(int32_t addr, int32_t *data) {
   addr &= ~(0x3u);
   *data = *(int32_t *)(mrom + addr - MROM_BASE);
 #ifdef MTRACE
   log_write("(%lu)mrom_read: 0x%08x : ", eval_time, addr);
   log_write("0x%08x / %u\n", *data, *data);
+#endif
+}
+
+void psram_read(int32_t addr, int32_t *data) {
+  addr &= ~(0x3u);
+  *data = *(int32_t *)(psram + addr);
+#ifdef MTRACE
+  log_write("(%lu)psram_read: 0x%08x : ", eval_time, addr);
+  log_write("0x%08x / %u\n", *data, *data);
+#endif
+}
+
+void psram_write(int32_t addr, int8_t data) {
+  *(int8_t *)(psram + addr) = data;
+#ifdef MTRACE
+  log_write("(%lu)psram_write: 0x%08x : ", eval_time, addr);
+  log_write("0x%02x / %u\n", data, data);
 #endif
 }
 }
