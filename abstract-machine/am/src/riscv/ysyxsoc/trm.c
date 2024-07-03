@@ -33,23 +33,7 @@ __attribute_maybe_unused__ static void uart_init()
 }
 
 void _trm_init() {
-  extern char _data_lma_start, _data_lma_end, _data_vma_start;
-  char *data_lma = &_data_lma_start, *data_vma = &_data_vma_start;
-  char *data_lma_end = &_data_lma_end;
-  while (data_lma < data_lma_end) {
-    *data_vma = *data_lma;
-    data_lma ++, data_vma ++;
-  }
-
-  extern char _bss_start, _bss_end;
-  char *bss = &_bss_start;
-  char *bss_end = &_bss_end;
-  while (bss < bss_end) {
-    *bss = 0;
-    bss ++;
-  }
-
-  // uart_init();
+  uart_init();
 
   int ret = main(mainargs);
   halt(ret);
