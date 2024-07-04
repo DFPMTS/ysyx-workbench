@@ -199,7 +199,7 @@ void psram_read(int32_t addr, int32_t *data) {
   addr &= ~(0x3u);
   *data = *(int32_t *)(psram + addr);
 #ifdef MTRACE
-  log_write("(%lu)psram_read: 0x%08x : ", eval_time, addr);
+  log_write("(%lu)psram_read: 0x%08x : ", eval_time, PSRAM_BASE + addr);
   log_write("0x%08x / %u\n", *data, *data);
 #endif
 }
@@ -207,7 +207,7 @@ void psram_read(int32_t addr, int32_t *data) {
 void psram_write(int32_t addr, int8_t data) {
   *(int8_t *)(psram + addr) = data;
 #ifdef MTRACE
-  log_write("(%lu)psram_write: 0x%08x : ", eval_time, addr);
+  log_write("(%lu)psram_write: 0x%08x : ", eval_time, PSRAM_BASE + addr);
   log_write("0x%02x / %u\n", data, data);
 #endif
 }
