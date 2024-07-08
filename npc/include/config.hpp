@@ -21,7 +21,7 @@ constexpr size_t PSRAM_BASE = 0x80000000;
 constexpr size_t PSRAM_SIZE = 0x00400000;
 
 constexpr size_t SDRAM_BASE = 0xA0000000;
-constexpr size_t SDRAM_SIZE = 0x00400000;
+constexpr size_t SDRAM_SIZE = 0x02000000;
 
 using word_t = uint32_t;
 
