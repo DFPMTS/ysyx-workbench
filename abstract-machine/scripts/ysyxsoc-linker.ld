@@ -1,52 +1,62 @@
-ENTRY(_start)
+ENTRY(_fsbl)
 
 MEMORY {
   mrom  : ORIGIN = 0x20000000, LENGTH = 4k
   sram  : ORIGIN = 0x0f000000, LENGTH = 8k
-  flash : ORIGIN = 0x30000000, LENGTH = 1M
+  flash : ORIGIN = 0x30000000, LENGTH = 8M
   psram : ORIGIN = 0x80000000, LENGTH = 4M
 }
 
 SECTIONS {
-  .entry : ALIGN(8){
-    *(entry)
+  .fsbl : ALIGN(8){
+    *(fsbl)
   } > flash
 
-  .text : ALIGN(8){  
-    *(.text*)
+  .ssbl : ALIGN(8){
+    *(ssbl)
   } > sram AT> flash
+
+  .text : ALIGN(8){  
+    *(entry)
+    *(.text*)
+  } > psram AT> flash
   
   .rodata : ALIGN(8){
     *(.rodata*)
     *(.srodata*)
-  } > sram AT> flash
+  } > psram AT> flash
   
   .data : ALIGN(8){
     *(.data*)
     *(.sdata*)
-  } > sram AT> flash
+  } > psram AT> flash
 
   .bss (NOLOAD) : ALIGN(8){
     *(.bss*)
     *(.sbss*)
     *(.scommon)
-  } > sram
+  } > psram
 
   .heap (NOLOAD) : ALIGN(8){
     _heap_start = .;
-    . = _heap_start + 0x300000;
+    . = _heap_start + 0x100000;
     _heap_end = .;
   } > psram
 
   .stack (NOLOAD) : ALIGN(8){
     _stack_top = .;
-    . = _stack_top + 0x800;
+    . = _stack_top + 0x1000;
     _stack_pointer = .;
   } > sram
 
   end = .;
   _end = .;
 }
+
+_ssbl_lma_start = LOADADDR(.ssbl);
+_ssbl_lma_end = _ssbl_lma_start + SIZEOF(.ssbl);
+_ssbl_vma_start = ADDR(.ssbl);
+_ssbl_vma_end = _ssbl_vma_start + SIZEOF(.ssbl);
 
 _text_lma_start = LOADADDR(.text);
 _text_lma_end = _text_lma_start + SIZEOF(.text);

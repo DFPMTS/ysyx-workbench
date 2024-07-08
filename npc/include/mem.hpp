@@ -21,6 +21,7 @@ extern uint8_t sram[SRAM_SIZE];
 extern uint8_t mrom[MROM_SIZE];
 extern uint8_t flash[FLASH_SIZE];
 extern uint8_t psram[PSRAM_SIZE];
+extern uint8_t sdram[SDRAM_SIZE];
 extern bool access_device;
 
 void load_img(const char *img);

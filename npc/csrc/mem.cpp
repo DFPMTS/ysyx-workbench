@@ -28,6 +28,7 @@ uint8_t sram[SRAM_SIZE];
 uint8_t mrom[MROM_SIZE];
 uint8_t flash[FLASH_SIZE];
 uint8_t psram[PSRAM_SIZE];
+uint8_t sdram[SDRAM_SIZE];
 #define ADDR_MASK (~0x7u)
 #define BYTE_MASK (0xFFu)
 
@@ -210,5 +211,27 @@ void psram_write(int32_t addr, int8_t data) {
   log_write("(%lu)psram_write: 0x%08x : ", eval_time, PSRAM_BASE + addr);
   log_write("0x%02x / %u\n", data, data);
 #endif
+}
+
+void sdram_read(uint32_t addr, uint16_t *data) {
+  *data = *(uint16_t *)(sdram + addr);
+#ifdef MTRACE
+  log_write("(%lu)sdram_read: 0x%08x : ", eval_time, SDRAM_BASE + addr);
+  log_write("0x%04x / %u\n", *data, *data);
+#endif
+}
+
+void sdram_write(uint32_t addr, int8_t dqm, int16_t data) {
+  for (int i = 0; i < 2; ++i) {
+    if (!((dqm >> i) & 1)) {
+      uint8_t byte_data = (data >> (i * 8)) & 0xFF;
+      *(uint8_t *)(sdram + addr + i) = byte_data;
+#ifdef MTRACE
+      log_write("(%lu)sdram_write: 0x%08x : ", eval_time,
+                SDRAM_BASE + addr + i);
+      log_write("0x%02x / %u\n", byte_data, byte_data);
+#endif
+    }
+  }
 }
 }
