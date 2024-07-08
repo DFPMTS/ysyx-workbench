@@ -193,4 +193,18 @@ config FLASH_SIZE
   default 0x100000
 endif # HAS_FLASH
 
+menuconfig HAS_SDRAM
+  bool "Enable SDRAM"
+  default n
+
+if HAS_SDRAM
+config SDRAM_ADDR
+  hex "Physical address of the SDRAM"
+  default 0xa0000000
+
+config SDRAM_SIZE
+  hex "Size of the SDRAM"
+  default 0x02000000
+endif # HAS_SDRAM
+
 endif # DEVICE

@@ -23,6 +23,7 @@ void init_map();
 void init_mrom();
 void init_sram();
 void init_flash();
+void init_sdram();
 struct diff_context_t {
   word_t gpr[NR_GPR];
   word_t pc;
@@ -78,6 +79,7 @@ __EXPORT void difftest_init(int port) {
   IFDEF(CONFIG_HAS_MROM, init_mrom());
   IFDEF(CONFIG_HAS_SRAM, init_sram());
   IFDEF(CONFIG_HAS_FLASH, init_flash());
+  IFDEF(CONFIG_HAS_SDRAM, init_sdram());
   /* Perform ISA dependent initialization. */
   init_isa();
 }

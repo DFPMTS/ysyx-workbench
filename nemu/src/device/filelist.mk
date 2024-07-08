@@ -25,6 +25,7 @@ SRCS-$(CONFIG_HAS_SDCARD) += src/device/sdcard.c
 SRCS-$(CONFIG_HAS_MROM) += src/device/mrom.c
 SRCS-$(CONFIG_HAS_SRAM) += src/device/sram.c
 SRCS-$(CONFIG_HAS_FLASH) += src/device/flash.c
+SRCS-$(CONFIG_HAS_SDRAM) += src/device/sdram.c 
 
 SRCS-BLACKLIST-$(CONFIG_TARGET_AM) += src/device/alarm.c
 
