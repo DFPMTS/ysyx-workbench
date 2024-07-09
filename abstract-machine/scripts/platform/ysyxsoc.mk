@@ -1,14 +1,15 @@
 AM_SRCS := riscv/ysyxsoc/start.S \
            riscv/ysyxsoc/trm.c \
-           riscv/ysyxsoc/ioe.c \
-           riscv/ysyxsoc/timer.c \
-           riscv/ysyxsoc/input.c \
            riscv/ysyxsoc/cte.c \
            riscv/ysyxsoc/trap.S \
            platform/dummy/vme.c \
-           platform/dummy/mpe.c
+           platform/dummy/mpe.c \
+					 riscv/ysyxsoc/ioe/ioe.c \
+					 riscv/ysyxsoc/ioe/uart.c \
+					 riscv/ysyxsoc/ioe/timer.c \
+					 riscv/ysyxsoc/ioe/input.c
 
-CFLAGS    += -fdata-sections -ffunction-sections
+CFLAGS    += -fdata-sections -ffunction-sections -Isrc/riscv/ysyxsoc
 LDFLAGS   += -T $(AM_HOME)/scripts/ysyxsoc-linker.ld \
 						 --defsym=_pmem_start=0x20000000 --defsym=_entry_offset=0x0
 LDFLAGS   += --gc-sections -e _fsbl
