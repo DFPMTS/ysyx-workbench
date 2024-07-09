@@ -100,8 +100,11 @@ void cpu_step() {
   ++sim_time;
 }
 
+void nvboard_bind_all_pins(Vtop *top);
+
 void init_cpu() {
   top = new Vtop;
+  nvboard_bind_all_pins(top);
   init_regs();
 
 #ifdef WAVE

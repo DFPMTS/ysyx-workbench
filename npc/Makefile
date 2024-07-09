@@ -71,6 +71,14 @@ override MAINARGS += --diff $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 # 	echo $(MAINARGS)
 # 	$^ $(MAINARGS)
 
+NXDC_FILES = $(abspath constr/top.nxdc)
+SRC_AUTO_BIND = $(abspath constr/auto_bind.cpp)
+$(SRC_AUTO_BIND): $(NXDC_FILES)
+	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
+
+nxdc: $(SRC_AUTO_BIND)
+
+
 sim: 
 	xmake build chisel
 	xmake build Vtop

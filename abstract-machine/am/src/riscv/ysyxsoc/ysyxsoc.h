@@ -16,4 +16,6 @@
 
 #define INPUT_BASE 0x10011000
 
+#define VGA_BASE 0x21000000
+
 #endif

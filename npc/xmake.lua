@@ -8,6 +8,10 @@ target("Vtop")
     local llvm_ldflags = os.iorun("llvm-config --libs")
     target:add("cxxflags",llvm_cxxflags,"-fPIE")
     target:add("ldflags",llvm_ldflags)
+    local sdl2_cxxflags = os.iorun("sdl2-config --cflags")
+    local sdl2_ldflags = os.iorun("sdl2-config --libs") .. "-lSDL2_image -lSDL2_ttf"
+    target:add("cxxflags",sdl2_cxxflags)
+    target:add("ldflags",sdl2_ldflags)
   end)
 
   add_files("csrc/*.cpp")
@@ -21,7 +25,11 @@ target("Vtop")
     add_files("../ysyxSoC/perip/**.v")
     add_files("../ysyxSoC/build/ysyxSoCFull.v")
   end 
-  
+
+  add_includedirs("/home/dfpmts/Documents/ysyx-workbench/nvboard/include")
+  add_files("constr/auto_bind.cpp")
+  add_links("/home/dfpmts/Documents/ysyx-workbench/nvboard/build/nvboard.a")
+
   add_files("vsrc/*.sv")
   add_files("vsrc/*.v")
   add_includedirs("$(buildir)")
