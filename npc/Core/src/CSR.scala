@@ -2,10 +2,12 @@ import chisel3._
 import chisel3.util._
 
 object CSRList {
-  val mstatus = 0x300.U
-  val mtvec   = 0x305.U
-  val mepc    = 0x341.U
-  val mcause  = 0x342.U
+  val mstatus   = 0x300.U
+  val mtvec     = 0x305.U
+  val mepc      = 0x341.U
+  val mcause    = 0x342.U
+  val mvendorid = 0xf11.U
+  val marchid   = 0xf12.U
 }
 
 class CSR extends Module {
@@ -51,6 +53,12 @@ class CSR extends Module {
     }
     when(io.addr === CSRList.mcause) {
       io.rdata := mcause
+    }
+    when(io.addr === CSRList.mvendorid) {
+      io.rdata := 0x79737978.U
+    }
+    when(io.addr === CSRList.marchid) {
+      io.rdata := 23060238.U
     }
   }
 

@@ -32,9 +32,40 @@ __attribute_maybe_unused__ static void uart_init()
   outb(UART_BASE + UART_LC, LC_old);
 }
 
+static void print_decimal(uint32_t n) {
+  if (n == 0) {
+    putch('0');
+    return;
+  }
+  char buf[12];
+  int i = 0;
+  while (n) {
+    buf[i++] = n % 10 + '0';
+    n /= 10;
+  }
+  while (i--) {
+    putch(buf[i]);
+  }
+}
+
+static void print_hello() {
+  uint32_t vendorid;
+  uint32_t studentid;
+  asm volatile("csrr %[vendorid], mvendorid" : [vendorid] "=r"(vendorid));
+  asm volatile("csrr %[studentid], marchid" : [studentid] "=r"(studentid));
+
+  putstr("Hello from ");
+  for(int i=3;i>=0;--i){
+    putch(vendorid >> (i * 8));
+  }
+  putch('_');
+  print_decimal(studentid);
+  putch('\n');
+}
+
 void _trm_init() {
   uart_init();
-
+  print_hello();
   int ret = main(mainargs);
   halt(ret);
 }

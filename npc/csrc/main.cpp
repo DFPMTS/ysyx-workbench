@@ -9,6 +9,7 @@ void nvboard_quit();
 void nvboard_init(int x);
 
 int main(int argc, char *argv[]) {
+  Verilated::commandArgs(argc, argv);
   init_monitor(argc, argv);
   int T = 1000;
   bool commit = false;
