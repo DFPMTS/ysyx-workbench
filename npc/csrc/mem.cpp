@@ -78,7 +78,7 @@ void load_img(const char *img) {
     auto size = ftell(fd);
     fseek(fd, 0, SEEK_SET);
 #ifdef NPC
-    assert(fread(sram, 1, size, fd) == size);
+    assert(fread(mem, 1, size, fd) == size);
 #else
     // Log("Loading %d bytes to MROM\n", size);
     // assert(fread(mrom, 1, size, fd) == size);

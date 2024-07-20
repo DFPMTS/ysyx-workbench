@@ -53,6 +53,9 @@ compile:
 bsp:
 	mill -i mill.bsp.BSP/install
 
+idea:
+	mill -i mill.idea.GenIdea/idea
+
 reformat:
 	mill -i __.reformat
 
@@ -99,5 +102,8 @@ soc_test_print: soc_test_print.c
 	xmake build Vtop
 	xmake run Vtop `realpath test.bin` --log log.txt --diff $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
+
+sta:
+	make -C ../../yosys-sta sta DESIGN=multi SDC_FILE=$(abspath npc.sdc) RTL_FILES="$(shell find $(abspath ./vsrc) -regex ".*\.\(sv\|v\)")" CLK_FREQ_MHZ=5000
 
 -include ../Makefile

@@ -12,17 +12,19 @@ class multi extends Module {
   val ifu     = Module(new IFU)
   val idu     = Module(new IDU)
   val exu     = Module(new EXU)
+  val mem     = Module(new MEM)
   val wbu     = Module(new WBU)
   val regfile = Module(new RegFile)
 
   // val pc = RegInit(UInt(32.W), "h80000000".U)
   // val pc = RegInit(UInt(32.W), "h0ff00000".U)
-  val pc = RegInit(UInt(32.W), "h30000000".U)
+  val pc = RegInit(UInt(32.W), "h80000000".U)
 
-  val pc_valid = RegInit(true.B)
+  val pc_valid_r = RegInit(true.B)
   when(ifu.io.in.fire) {
-    pc_valid := false.B
+    pc_valid_r := false.B
   }
+  val pc_valid = wbu.io.out.valid || pc_valid_r
 
   val arbiter = Module(new AXI_Arbiter)
 
@@ -53,10 +55,13 @@ class multi extends Module {
   exu.io.in.bits   := idu_message
   exu.io.in.valid  := idu.io.out.valid
   idu.io.out.ready := exu.io.in.ready
-  exu.io.master <> arbiter.io.EXU_master
+
+  // MEM
+  mem.io.in <> exu.io.out
+  mem.io.master <> arbiter.io.EXU_master
 
   // WB
-  wbu.io.in <> exu.io.out
+  wbu.io.in <> mem.io.out
   wbu.io.out.ready   := true.B
   regfile.io.wb_data := wbu.io.out.bits.wb_data
   regfile.io.wr_sel  := wbu.io.out.bits.inst(11, 7)
@@ -67,7 +72,7 @@ class multi extends Module {
   error.io.access_fault := 0.U
   error.io.invalid_inst := 0.U
   when(wbu.io.out.valid) {
-    pc_valid              := true.B
+    pc_valid_r            := true.B
     pc                    := wbu.io.out.bits.dnpc
     regfile.io.reg_we     := wbu.io.out.bits.reg_we
     error.io.ebreak       := wbu.io.out.bits.ebreak

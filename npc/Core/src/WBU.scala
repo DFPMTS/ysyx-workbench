@@ -4,7 +4,7 @@ import dataclass.data
 
 class WBU extends Module {
   val io = IO(new Bundle {
-    val in  = Flipped(Decoupled(new EXU_Message))
+    val in  = Flipped(Decoupled(new MEM_Message))
     val out = Decoupled(new WBU_Message)
   })
   val counter      = RegInit(0.U(3.W))
@@ -31,7 +31,7 @@ class WBU extends Module {
   csr.io.wen   := ctrl.csr.asBool && rs1 =/= 0.U && valid_buffer
   csr.io.wtype := wtype
   csr.io.wdata := data_buffer.rs1
-  csr.io.ecall := ctrl.ecall.asBool
+  csr.io.ecall := ctrl.ecall.asBool && valid_buffer
   csr.io.pc    := data_buffer.pc
 
   val wb_pc  = Module(new WB_PC)

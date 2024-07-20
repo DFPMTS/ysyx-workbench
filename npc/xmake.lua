@@ -27,7 +27,7 @@ target("Vtop")
   end 
 
   add_includedirs("/home/dfpmts/Documents/ysyx-workbench/nvboard/include")
-  add_files("constr/auto_bind.cpp")
+  -- add_files("constr/auto_bind.cpp")
   add_links("/home/dfpmts/Documents/ysyx-workbench/nvboard/build/nvboard.a")
 
   add_files("vsrc/*.sv")

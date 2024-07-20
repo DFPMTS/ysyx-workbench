@@ -39,6 +39,18 @@ class EXU_Message extends Bundle {
   val rs2          = UInt(32.W)
   val alu_out      = UInt(32.W)
   val alu_cmp_out  = Bool()
+  val access_fault = Bool()
+}
+
+class MEM_Message extends Bundle {
+  val pc           = UInt(32.W)
+  val inst         = UInt(32.W)
+  val imm          = UInt(32.W)
+  val ctrl         = new Control
+  val rs1          = UInt(32.W)
+  val rs2          = UInt(32.W)
+  val alu_out      = UInt(32.W)
+  val alu_cmp_out  = Bool()
   val mem_out      = UInt(32.W)
   val access_fault = Bool()
 }
