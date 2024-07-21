@@ -39,11 +39,10 @@ class multi extends Module {
   idu.io.in <> ifu.io.out
   val idu_out     = idu.io.out.bits
   val idu_message = Wire(new IDU_Message)
-  idu_message.ctrl         := idu_out.ctrl
-  idu_message.imm          := idu_out.imm
-  idu_message.inst         := idu_out.inst
-  idu_message.pc           := idu_out.pc
-  idu_message.access_fault := idu_out.access_fault
+
+  idu_message.ctrl     := idu_out.ctrl
+  idu_message.data.imm := idu_out.imm
+  idu_message.pc       := idu_out.pc
 
   val idu_inst = idu.io.out.bits.inst
   regfile.io.rs1_sel := idu_inst(19, 15)

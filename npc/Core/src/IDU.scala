@@ -5,6 +5,7 @@ import scala.reflect.internal.Mode
 class IDU extends Module {
   val io = IO(new Bundle {
     val in  = Flipped(Decoupled(new IFU_Message))
+    val wb  = new WBSignal
     val out = Decoupled(new IDU_Out)
   })
   val counter      = RegInit(0.U(3.W))
@@ -21,16 +22,30 @@ class IDU extends Module {
   io.in.ready  := insert
   io.out.valid := valid_buffer && counter === 0.U
 
-  io.out.bits.pc   := data_buffer.pc
-  io.out.bits.inst := data_buffer.inst
+  io.out.bits.pc := data_buffer.pc
 
   val decode = Module(new Decode)
-  decode.io.inst   := data_buffer.inst
-  io.out.bits.ctrl := decode.io.ctrl
+  decode.io.inst := data_buffer.inst
+  val decodeSignals = decode.io.signals
+  val ctrl          = Wire(new Control)
 
   val immgen = Module(new ImmGen)
-  immgen.io.inst           := data_buffer.inst
-  immgen.io.inst_type      := decode.io.ctrl.inst_type
-  io.out.bits.imm          := immgen.io.imm.asUInt
-  io.out.bits.access_fault := data_buffer.access_fault
+  immgen.io.inst      := data_buffer.inst
+  immgen.io.inst_type := decodeSignals.instType
+
+  ctrl.invalid  := decodeSignals.invalid
+  ctrl.regWe    := decodeSignals.regWe
+  ctrl.aluFunc  := decodeSignals.aluFunc
+  ctrl.fuType   := decodeSignals.fuType
+  ctrl.fuOp     := decodeSignals.fuOp
+  ctrl.src1Type := decodeSignals.src1Type
+  ctrl.src2Type := decodeSignals.src2Type
+  ctrl.rs1      := data_buffer.inst(19, 15)
+  ctrl.rs2      := data_buffer.inst(24, 20)
+  ctrl.rd       := data_buffer.inst(11, 7)
+
+  io.out.bits.ctrl := ctrl
+  io.out.bits.imm  := immgen.io.imm
+  // io.out.bits.ctrl.          := immgen.io.imm.asUInt
+  // io.out.bits.access_fault := data_buffer.access_fault
 }

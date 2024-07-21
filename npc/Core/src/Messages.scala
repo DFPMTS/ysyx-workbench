@@ -2,6 +2,23 @@ import chisel3._
 import chisel3.util._
 import chisel3.experimental.dataview._
 
+trait HasDecodeConstants
+    extends HasInstType
+    with HasFuTypes
+    with HasBRUOps
+    with HasCSROps
+    with HasALUFuncs
+    with HasLSUOps {
+  def N    = 0.U(1.W)
+  def Y    = 1.U(1.W)
+  def X    = BitPat("b?")
+  def ZERO = 0.U(2.W)
+  def REG  = 1.U(2.W)
+  def IMM  = 2.U(2.W)
+  def PC   = 3.U(2.W)
+  def OP_X = BitPat("b????")
+}
+
 class PC_Message extends Bundle {
   val pc = UInt(32.W)
 }
@@ -12,47 +29,55 @@ class IFU_Message extends Bundle {
   val access_fault = Bool()
 }
 
+class Control extends Bundle {
+  val invalid  = Bool()
+  val regWe    = Bool()
+  val src1Type = UInt(2.W)
+  val src2Type = UInt(2.W)
+  val aluFunc  = UInt(4.W)
+  val fuType   = UInt(2.W)
+  val fuOp     = UInt(2.W)
+
+  val rs1 = UInt(5.W)
+  val rs2 = UInt(5.W)
+  val rd  = UInt(5.W)
+}
+
+class Data extends Bundle {
+  val src1 = UInt(32.W)
+  val src2 = UInt(32.W)
+  val out  = UInt(32.W)
+  val imm  = UInt(32.W)
+}
+
+class WBSignal extends Bundle {
+  val wen  = Bool()
+  val rd   = UInt(5.W)
+  val data = UInt(32.W)
+}
+
 class IDU_Out extends Bundle {
-  val pc           = UInt(32.W)
-  val inst         = UInt(32.W)
-  val imm          = UInt(32.W)
-  val ctrl         = new Control
-  val access_fault = Bool()
+  val pc   = UInt(32.W)
+  val ctrl = new Control
+  val imm  = UInt(32.W)
 }
 
 class IDU_Message extends Bundle {
-  val pc           = UInt(32.W)
-  val inst         = UInt(32.W)
-  val imm          = UInt(32.W)
-  val ctrl         = new Control
-  val rs1          = UInt(32.W)
-  val rs2          = UInt(32.W)
-  val access_fault = Bool()
+  val pc   = UInt(32.W)
+  val ctrl = new Control
+  val data = new Data
 }
 
 class EXU_Message extends Bundle {
-  val pc           = UInt(32.W)
-  val inst         = UInt(32.W)
-  val imm          = UInt(32.W)
-  val ctrl         = new Control
-  val rs1          = UInt(32.W)
-  val rs2          = UInt(32.W)
-  val alu_out      = UInt(32.W)
-  val alu_cmp_out  = Bool()
-  val access_fault = Bool()
+  val pc   = UInt(32.W)
+  val ctrl = new Control
+  val data = new Data
 }
 
 class MEM_Message extends Bundle {
-  val pc           = UInt(32.W)
-  val inst         = UInt(32.W)
-  val imm          = UInt(32.W)
-  val ctrl         = new Control
-  val rs1          = UInt(32.W)
-  val rs2          = UInt(32.W)
-  val alu_out      = UInt(32.W)
-  val alu_cmp_out  = Bool()
-  val mem_out      = UInt(32.W)
-  val access_fault = Bool()
+  val pc   = UInt(32.W)
+  val ctrl = new Control
+  val data = new Data
 }
 
 class WBU_Message extends Bundle {
