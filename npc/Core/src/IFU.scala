@@ -1,17 +1,27 @@
 import chisel3._
 import chisel3.util._
+import chisel3.SpecifiedDirection.Flip
 
 class IFU extends Module {
   val io = IO(new Bundle {
-    val in     = Flipped(Decoupled(new PC_Message))
+    val valid  = Input(Bool())
+    val in     = Flipped(new dnpcSignal)
     val out    = Decoupled(new IFU_Message)
     val master = new AXI4(64, 32)
   })
+  val pc = RegInit(UInt(32.W), "h80000000".U)
 
-  val pc        = io.in.bits.pc
-  val pc_buffer = RegEnable(pc, io.master.ar.fire)
+  val insert = Wire(Bool())
+  // val dnpcBuffer  = RegEnable(io.in.pc, insert)
+  pc := Mux(insert && io.valid, Mux(io.in.valid, io.in.pc, pc + 4.U), pc)
+  val validBuffer = RegEnable(io.valid, true.B, insert)
+  insert := (~validBuffer || io.out.fire)
+  val arValidNext = Wire(Bool())
+  val arValid     = RegInit(true.B)
+  arValidNext := Mux(insert, io.valid, Mux(io.master.ar.fire, false.B, arValid))
+  arValid     := arValidNext
 
-  io.master.ar.valid      := io.in.valid
+  io.master.ar.valid      := arValid && ~reset.asBool
   io.master.ar.bits.addr  := pc
   io.master.ar.bits.id    := 0.U
   io.master.ar.bits.len   := 0.U
@@ -33,11 +43,10 @@ class IFU extends Module {
 
   io.master.b.ready := false.B
 
-  val addr_offset = pc_buffer(2)
-  val ret_data    = io.master.r.bits.data
-  io.in.ready              := io.master.ar.ready
+  val addrOffset = pc(2)
+  val retData    = io.master.r.bits.data
   io.out.valid             := io.master.r.valid
-  io.out.bits.pc           := pc_buffer
-  io.out.bits.inst         := Mux(addr_offset, ret_data(63, 32), ret_data(31, 0))
+  io.out.bits.pc           := pc
+  io.out.bits.inst         := Mux(addrOffset, retData(63, 32), retData(31, 0))
   io.out.bits.access_fault := io.master.r.bits.resp =/= 0.U
 }

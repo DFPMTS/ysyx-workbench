@@ -16,7 +16,6 @@ class CSR extends Module {
       val ren   = Input(Bool())
       val addr  = Input(UInt(12.W))
       val wen   = Input(Bool())
-      val wtype = Input(UInt(2.W))
       val wdata = Input(UInt(32.W))
       val ecall = Input(Bool())
       val pc    = Input(UInt(32.W))
@@ -62,23 +61,18 @@ class CSR extends Module {
     }
   }
 
-  val write = "b01".U(2.W)
-  val set   = "b10".U(2.W)
-  val clear = "b11".U(2.W)
   when(io.wen) {
-    when(io.wtype === write) {
-      when(io.addr === CSRList.mstatus) {
-        mstatus := io.wdata
-      }
-      when(io.addr === CSRList.mtvec) {
-        mtvec := io.wdata
-      }
-      when(io.addr === CSRList.mepc) {
-        mepc := io.wdata
-      }
-      when(io.addr === CSRList.mcause) {
-        mcause := io.wdata
-      }
+    when(io.addr === CSRList.mstatus) {
+      mstatus := io.wdata
+    }
+    when(io.addr === CSRList.mtvec) {
+      mtvec := io.wdata
+    }
+    when(io.addr === CSRList.mepc) {
+      mepc := io.wdata
+    }
+    when(io.addr === CSRList.mcause) {
+      mcause := io.wdata
     }
   }
 }

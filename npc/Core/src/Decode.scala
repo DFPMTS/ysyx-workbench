@@ -5,7 +5,7 @@ import chisel3.util.experimental.decode.TruthTable
 import chisel3.util.experimental.decode.decoder
 import scala.language.implicitConversions
 
-class DecodeSignals extends Bundle {
+class DecodeSignal extends Bundle {
   val invalid  = Bool()
   val regWe    = Bool()
   val src1Type = UInt(2.W)
@@ -13,13 +13,13 @@ class DecodeSignals extends Bundle {
   val aluFunc  = UInt(4.W)
   val fuType   = UInt(2.W)
   val instType = UInt(3.W)
-  val fuOp     = UInt(2.W)
+  val fuOp     = UInt(4.W)
 }
 
 class Decode extends Module with HasDecodeConstants {
   val io = IO(new Bundle {
     val inst    = Input(UInt(32.W))
-    val signals = Output(new DecodeSignals)
+    val signals = Output(new DecodeSignal)
   })
   implicit def uintToBitPat(x: UInt): BitPat = BitPat(x)
   val defaultCtrl: List[BitPat] = List(Y, N, ZERO, ZERO, ALU_ADD, ALU, IMM_X, OP_X)
@@ -79,5 +79,5 @@ class Decode extends Module with HasDecodeConstants {
   }
 
   val table = TruthTable(transformLUT(lut), listToBitPat(defaultCtrl))
-  io.signals := decoder(io.inst, table).asTypeOf(new DecodeSignals)
+  io.signals := decoder(io.inst, table).asTypeOf(new DecodeSignal)
 }

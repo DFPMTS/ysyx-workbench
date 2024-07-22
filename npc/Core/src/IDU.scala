@@ -2,50 +2,84 @@ import chisel3._
 import chisel3.util._
 import scala.reflect.internal.Mode
 
-class IDU extends Module {
+class IDU extends Module with HasDecodeConstants {
   val io = IO(new Bundle {
     val in  = Flipped(Decoupled(new IFU_Message))
-    val wb  = new WBSignal
-    val out = Decoupled(new IDU_Out)
+    val wb  = Input(new WBSignal)
+    val out = Decoupled(new IDU_Message)
   })
-  val counter      = RegInit(0.U(3.W))
-  val insert       = Wire(Bool())
-  val data_buffer  = RegEnable(io.in.bits, insert)
-  val valid_buffer = RegEnable(io.in.valid, insert)
+  val counter     = RegInit(0.U(3.W))
+  val insert      = Wire(Bool())
+  val inBuffer    = RegEnable(io.in.bits, insert)
+  val validBuffer = RegEnable(io.in.valid, insert)
   counter := Mux(
     io.in.fire,
     0.U,
     Mux(counter === 0.U, 0.U, counter - 1.U)
   )
-  insert := ~valid_buffer || (counter === 0.U && io.out.ready)
+  insert := ~validBuffer || (counter === 0.U && io.out.ready)
 
   io.in.ready  := insert
-  io.out.valid := valid_buffer && counter === 0.U
+  io.out.valid := validBuffer && counter === 0.U
 
-  io.out.bits.pc := data_buffer.pc
+  val ctrl = Wire(new ControlSignal)
+  val data = Wire(new DataSignal)
+  data.out := DontCare
+  val decodeSignal = Wire(new DecodeSignal)
+  data.pc := inBuffer.pc
 
-  val decode = Module(new Decode)
-  decode.io.inst := data_buffer.inst
-  val decodeSignals = decode.io.signals
-  val ctrl          = Wire(new Control)
+  val regfile = Module(new RegFile)
+  regfile.io.reg_we  := io.wb.wen
+  regfile.io.wr_sel  := io.wb.rd
+  regfile.io.wb_data := io.wb.data
+  regfile.io.rs1_sel := ctrl.rs1
+  regfile.io.rs2_sel := ctrl.rs2
+  data.src1          := MuxLookup(ctrl.src1Type, 0.U)(Seq(REG -> regfile.io.rs1, PC -> inBuffer.pc, ZERO -> 0.U))
+  data.src2          := MuxLookup(ctrl.src2Type, 0.U)(Seq(REG -> regfile.io.rs2, IMM -> data.imm, ZERO -> 0.U))
+  data.rs2Val        := regfile.io.rs2
 
   val immgen = Module(new ImmGen)
-  immgen.io.inst      := data_buffer.inst
-  immgen.io.inst_type := decodeSignals.instType
+  immgen.io.inst      := inBuffer.inst
+  immgen.io.inst_type := decodeSignal.instType
+  data.imm            := immgen.io.imm
 
-  ctrl.invalid  := decodeSignals.invalid
-  ctrl.regWe    := decodeSignals.regWe
-  ctrl.aluFunc  := decodeSignals.aluFunc
-  ctrl.fuType   := decodeSignals.fuType
-  ctrl.fuOp     := decodeSignals.fuOp
-  ctrl.src1Type := decodeSignals.src1Type
-  ctrl.src2Type := decodeSignals.src2Type
-  ctrl.rs1      := data_buffer.inst(19, 15)
-  ctrl.rs2      := data_buffer.inst(24, 20)
-  ctrl.rd       := data_buffer.inst(11, 7)
+  val decode = Module(new Decode)
+  decodeSignal   := decode.io.signals
+  decode.io.inst := inBuffer.inst
+  ctrl.invalid   := decodeSignal.invalid
+  ctrl.regWe     := decodeSignal.regWe
+  ctrl.aluFunc   := decodeSignal.aluFunc
+  ctrl.fuType    := decodeSignal.fuType
+  ctrl.fuOp      := decodeSignal.fuOp
+  ctrl.src1Type  := decodeSignal.src1Type
+  ctrl.src2Type  := decodeSignal.src2Type
+  ctrl.rs1       := inBuffer.inst(19, 15)
+  ctrl.rs2       := inBuffer.inst(24, 20)
+  ctrl.rd        := inBuffer.inst(11, 7)
 
   io.out.bits.ctrl := ctrl
-  io.out.bits.imm  := immgen.io.imm
-  // io.out.bits.ctrl.          := immgen.io.imm.asUInt
-  // io.out.bits.access_fault := data_buffer.access_fault
+  io.out.bits.data := data
+}
+
+class testIDU extends Module with HasDecodeConstants {
+  val io = IO(new Bundle {
+    val out = UInt(32.W)
+  })
+
+  val r   = Reg(UInt(32.W))
+  val idu = Module(new IDU)
+  idu.io.in.bits.inst         := r
+  idu.io.in.bits.pc           := r
+  idu.io.in.bits.access_fault := true.B
+  idu.io.in.valid             := true.B
+
+  idu.io.wb.data := 0.U
+  idu.io.wb.rd   := 0.U
+  idu.io.wb.wen  := 0.U
+
+  r := idu.io.out.bits.ctrl.aluFunc & idu.io.out.bits.data.imm & idu.io.out.bits.data.src1 & idu.io.out.bits.data.pc
+
+  idu.io.out.ready := true.B
+
+  io.out := r
 }

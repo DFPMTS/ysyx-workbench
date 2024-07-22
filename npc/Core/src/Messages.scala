@@ -29,25 +29,32 @@ class IFU_Message extends Bundle {
   val access_fault = Bool()
 }
 
-class Control extends Bundle {
+class ControlSignal extends Bundle {
   val invalid  = Bool()
   val regWe    = Bool()
   val src1Type = UInt(2.W)
   val src2Type = UInt(2.W)
   val aluFunc  = UInt(4.W)
   val fuType   = UInt(2.W)
-  val fuOp     = UInt(2.W)
+  val fuOp     = UInt(4.W)
 
   val rs1 = UInt(5.W)
   val rs2 = UInt(5.W)
   val rd  = UInt(5.W)
 }
 
-class Data extends Bundle {
-  val src1 = UInt(32.W)
-  val src2 = UInt(32.W)
-  val out  = UInt(32.W)
-  val imm  = UInt(32.W)
+class DataSignal extends Bundle {
+  val src1   = UInt(32.W)
+  val src2   = UInt(32.W)
+  val pc     = UInt(32.W)
+  val imm    = UInt(32.W)
+  val rs2Val = UInt(32.W)
+  val out    = UInt(32.W)
+}
+
+class dnpcSignal extends Bundle {
+  val valid = Bool()
+  val pc    = UInt(32.W)
 }
 
 class WBSignal extends Bundle {
@@ -56,39 +63,25 @@ class WBSignal extends Bundle {
   val data = UInt(32.W)
 }
 
-class IDU_Out extends Bundle {
-  val pc   = UInt(32.W)
-  val ctrl = new Control
-  val imm  = UInt(32.W)
-}
-
 class IDU_Message extends Bundle {
-  val pc   = UInt(32.W)
-  val ctrl = new Control
-  val data = new Data
+  val ctrl = new ControlSignal
+  val data = new DataSignal
 }
 
 class EXU_Message extends Bundle {
-  val pc   = UInt(32.W)
-  val ctrl = new Control
-  val data = new Data
+  val ctrl = new ControlSignal
+  val data = new DataSignal
+  val dnpc = new dnpcSignal
 }
 
 class MEM_Message extends Bundle {
-  val pc   = UInt(32.W)
-  val ctrl = new Control
-  val data = new Data
+  val wb   = new WBSignal
+  val dnpc = new dnpcSignal
 }
 
 class WBU_Message extends Bundle {
-  val pc           = UInt(32.W)
-  val inst         = UInt(32.W)
-  val dnpc         = UInt(32.W)
-  val wb_data      = UInt(32.W)
-  val reg_we       = Bool()
-  val ebreak       = Bool()
-  val access_fault = Bool()
-  val invalid_inst = Bool()
+  val wb   = new WBSignal
+  val dnpc = new dnpcSignal
 }
 
 class AXI_Lite extends Bundle {

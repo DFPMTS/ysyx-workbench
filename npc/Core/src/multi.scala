@@ -9,51 +9,30 @@ class multi extends Module {
     val interrupt = Input(Bool())
   })
 
-  val ifu     = Module(new IFU)
-  val idu     = Module(new IDU)
-  val exu     = Module(new EXU)
-  val mem     = Module(new MEM)
-  val wbu     = Module(new WBU)
-  val regfile = Module(new RegFile)
+  val ifu = Module(new IFU)
+  val idu = Module(new IDU)
+  val exu = Module(new EXU)
+  val mem = Module(new MEM)
+  val wbu = Module(new WBU)
 
   // val pc = RegInit(UInt(32.W), "h80000000".U)
   // val pc = RegInit(UInt(32.W), "h0ff00000".U)
-  val pc = RegInit(UInt(32.W), "h80000000".U)
-
-  val pc_valid_r = RegInit(true.B)
-  when(ifu.io.in.fire) {
-    pc_valid_r := false.B
-  }
-  val pc_valid = wbu.io.out.valid || pc_valid_r
-
   val arbiter = Module(new AXI_Arbiter)
 
+  val WBtoIF = Wire(new dnpcSignal)
+  val WBtoDE = Wire(new WBSignal)
+
   // IF
-  // val sram = Module(new SRAM)
-  // arbiter.io.out_slave <> sram.io
-  ifu.io.in.bits.pc := Mux(wbu.io.out.valid, wbu.io.out.bits.dnpc, pc)
-  ifu.io.in.valid   := pc_valid && !reset.asBool
+  ifu.io.in.pc    := WBtoIF.pc
+  ifu.io.in.valid := WBtoIF.valid && !reset.asBool // ! IFU must latch pc/valid inside
   ifu.io.master <> arbiter.io.IFU_master
 
   // DE
   idu.io.in <> ifu.io.out
-  val idu_out     = idu.io.out.bits
-  val idu_message = Wire(new IDU_Message)
-
-  idu_message.ctrl     := idu_out.ctrl
-  idu_message.data.imm := idu_out.imm
-  idu_message.pc       := idu_out.pc
-
-  val idu_inst = idu.io.out.bits.inst
-  regfile.io.rs1_sel := idu_inst(19, 15)
-  regfile.io.rs2_sel := idu_inst(24, 20)
-  idu_message.rs1    := regfile.io.rs1
-  idu_message.rs2    := regfile.io.rs2
+  idu.io.wb := WBtoDE
 
   // EX
-  exu.io.in.bits   := idu_message
-  exu.io.in.valid  := idu.io.out.valid
-  idu.io.out.ready := exu.io.in.ready
+  exu.io.in <> idu.io.out
 
   // MEM
   mem.io.in <> exu.io.out
@@ -61,25 +40,28 @@ class multi extends Module {
 
   // WB
   wbu.io.in <> mem.io.out
-  wbu.io.out.ready   := true.B
-  regfile.io.wb_data := wbu.io.out.bits.wb_data
-  regfile.io.wr_sel  := wbu.io.out.bits.inst(11, 7)
-  regfile.io.reg_we  := false.B
+  WBtoIF       := wbu.io.dnpc
+  WBtoDE       := wbu.io.wb
+  ifu.io.valid := wbu.io.valid
 
-  val error = Module(new Error)
-  error.io.ebreak       := 0.U
-  error.io.access_fault := 0.U
-  error.io.invalid_inst := 0.U
-  when(wbu.io.out.valid) {
-    pc_valid_r            := true.B
-    pc                    := wbu.io.out.bits.dnpc
-    regfile.io.reg_we     := wbu.io.out.bits.reg_we
-    error.io.ebreak       := wbu.io.out.bits.ebreak
-    error.io.access_fault := wbu.io.out.bits.access_fault
-    error.io.invalid_inst := wbu.io.out.bits.invalid_inst
-  }
-  val commit_inst = RegNext(wbu.io.out.bits.inst)
-  dontTouch(commit_inst)
+  // valid
+  val wbuValid = RegNext(wbu.io.valid)
+  dontTouch(wbuValid)
+
+  // val error = Module(new Error)
+  // error.io.ebreak       := 0.U
+  // error.io.access_fault := 0.U
+  // error.io.invalid_inst := 0.U
+  // when(wbu.io.out.valid) {
+  //   pc_valid_r            := true.B
+  //   pc                    := wbu.io.out.bits.dnpc
+  //   regfile.io.reg_we     := wbu.io.out.bits.reg_we
+  //   error.io.ebreak       := wbu.io.out.bits.ebreak
+  //   error.io.access_fault := wbu.io.out.bits.access_fault
+  //   error.io.invalid_inst := wbu.io.out.bits.invalid_inst
+  // }
+  // val commit_inst = RegNext(wbu.io.out.bits.inst)
+  // dontTouch(commit_inst)
 
   // AXI4 master
   arbiter.io.out_slave.viewAs[AXI4ysyxSoC] <> io.master

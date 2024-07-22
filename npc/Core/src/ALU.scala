@@ -10,16 +10,16 @@ trait HasALUFuncs {
   def ALU_LEFT  = "b0010".U(4.W)
   def ALU_RIGHT = "b0011".U(4.W)
 
-  def ALU_EQ = "b0100".U(4.W)
-  def ALU_NE = "b0101".U(4.W)
+  def ALU_AND   = "b0100".U(4.W)
+  def ALU_OR    = "b0101".U(4.W)
+  def ALU_XOR   = "b0110".U(4.W)
+  def ALU_ARITH = "b0111".U(4.W)
 
-  // "b0110"
-  // "b0111"
+  // "b1000"
+  // "b1001"
 
-  def ALU_AND   = "b1000".U(4.W)
-  def ALU_OR    = "b1001".U(4.W)
-  def ALU_XOR   = "b1010".U(4.W)
-  def ALU_ARITH = "b1011".U(4.W)
+  def ALU_EQ = "b1010".U(4.W)
+  def ALU_NE = "b1011".U(4.W)
 
   def ALU_LT  = "b1100".U(4.W)
   def ALU_LTU = "b1101".U(4.W)
@@ -30,11 +30,12 @@ trait HasALUFuncs {
 
 class ALU extends Module with HasALUFuncs {
   val io = IO(new Bundle {
-    val op1     = Input(UInt(32.W))
-    val op2     = Input(UInt(32.W))
-    val aluFunc = Input(UInt(4.W))
-    val out     = Output(UInt(32.W))
-    val cmpOut  = Output(Bool())
+    val op1        = Input(UInt(32.W))
+    val op2        = Input(UInt(32.W))
+    val aluFunc    = Input(UInt(4.W))
+    val out        = Output(UInt(32.W))
+    val cmpOut     = Output(Bool())
+    val jumpTarget = Output(UInt(32.W))
   })
 
   // [adder] add / sub
@@ -78,5 +79,52 @@ class ALU extends Module with HasALUFuncs {
       ALU_GEU -> geRes
     )
   )
-  io.cmpOut := io.out(0)
+  io.cmpOut := MuxLookup(io.aluFunc, eqRes)(
+    Seq(
+      ALU_EQ -> eqRes,
+      ALU_NE -> neRes,
+      ALU_LT -> ltRes,
+      ALU_LTU -> ltRes,
+      ALU_GE -> geRes,
+      ALU_GEU -> geRes
+    )
+  )
+  io.jumpTarget := addRes
+}
+
+// class testALU extends Module {
+//   val io = IO(
+//     new Bundle {
+//       val t0 = Input(UInt(32.W))
+//       val s0 = Output(UInt(32.W))
+//       val s1 = Output(UInt(1.W))
+//     }
+//   )
+//   val x0   = Reg(UInt(32.W))
+//   val func = Reg(UInt(4.W))
+//   val s0   = Reg(UInt(32.W))
+//   val s1   = Reg(UInt(1.W))
+//   dontTouch(x0)
+//   val alu = Module(new ALU)
+//   alu.io.op1     := s0
+//   alu.io.op2     := io.t0
+//   alu.io.aluFunc := func
+//   s0             := alu.io.out
+//   s1             := alu.io.cmpOut
+//   io.s0          := s0
+//   io.s1          := s1
+// }
+
+class testALU extends Module {
+  val io = IO(
+    new Bundle {
+      val t0 = Input(UInt(32.W))
+      val t1 = Input(UInt(32.W))
+      val s0 = Output(UInt(32.W))
+    }
+  )
+  val s0 = RegInit(0.U(32.W))
+  s0 := s0 + io.t1
+
+  io.s0 := s0
 }

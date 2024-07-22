@@ -19,34 +19,98 @@ class EXU extends Module with HasDecodeConstants {
     val in  = Flipped(Decoupled(new IDU_Message))
     val out = Decoupled(new EXU_Message)
   })
-  val insert       = Wire(Bool())
-  val data_buffer  = RegEnable(io.in.bits, insert)
-  val valid_buffer = RegEnable(io.in.valid, insert)
+  val insert      = Wire(Bool())
+  val ctrlBuffer  = RegEnable(io.in.bits.ctrl, insert)
+  val dataBuffer  = RegEnable(io.in.bits.data, insert)
+  val validBuffer = RegEnable(io.in.valid, insert)
 
-  insert := ~valid_buffer || io.out.fire
+  insert := ~validBuffer || io.out.fire
 
   io.in.ready := insert
 
-  val ctrl = data_buffer.ctrl
+  val ctrlOut = WireInit(ctrlBuffer)
+  val dataOut = WireInit(dataBuffer)
+  val dnpcOut = Wire(new dnpcSignal)
+
+  // -------------------- Function Units ---------------------
+
+  val aluOut        = Wire(UInt(32.W))
+  val aluCmpOut     = Wire(Bool())
+  val aluJumpTarget = Wire(UInt(32.W))
+
+  val bruOut     = Wire(UInt(32.W))
+  val bruPC      = Wire(UInt(32.W))
+  val bruPCValid = Wire(Bool())
+
+  val csrOut     = Wire(UInt(32.W))
+  val csrPC      = Wire(UInt(32.W))
+  val csrPCValid = Wire(Bool())
 
   // -------------------------- ALU --------------------------
   val alu = Module(new ALU)
-  val alu_op1 =
-    MuxLookup(ctrl.src1Type, ZERO)(Seq(REG -> data_buffer.rs1, PC -> data_buffer.pc, ZERO -> 0.U))
-  val alu_op2 = MuxLookup(ctrl.src2Type, ZERO)(Seq(REG -> data_buffer.rs2, IMM -> data_buffer.imm))
-  alu.io.aluFunc := ctrl.aluFunc
-  alu.io.op1     := alu_op1
-  alu.io.op2     := alu_op2
+  alu.io.aluFunc := ctrlBuffer.aluFunc
+  // alu.io.op1     := MuxLookup(ctrlBuffer.src1Type, 0.U)(Seq(REG -> dataBuffer.src1, PC -> dataBuffer.pc, ZERO -> 0.U))
+  // alu.io.op2     := MuxLookup(ctrlBuffer.src2Type, 0.U)(Seq(REG -> dataBuffer.src2, IMM -> dataBuffer.imm, ZERO -> 0.U))
+  alu.io.op1    := dataBuffer.src1
+  alu.io.op2    := dataBuffer.src2
+  aluOut        := alu.io.out
+  aluCmpOut     := alu.io.cmpOut
+  aluJumpTarget := alu.io.jumpTarget
 
-  io.out.bits.alu_out     := alu.io.out
-  io.out.bits.alu_cmp_out := alu.io.cmpOut
+  // -------------------------- BRU --------------------------
+  val isJUMP = ctrlBuffer.fuOp === JUMP
 
-  io.out.bits.imm          := data_buffer.imm
-  io.out.bits.rs1          := data_buffer.rs1
-  io.out.bits.rs2          := data_buffer.rs2
-  io.out.bits.ctrl         := data_buffer.ctrl
-  io.out.bits.pc           := data_buffer.pc
-  io.out.bits.inst         := data_buffer.inst
-  io.out.bits.access_fault := data_buffer.access_fault
-  io.out.valid             := valid_buffer
+  bruOut     := dataBuffer.pc + 4.U
+  bruPCValid := isJUMP || aluCmpOut
+  bruPC      := Mux(isJUMP, aluJumpTarget, dataBuffer.pc + dataBuffer.imm)
+
+  // -------------------------- CSR --------------------------
+  val csr      = Module(new CSR)
+  val rd       = ctrlBuffer.rd
+  val rs1      = ctrlBuffer.rs1
+  val isCSR    = ctrlBuffer.fuType === CSR
+  val isCSRW   = isCSR && ctrlBuffer.fuOp === CSRW
+  val isCSRS   = isCSR && ctrlBuffer.fuOp === CSRS
+  val isECALL  = isCSR && ctrlBuffer.fuOp === ECALL
+  val isMRET   = isCSR && ctrlBuffer.fuOp === MRET
+  val isEBREAK = isCSR && ctrlBuffer.fuOp === EBREAK
+
+  csr.io.ren   := isCSRS && rd =/= 0.U && validBuffer
+  csr.io.addr  := dataBuffer.imm(11, 0)
+  csr.io.wen   := isCSRW && rs1 =/= 0.U && validBuffer
+  csr.io.wdata := dataBuffer.src1
+  csr.io.ecall := isECALL && validBuffer
+  csr.io.pc    := dataBuffer.pc
+
+  csrOut     := csr.io.rdata
+  csrPCValid := isECALL || isMRET
+  csrPC      := Mux(isECALL, csr.io.mtvec, Mux(isMRET, csr.io.mepc, dataBuffer.pc + 4.U))
+
+  val error = Module(new Error)
+  error.io.ebreak       := validBuffer && isEBREAK
+  error.io.access_fault := false.B
+  error.io.invalid_inst := false.B
+  // ---------------------------------------------------------
+
+  ctrlOut := ctrlBuffer
+
+  dataOut.out := MuxLookup(ctrlBuffer.fuType, aluOut)(
+    Seq(
+      ALU -> aluOut,
+      BRU -> bruOut,
+      CSR -> csrOut
+    )
+  )
+  dnpcOut.valid := MuxLookup(ctrlBuffer.fuType, false.B)(
+    Seq(
+      BRU -> bruPCValid,
+      CSR -> csrPCValid
+    )
+  )
+  dnpcOut.pc := Mux(ctrlBuffer.fuType === BRU, bruPC, csrPC)
+
+  io.out.bits.ctrl := ctrlOut
+  io.out.bits.data := dataOut
+  io.out.bits.dnpc := dnpcOut
+  io.out.valid     := validBuffer
 }
