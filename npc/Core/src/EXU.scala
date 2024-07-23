@@ -16,10 +16,8 @@ trait HasBRUOps {
 
 class EXU extends Module with HasDecodeConstants {
   val io = IO(new Bundle {
-    val in     = Flipped(Decoupled(new IDU_Message))
-    val out    = Decoupled(new EXU_Message)
-    val dbgIn  = Input(new DebugSignal)
-    val dbgOut = Output(new DebugSignal)
+    val in  = Flipped(Decoupled(new IDU_Message))
+    val out = Decoupled(new EXU_Message)
   })
   val insert      = Wire(Bool())
   val ctrlBuffer  = RegEnable(io.in.bits.ctrl, insert)
@@ -115,11 +113,4 @@ class EXU extends Module with HasDecodeConstants {
   io.out.bits.data := dataOut
   io.out.bits.dnpc := dnpcOut
   io.out.valid     := validBuffer
-
-  if (Config.debug) {
-    val dbgInBuffer = RegEnable(io.dbgIn, insert)
-    io.dbgOut := dbgInBuffer
-  } else {
-    io.dbgOut := DontCare
-  }
 }

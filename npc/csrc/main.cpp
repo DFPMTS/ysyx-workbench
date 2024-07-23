@@ -13,7 +13,6 @@ int main(int argc, char *argv[]) {
   init_monitor(argc, argv);
   int T = 1000;
   bool commit = false;
-  uint32_t commit_pc = 0;
 #ifdef NVBOARD
   nvboard_init(1);
 #endif
@@ -25,7 +24,6 @@ int main(int argc, char *argv[]) {
 #endif
     if (commit) {
       // check the comments of PC / INST
-      trace(commit_pc, INST);
 #ifdef DIFFTEST
       difftest();
 #endif
@@ -33,7 +31,7 @@ int main(int argc, char *argv[]) {
     }
     if (VALID) {
       commit = true;
-      commit_pc = PC;
+      trace(PC, INST);
     }
   }
   // a0

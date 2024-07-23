@@ -75,9 +75,11 @@ void trace(uint32_t pc, uint32_t inst) {
   itrace_generate(buf, pc, inst);
   log_write("%s\n", buf);
 #endif
-  // if (JAL || JALR) {
-  //   ftrace_log(PC, DNPC, INST, RD, RS1, IMM);
-  // }
+#ifdef FTRACE
+  if (JUMP) {
+    ftrace_log(PC, DNPC, INST, RD, RS1, IMM);
+  }
+#endif
 }
 
 void difftest() {

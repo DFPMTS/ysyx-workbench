@@ -4,10 +4,9 @@ import scala.reflect.internal.Mode
 
 class IDU extends Module with HasDecodeConstants {
   val io = IO(new Bundle {
-    val in     = Flipped(Decoupled(new IFU_Message))
-    val wb     = Input(new WBSignal)
-    val out    = Decoupled(new IDU_Message)
-    val dbgOut = Output(new DebugSignal)
+    val in  = Flipped(Decoupled(new IFU_Message))
+    val wb  = Input(new WBSignal)
+    val out = Decoupled(new IDU_Message)
   })
   val counter     = RegInit(0.U(3.W))
   val insert      = Wire(Bool())
@@ -47,6 +46,7 @@ class IDU extends Module with HasDecodeConstants {
   val decode = Module(new Decode)
   decodeSignal   := decode.io.signals
   decode.io.inst := inBuffer.inst
+  ctrl.inst      := inBuffer.inst
   ctrl.invalid   := decodeSignal.invalid
   ctrl.regWe     := decodeSignal.regWe
   ctrl.aluFunc   := decodeSignal.aluFunc
@@ -60,12 +60,6 @@ class IDU extends Module with HasDecodeConstants {
 
   io.out.bits.ctrl := ctrl
   io.out.bits.data := data
-
-  if (Config.debug) {
-    io.dbgOut.inst := inBuffer.inst
-  } else {
-    io.dbgOut := DontCare
-  }
 }
 
 class testIDU extends Module with HasDecodeConstants {

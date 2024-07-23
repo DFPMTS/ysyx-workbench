@@ -1,5 +1,6 @@
 ${define ITRACE}
 ${define MTRACE}
+${define FTRACE}
 ${define WAVE}
 ${define DIFFTEST}
 ${define NPC}

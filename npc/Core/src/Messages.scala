@@ -35,6 +35,8 @@ class IFU_Message extends Bundle {
 }
 
 class ControlSignal extends Bundle {
+  val inst = UInt(32.W)
+
   val invalid  = Bool()
   val regWe    = Bool()
   val src1Type = UInt(2.W)
@@ -55,10 +57,6 @@ class DataSignal extends Bundle {
   val imm    = UInt(32.W)
   val rs2Val = UInt(32.W)
   val out    = UInt(32.W)
-}
-
-class DebugSignal extends Bundle {
-  val inst = UInt(32.W)
 }
 
 class dnpcSignal extends Bundle {
@@ -84,6 +82,8 @@ class EXU_Message extends Bundle {
 }
 
 class MEM_Message extends Bundle {
+  val ctrl = new ControlSignal
+  val data = new DataSignal
   val wb   = new WBSignal
   val dnpc = new dnpcSignal
 }

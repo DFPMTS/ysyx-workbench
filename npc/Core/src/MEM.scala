@@ -30,8 +30,6 @@ class MEM extends Module with HasDecodeConstants {
     val in     = Flipped(Decoupled(new EXU_Message))
     val out    = Decoupled(new MEM_Message)
     val master = new AXI4(64, 32)
-    val dbgIn  = Input(new DebugSignal)
-    val dbgOut = Output(new DebugSignal)
   })
 
   val insert      = Wire(Bool())
@@ -131,6 +129,8 @@ class MEM extends Module with HasDecodeConstants {
   dnpcOut.valid := dnpcBuffer.valid
   dnpcOut.pc    := dnpcBuffer.pc
 
+  io.out.bits.ctrl := ctrlBuffer
+  io.out.bits.data := dataBuffer
   io.out.bits.dnpc := dnpcOut
   io.out.bits.wb   := WBOut
   io.out.valid := Mux(
@@ -138,11 +138,4 @@ class MEM extends Module with HasDecodeConstants {
     Mux(is_read, rValidBuffer, bValidBuffer),
     validBuffer
   )
-
-  if (Config.debug) {
-    val dbgInBuffer = RegEnable(io.dbgIn, insert)
-    io.dbgOut := dbgInBuffer
-  } else {
-    io.dbgOut := DontCare
-  }
 }
