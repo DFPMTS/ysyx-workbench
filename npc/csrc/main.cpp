@@ -14,11 +14,15 @@ int main(int argc, char *argv[]) {
   int T = 1000;
   bool commit = false;
   uint32_t commit_pc = 0;
-  // nvboard_init(1);
+#ifdef NVBOARD
+  nvboard_init(1);
+#endif
   Log("Simulation begin");
   while (running) {
     cpu_step();
-    // nvboard_update();
+#ifdef NVBOARD
+    nvboard_update();
+#endif
     if (commit) {
       // check the comments of PC / INST
       trace(commit_pc, INST);
@@ -44,6 +48,8 @@ int main(int argc, char *argv[]) {
   } else {
     Log("Hit BAD trap.\n");
   }
-  // nvboard_quit();
+#ifdef NVBOARD
+  nvboard_quit();
+#endif
   return retval;
 }

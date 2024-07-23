@@ -3,3 +3,4 @@ ${define MTRACE}
 ${define WAVE}
 ${define DIFFTEST}
 ${define NPC}
+${define NVBOARD}

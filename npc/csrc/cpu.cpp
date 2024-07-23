@@ -104,7 +104,9 @@ void nvboard_bind_all_pins(Vtop *top);
 
 void init_cpu() {
   top = new Vtop;
-  // nvboard_bind_all_pins(top);
+#ifdef NVBOARD
+  nvboard_bind_all_pins(top);
+#endif
   init_regs();
 
 #ifdef WAVE

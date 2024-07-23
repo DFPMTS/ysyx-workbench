@@ -25,10 +25,12 @@ target("Vtop")
     add_files("../ysyxSoC/perip/**.v")
     add_files("../ysyxSoC/build/ysyxSoCFull.v")
   end 
-
-  add_includedirs("/home/dfpmts/Documents/ysyx-workbench/nvboard/include")
-  -- add_files("constr/auto_bind.cpp")
-  add_links("/home/dfpmts/Documents/ysyx-workbench/nvboard/build/nvboard.a")
+  
+  if get_config("sim_target") == "nvboard" then
+    add_includedirs("/home/dfpmts/Documents/ysyx-workbench/nvboard/include")
+    add_files("constr/auto_bind.cpp")
+    add_links("/home/dfpmts/Documents/ysyx-workbench/nvboard/build/nvboard.a")
+  end    
 
   add_files("vsrc/*.sv")
   add_files("vsrc/*.v")
@@ -45,10 +47,13 @@ target("chisel")
 
 option("sim_target")
   set_description("Simulation target")
-  set_values("npc", "soc")
+  set_values("npc", "soc", "nvboard")
   after_check(function (option)
     if option:value() == "npc" then
       option:set("configvar", "NPC", true)
+    end
+    if option:value() == "nvboard" then
+      option:set("configvar", "NVBOARD", true)
     end
   end)
 
