@@ -30,6 +30,8 @@ class MEM extends Module with HasDecodeConstants {
     val in     = Flipped(Decoupled(new EXU_Message))
     val out    = Decoupled(new MEM_Message)
     val master = new AXI4(64, 32)
+    val dbgIn  = Input(new DebugSignal)
+    val dbgOut = Output(new DebugSignal)
   })
 
   val insert      = Wire(Bool())
@@ -107,7 +109,6 @@ class MEM extends Module with HasDecodeConstants {
     )
   ) << addr_offset
   io.master.w.bits.last := true.B
-  io.master.b.ready     := Mux(validBuffer && is_write, io.out.ready, false.B)
 
   val bValidBuffer = RegNext(io.master.b.valid)
   io.master.b.ready := Mux(validBuffer && is_write, io.out.ready, false.B)
@@ -137,4 +138,11 @@ class MEM extends Module with HasDecodeConstants {
     Mux(is_read, rValidBuffer, bValidBuffer),
     validBuffer
   )
+
+  if (Config.debug) {
+    val dbgInBuffer = RegEnable(io.dbgIn, insert)
+    io.dbgOut := dbgInBuffer
+  } else {
+    io.dbgOut := DontCare
+  }
 }

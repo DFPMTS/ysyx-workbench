@@ -2,6 +2,11 @@ import chisel3._
 import chisel3.util._
 import chisel3.experimental.dataview._
 
+object Config {
+  val XLEN  = 32
+  var debug = true
+}
+
 trait HasDecodeConstants
     extends HasInstType
     with HasFuTypes
@@ -50,6 +55,10 @@ class DataSignal extends Bundle {
   val imm    = UInt(32.W)
   val rs2Val = UInt(32.W)
   val out    = UInt(32.W)
+}
+
+class DebugSignal extends Bundle {
+  val inst = UInt(32.W)
 }
 
 class dnpcSignal extends Bundle {

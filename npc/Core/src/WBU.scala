@@ -1,6 +1,7 @@
 import chisel3._
 import chisel3.util._
 import dataclass.data
+import Config.debug
 
 trait HasCSROps {
   def CSRW   = 0.U(4.W)
@@ -16,6 +17,7 @@ class WBU extends Module with HasDecodeConstants {
     val wb    = new WBSignal
     val dnpc  = new dnpcSignal
     val valid = Output(Bool())
+    val dbgIn = Input(new DebugSignal)
   })
   val valid       = io.in.valid
   val validBuffer = RegNext(valid)
@@ -32,4 +34,10 @@ class WBU extends Module with HasDecodeConstants {
   io.dnpc.pc    := dnpcBuffer.pc
 
   io.valid := validBuffer
+
+  if (Config.debug) {
+    val dbgInBuffer0 = RegNext(io.dbgIn)
+    val dbgInBuffer1 = RegNext(dbgInBuffer0)
+    dontTouch(dbgInBuffer1)
+  }
 }

@@ -25,9 +25,9 @@ CINCS = $(shell find $(abspath ./include) -name "*.h" -or -name "*.hpp")
 test:
 	mill -i __.test
 
-gen_verilog: $(VSRCS_FLAG)$(SIM_TARGET)
+gen_verilog: $(VSRCS_FLAG)$(SIM_TARGET)$(MODE)
 
-$(VSRCS_FLAG)$(SIM_TARGET): $(CORE_SRCS)
+$(VSRCS_FLAG)$(SIM_TARGET)$(MODE): $(CORE_SRCS)
 	make verilog 
 	touch $@
 
@@ -42,7 +42,7 @@ verilog:
 	$(call git_commit, "generate verilog")	
 	-rm -rf $(VSRC_DIR)
 	mkdir -p $(VSRC_DIR)
-	mill -i __.test.runMain Elaborate_$(SIM_TARGET) -td $(VSRC_DIR) --split-verilog
+	mill -i __.test.runMain Elaborate_$(SIM_TARGET) $(MODE)
 
 help:
 	mill -i __.test.runMain Elaborate --help
@@ -70,7 +70,7 @@ clean:
 override MAINARGS += --diff $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
 # sim: $(BIN)
-# 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
+#   $(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 # 	echo $(MAINARGS)
 # 	$^ $(MAINARGS)
 
@@ -82,9 +82,10 @@ $(SRC_AUTO_BIND): $(NXDC_FILES)
 nxdc: $(SRC_AUTO_BIND)
 
 
-sim: 
+sim: 	
 	xmake build chisel
 	xmake build Vtop
+	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	xmake run Vtop $(MAINARGS)
 	
 config:

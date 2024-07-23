@@ -48,6 +48,16 @@ class multi extends Module {
   val wbuValid = RegNext(wbu.io.valid)
   dontTouch(wbuValid)
 
+  if (Config.debug) {
+    exu.io.dbgIn := idu.io.dbgOut
+    mem.io.dbgIn := exu.io.dbgOut
+    wbu.io.dbgIn := mem.io.dbgOut
+  } else {
+    exu.io.dbgIn := DontCare
+    mem.io.dbgIn := DontCare
+    wbu.io.dbgIn := DontCare
+  }
+
   // val error = Module(new Error)
   // error.io.ebreak       := 0.U
   // error.io.access_fault := 0.U

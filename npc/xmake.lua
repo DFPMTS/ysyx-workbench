@@ -42,7 +42,7 @@ target("Vtop")
 target("chisel")  
   set_kind("phony")
   on_build(function (target) 
-    os.exec("make gen_verilog SIM_TARGET=$(sim_target)")
+    os.exec("make gen_verilog SIM_TARGET=$(sim_target) MODE=$(Mode)")
   end)
 
 option("sim_target")
@@ -78,3 +78,12 @@ option("Waveform")
   set_description("Enable waveform generation")
   set_configvar("WAVE", true)
   set_default(false)
+
+option("Mode")
+  set_description("Debug / Evaluation")
+  set_values("Debug", "Evaluation")
+  after_check(function (option)
+    if option:value() == "Debug" then
+      option:set("configvar", "DEBUG", true)
+    end    
+  end)

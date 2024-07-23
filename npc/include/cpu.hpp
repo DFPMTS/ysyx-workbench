@@ -23,20 +23,25 @@ static uint32_t dummy = 0;
 #define PC                                                                     \
   (top->rootp                                                                  \
        ->npc_top__DOT__npc__DOT__ifu__DOT__pc) // the cycle when VALID is true
-#define INST (dummy)                           // one cycle after VALID
+#define INST                                                                   \
+  (top->rootp                                                                  \
+       ->npc_top__DOT__npc__DOT__wbu__DOT__dbgInBuffer1_inst) // one cycle after
+                                                              // VALID
 #define VALID (top->rootp->npc_top__DOT__npc__DOT__wbu__DOT__validBuffer)
 #else
-#define REG(x)                                                                    \
-  (concat_temp(                                                                   \
-      top->rootp                                                                  \
-          ->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__regfile__DOT__regs_, \
+#define REG(x)                                                                              \
+  (concat_temp(                                                                             \
+      top->rootp                                                                            \
+          ->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__idu__DOT__regfile__DOT__regs_, \
       x))
-#define PC (top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc)
+#define PC                                                                     \
+  (top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu__DOT__pc)
 #define INST                                                                   \
-  (top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit_inst)
+  (top->rootp                                                                  \
+       ->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu__DOT__dbgInBuffer1_inst)
 #define VALID                                                                  \
   (top->rootp                                                                  \
-       ->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT___wbu_io_out_valid)
+       ->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu__DOT__validBuffer)
 #endif
 struct difftest_context_t {
   uint32_t gpr[16];
