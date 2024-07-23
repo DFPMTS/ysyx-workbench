@@ -66,14 +66,17 @@ class MEM extends Module with HasDecodeConstants {
     Mux(io.master.ar.fire, false.B, ar_valid)
   )
   val addr        = dataBuffer.out
-  val addr_offset = RegNext(addr(2, 0));
+  val addr_offset = addr(2, 0);
   io.master.ar.valid      := ar_valid
   io.master.ar.bits.addr  := addr
   io.master.ar.bits.id    := 0.U
   io.master.ar.bits.len   := 0.U
   io.master.ar.bits.size  := memLen
   io.master.ar.bits.burst := "b01".U
-  io.master.r.ready       := Mux(validBuffer && is_read, io.out.ready, false.B)
+
+  val rValidBuffer = RegNext(io.master.r.valid)
+  val rdataBuffer  = RegNext(io.master.r.bits.data)
+  io.master.r.ready := Mux(validBuffer && is_read, io.out.ready, false.B)
 
   val aw_valid = RegInit(false.B)
   aw_valid := Mux(
@@ -106,7 +109,10 @@ class MEM extends Module with HasDecodeConstants {
   io.master.w.bits.last := true.B
   io.master.b.ready     := Mux(validBuffer && is_write, io.out.ready, false.B)
 
-  val raw_data      = io.master.r.bits.data >> (addr_offset << 3.U)
+  val bValidBuffer = RegNext(io.master.b.valid)
+  io.master.b.ready := Mux(validBuffer && is_write, io.out.ready, false.B)
+
+  val raw_data      = rdataBuffer >> (addr_offset << 3.U)
   val sign_ext_data = WireDefault(raw_data)
   when(memLen === BYTE) {
     sign_ext_data := Cat(Fill(24, ~loadU & raw_data(7)), raw_data(7, 0))
@@ -128,7 +134,7 @@ class MEM extends Module with HasDecodeConstants {
   io.out.bits.wb   := WBOut
   io.out.valid := Mux(
     is_mem.asBool && !invalidBuffer,
-    Mux(is_read, io.master.r.valid, io.master.b.valid),
+    Mux(is_read, rValidBuffer, bValidBuffer),
     validBuffer
   )
 }
