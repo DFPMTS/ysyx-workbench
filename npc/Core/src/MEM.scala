@@ -41,7 +41,7 @@ class MEM extends Module with HasDecodeConstants {
   io.in.ready := insert
 
   val memOut  = Wire(UInt(32.W))
-  val WBOut   = Wire(new WBSignal)
+  val dataOut = WireDefault(dataBuffer)
   val dnpcOut = Wire(new dnpcSignal)
 
   // -------------------------- MEM --------------------------
@@ -122,17 +122,15 @@ class MEM extends Module with HasDecodeConstants {
   memOut := sign_ext_data
   // ---------------------------------------------------------
 
-  WBOut.data := Mux(is_mem, memOut, dataBuffer.out)
-  WBOut.rd   := ctrlBuffer.rd
-  WBOut.wen  := ctrlBuffer.regWe
+  dataOut.out := Mux(is_mem, memOut, dataBuffer.out)
 
   dnpcOut.valid := dnpcBuffer.valid
   dnpcOut.pc    := dnpcBuffer.pc
 
   io.out.bits.ctrl := ctrlBuffer
-  io.out.bits.data := dataBuffer
+  io.out.bits.data := dataOut
   io.out.bits.dnpc := dnpcOut
-  io.out.bits.wb   := WBOut
+
   io.out.valid := Mux(
     is_mem.asBool && !invalidBuffer,
     Mux(is_read, rValidBuffer, bValidBuffer),

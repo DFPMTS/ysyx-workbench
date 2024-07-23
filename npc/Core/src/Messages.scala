@@ -84,7 +84,6 @@ class EXU_Message extends Bundle {
 class MEM_Message extends Bundle {
   val ctrl = new ControlSignal
   val data = new DataSignal
-  val wb   = new WBSignal
   val dnpc = new dnpcSignal
 }
 

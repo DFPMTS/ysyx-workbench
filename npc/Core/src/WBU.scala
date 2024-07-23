@@ -18,25 +18,55 @@ class WBU extends Module with HasDecodeConstants {
     val dnpc  = new dnpcSignal
     val valid = Output(Bool())
   })
-  val valid       = io.in.valid
-  val validBuffer = RegNext(valid)
-  val wbBuffer    = RegEnable(io.in.bits.wb, valid)
-  val dnpcBuffer  = RegEnable(io.in.bits.dnpc, valid)
+  val validBuffer = RegNext(io.in.valid)
+  val dnpcBuffer  = RegNext(io.in.bits.dnpc)
+  val ctrlBuffer  = RegNext(io.in.bits.ctrl)
+  val dataBuffer  = RegNext(io.in.bits.data)
 
   io.in.ready := true.B
 
-  io.wb.wen  := validBuffer && wbBuffer.wen
-  io.wb.data := wbBuffer.data
-  io.wb.rd   := wbBuffer.rd
+  val csrOut     = Wire(UInt(32.W))
+  val csrPC      = Wire(UInt(32.W))
+  val csrPCValid = Wire(Bool())
 
-  io.dnpc.valid := validBuffer && dnpcBuffer.valid
-  io.dnpc.pc    := dnpcBuffer.pc
+  // -------------------------- CSR --------------------------
+  val csr      = Module(new CSR)
+  val rd       = ctrlBuffer.rd
+  val rs1      = ctrlBuffer.rs1
+  val isCSR    = ctrlBuffer.fuType === CSR
+  val isCSRW   = isCSR && ctrlBuffer.fuOp === CSRW
+  val isCSRS   = isCSR && ctrlBuffer.fuOp === CSRS
+  val isECALL  = isCSR && ctrlBuffer.fuOp === ECALL
+  val isMRET   = isCSR && ctrlBuffer.fuOp === MRET
+  val isEBREAK = isCSR && ctrlBuffer.fuOp === EBREAK
+
+  csr.io.ren   := isCSRS && rd =/= 0.U && validBuffer
+  csr.io.addr  := dataBuffer.imm(11, 0)
+  csr.io.wen   := isCSRW && rs1 =/= 0.U && validBuffer
+  csr.io.wdata := dataBuffer.out
+  csr.io.ecall := isECALL && validBuffer
+  csr.io.pc    := dataBuffer.pc
+
+  csrOut     := csr.io.rdata
+  csrPCValid := isECALL || isMRET
+  csrPC      := Mux(isECALL, csr.io.mtvec, csr.io.mepc)
+
+  val error = Module(new Error)
+  error.io.ebreak       := validBuffer && isEBREAK
+  error.io.access_fault := false.B
+  error.io.invalid_inst := false.B
+  // ---------------------------------------------------------
+
+  io.wb.wen  := validBuffer && ctrlBuffer.regWe
+  io.wb.data := Mux(isCSR, csrOut, dataBuffer.out)
+  io.wb.rd   := ctrlBuffer.rd
+
+  io.dnpc.valid := validBuffer && Mux(isCSR, csrPCValid, dnpcBuffer.valid)
+  io.dnpc.pc    := Mux(isCSR, csrPC, dnpcBuffer.pc)
 
   io.valid := validBuffer
 
   if (Config.debug) {
-    val ctrlBuffer = RegNext(io.in.bits.ctrl)
-    val dataBuffer = RegNext(io.in.bits.data)
     dontTouch(ctrlBuffer)
     dontTouch(dataBuffer)
   }
