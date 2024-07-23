@@ -69,11 +69,10 @@ _rodata_lma_end = _rodata_lma_start + SIZEOF(.rodata);
 _rodata_vma_start = ADDR(.rodata);
 _rodata_vma_end = _rodata_vma_start + SIZEOF(.rodata);
 
-_data_lma_start = LOADADDR(.data);
-_data_lma_end = _data_lma_start + SIZEOF(.data);
-_data_vma_start = ADDR(.data);
-_data_vma_end = _data_vma_start + SIZEOF(.data);
+_data_lma_start = DEFINED(_data_lma_start) ? _data_lma_start : LOADADDR(.data);
+_data_lma_end = LOADADDR(.data) + SIZEOF(.data);
+_data_vma_start = DEFINED(_data_vma_start) ? _data_vma_start : ADDR(.data);
+_data_vma_end = ADDR(.data) + SIZEOF(.data);
   
-_bss_vma_start = ADDR(.bss);
-_bss_vma_end = _bss_vma_start + SIZEOF(.bss);
-
+_bss_vma_start = DEFINED(_bss_vma_start) ? _bss_vma_start : ADDR(.bss);
+_bss_vma_end = ADDR(.bss) + SIZEOF(.bss);
