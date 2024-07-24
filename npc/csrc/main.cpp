@@ -1,3 +1,4 @@
+#include "EventMonitor.hpp"
 #include "debug.hpp"
 #include "difftest.hpp"
 #include "mem.hpp"
@@ -8,17 +9,41 @@ void nvboard_update();
 void nvboard_quit();
 void nvboard_init(int x);
 
+static uint64_t totalCycles = 0;
+
+void printPerfCounters() {
+  std::cout << "-----------------------------------" << std::endl;
+  std::cout << "ifuFinished" << " " << getEventCount("ifuFinished")
+            << std::endl;
+  std::cout << "ifuStalled" << " " << getEventCount("ifuStalled") << std::endl;
+
+  std::cout << "iduBruInst" << " " << getEventCount("iduBruInst") << std::endl;
+  std::cout << "iduAluInst" << " " << getEventCount("iduAluInst") << std::endl;
+  std::cout << "iduMemInst" << " " << getEventCount("iduMemInst") << std::endl;
+  std::cout << "iduCsrInst" << " " << getEventCount("iduCsrInst") << std::endl;
+
+  std::cout << "memFinished" << " " << getEventCount("memFinished")
+            << std::endl;
+  std::cout << "memStalled" << " " << getEventCount("memStalled") << std::endl;
+
+  std::cout << "Total cycles: " << totalCycles << std::endl;
+
+  std::cout << "-----------------------------------" << std::endl;
+}
+
 int main(int argc, char *argv[]) {
   Verilated::commandArgs(argc, argv);
   init_monitor(argc, argv);
   int T = 1000;
   bool commit = false;
+  bool booted = false;
 #ifdef NVBOARD
   nvboard_init(1);
 #endif
   Log("Simulation begin");
   while (running) {
     cpu_step();
+    ++totalCycles;
 #ifdef NVBOARD
     nvboard_update();
 #endif
@@ -32,8 +57,14 @@ int main(int argc, char *argv[]) {
     if (VALID) {
       commit = true;
       trace(PC, INST);
+      if (PC == 0xa0000000) {
+        printPerfCounters();
+        clearAllEventCount();
+        booted = true;
+      }
     }
   }
+  ++totalCycles;
   // a0
   int retval = gpr(10);
 
@@ -49,5 +80,6 @@ int main(int argc, char *argv[]) {
 #ifdef NVBOARD
   nvboard_quit();
 #endif
+  printPerfCounters();
   return retval;
 }

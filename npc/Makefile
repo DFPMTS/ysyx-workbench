@@ -42,7 +42,7 @@ verilog:
 	$(call git_commit, "generate verilog")	
 	-rm -rf $(VSRC_DIR)
 	mkdir -p $(VSRC_DIR)
-	mill -i __.test.runMain Elaborate_$(SIM_TARGET) $(MODE)
+	mill -i __.test.runMain Elaborate_$(SIM_TARGET) $(SIM_TARGET) $(MODE)
 
 help:
 	mill -i __.test.runMain Elaborate --help

@@ -2,14 +2,14 @@ import chisel3._
 import chisel3.util._
 import chisel3.SpecifiedDirection.Flip
 
-class IFU extends Module {
+class IFU extends Module with HasPerfCounters {
   val io = IO(new Bundle {
     val valid  = Input(Bool())
     val in     = Flipped(new dnpcSignal)
     val out    = Decoupled(new IFU_Message)
     val master = new AXI4(64, 32)
   })
-  val pc = RegInit(UInt(32.W), "h80000000".U)
+  val pc = RegInit(UInt(32.W), Config.resetPC)
 
   val insert = Wire(Bool())
   // val dnpcBuffer  = RegEnable(io.in.pc, insert)
@@ -49,4 +49,7 @@ class IFU extends Module {
   io.out.bits.pc           := pc
   io.out.bits.inst         := Mux(addrOffset, retData(63, 32), retData(31, 0))
   io.out.bits.access_fault := io.master.r.bits.resp =/= 0.U
+
+  monitorEvent(ifuFinished, io.master.r.fire)
+  monitorEvent(ifuStalled, validBuffer && ~reset.asBool)
 }

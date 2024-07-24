@@ -2,7 +2,7 @@ import chisel3._
 import chisel3.util._
 import scala.reflect.internal.Mode
 
-class IDU extends Module with HasDecodeConstants {
+class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   val io = IO(new Bundle {
     val in  = Flipped(Decoupled(new IFU_Message))
     val wb  = Input(new WBSignal)
@@ -60,6 +60,11 @@ class IDU extends Module with HasDecodeConstants {
 
   io.out.bits.ctrl := ctrl
   io.out.bits.data := data
+
+  monitorEvent(iduAluInst, io.out.fire && ctrl.fuType === ALU)
+  monitorEvent(iduMemInst, io.out.fire && ctrl.fuType === MEM)
+  monitorEvent(iduBruInst, io.out.fire && ctrl.fuType === BRU)
+  monitorEvent(iduCsrInst, io.out.fire && ctrl.fuType === CSR)
 }
 
 class testIDU extends Module with HasDecodeConstants {

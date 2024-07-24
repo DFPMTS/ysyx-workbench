@@ -25,7 +25,7 @@ trait HasLSUOps {
   def SW = BitPat("b1100")
 }
 
-class MEM extends Module with HasDecodeConstants {
+class MEM extends Module with HasDecodeConstants with HasPerfCounters {
   val io = IO(new Bundle {
     val in     = Flipped(Decoupled(new EXU_Message))
     val out    = Decoupled(new MEM_Message)
@@ -136,4 +136,7 @@ class MEM extends Module with HasDecodeConstants {
     Mux(is_read, rValidBuffer, bValidBuffer),
     validBuffer
   )
+
+  monitorEvent(memFinished, io.out.fire && is_mem)
+  monitorEvent(memStalled, validBuffer && is_mem)
 }

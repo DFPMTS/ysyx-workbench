@@ -3,8 +3,10 @@ import chisel3.util._
 import chisel3.experimental.dataview._
 
 object Config {
-  val XLEN  = 32
-  var debug = true
+  val XLEN         = 32
+  var debug        = true
+  var resetPC      = "h80000000".U
+  val eventIdWidth = 6.W
 }
 
 trait HasDecodeConstants
@@ -22,6 +24,35 @@ trait HasDecodeConstants
   def IMM  = 2.U(2.W)
   def PC   = 3.U(2.W)
   def OP_X = BitPat("b????")
+}
+
+trait HasPerfCounters {
+  // IFU
+  def ifuFinished = 0.U(Config.eventIdWidth)
+  def ifuStalled  = 1.U(Config.eventIdWidth)
+
+  // IDU
+  def iduBruInst = 2.U(Config.eventIdWidth)
+  def iduAluInst = 3.U(Config.eventIdWidth)
+  def iduMemInst = 4.U(Config.eventIdWidth)
+  def iduCsrInst = 5.U(Config.eventIdWidth)
+
+  // EXU
+
+  // MEM
+  def memFinished = 6.U(Config.eventIdWidth)
+  def memStalled  = 7.U(Config.eventIdWidth)
+
+  // WBU
+  // should count committed instructions types
+
+  def monitorEvent(eventId: UInt, enable: Bool) = {
+    if (Config.debug) {
+      val monitor = Module(new EventMonitor)
+      monitor.io.eventId := eventId
+      monitor.io.enable  := enable
+    }
+  }
 }
 
 class PC_Message extends Bundle {
