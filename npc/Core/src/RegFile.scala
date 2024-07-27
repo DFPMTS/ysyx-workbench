@@ -15,9 +15,9 @@ class RegFile extends Module {
   val regs = Reg(Vec(16, UInt(32.W)))
 
   when(io.wr_sel =/= 0.U && io.reg_we.asBool) {
-    regs(io.wr_sel) := io.wb_data
+    regs(io.wr_sel(3, 0)) := io.wb_data
   }
 
-  io.rs1 := regs(io.rs1_sel)
-  io.rs2 := regs(io.rs2_sel)
+  io.rs1 := regs(io.rs1_sel(3, 0))
+  io.rs2 := regs(io.rs2_sel(3, 0))
 }
