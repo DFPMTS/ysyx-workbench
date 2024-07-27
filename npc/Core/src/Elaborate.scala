@@ -1,5 +1,6 @@
 import circt.stage._
 import chisel3._
+import chisel3.ActualDirection.Empty
 
 object parseArgs {
   def apply(args: Array[String]) = {
@@ -26,10 +27,21 @@ object Elaborate_npc extends App {
 
 object Elaborate_soc extends App {
   parseArgs(args)
-  def top       = new multi
-  val generator = Seq(chisel3.stage.ChiselGeneratorAnnotation(() => top))
-  (new ChiselStage)
-    .execute(Array("-td", "./vsrc", "--split-verilog"), generator :+ CIRCTTargetAnnotation(CIRCTTarget.Verilog))
+  // def top = new multi
+  // val generator = Seq(chisel3.stage.ChiselGeneratorAnnotation(() => top))
+  // (new ChiselStage)
+  //   .execute(Array("-td", "./vsrc", "--split-verilog"), generator :+ CIRCTTargetAnnotation(CIRCTTarget.Verilog))
+
+  val firtoolOptions = Array(
+    "--lowering-options=" + List(
+      // make yosys happy
+      // see https://github.com/llvm/circt/blob/main/docs/VerilogGeneration.md
+      "disallowLocalVariables",
+      "disallowPackedArrays",
+      "locationInfoStyle=wrapInAtSquareBracket"
+    ).reduce(_ + "," + _)
+  )
+  circt.stage.ChiselStage.emitSystemVerilogFile(new multi, Array("-td", "./vsrc", "--split-verilog"), firtoolOptions)
 }
 
 object Elaborate_nvboard extends App {
