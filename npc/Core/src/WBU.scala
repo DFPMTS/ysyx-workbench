@@ -24,10 +24,6 @@ class WBU extends Module with HasDecodeConstants {
   val dnpcBuffer  = RegNext(io.in.bits.dnpc)
   val ctrlBuffer  = RegNext(io.in.bits.ctrl)
   val dataBuffer  = RegNext(io.in.bits.data)
-  // val validBuffer = RegNext(io.in.valid)
-  // val dnpcBuffer  = io.in.bits.dnpc
-  // val ctrlBuffer  = io.in.bits.ctrl
-  // val dataBuffer  = io.in.bits.data
 
   io.in.ready := true.B
 

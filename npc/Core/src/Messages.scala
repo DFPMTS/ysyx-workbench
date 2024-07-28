@@ -58,18 +58,6 @@ trait HasPerfCounters {
   }
 }
 
-class MemRequest extends Bundle {
-  val addr  = UInt(32.W)
-  val data  = UInt(32.W)
-  val size  = UInt(2.W)
-  val wr    = Bool()
-  val loadU = Bool()
-}
-
-class MemResponse extends Bundle {
-  val data = UInt(32.W)
-}
-
 class PC_Message extends Bundle {
   val pc = UInt(32.W)
 }
