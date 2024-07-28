@@ -4,8 +4,8 @@ import chisel3.experimental.dataview._
 
 class multi extends Module {
   val io = IO(new Bundle {
-    val master    = new AXI4ysyxSoC(64, 32)
-    val slave     = Flipped(new AXI4ysyxSoC(64, 32))
+    val master    = new AXI4ysyxSoC(32, 32)
+    val slave     = Flipped(new AXI4ysyxSoC(32, 32))
     val interrupt = Input(Bool())
   })
 
@@ -40,9 +40,10 @@ class multi extends Module {
 
   // WB
   wbu.io.in <> mem.io.out
-  WBtoIF       := wbu.io.dnpc
-  WBtoDE       := wbu.io.wb
-  ifu.io.valid := wbu.io.valid
+  ifu.io.flushICache := wbu.io.flushICache
+  WBtoIF             := wbu.io.dnpc
+  WBtoDE             := wbu.io.wb
+  ifu.io.valid       := wbu.io.valid
 
   // valid
   val wbuValid = RegNext(wbu.io.valid)

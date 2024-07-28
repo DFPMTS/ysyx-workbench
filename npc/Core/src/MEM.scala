@@ -29,7 +29,7 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
   val io = IO(new Bundle {
     val in     = Flipped(Decoupled(new EXU_Message))
     val out    = Decoupled(new MEM_Message)
-    val master = new AXI4(64, 32)
+    val master = new AXI4(32, 32)
   })
 
   val insert      = Wire(Bool())
@@ -66,7 +66,7 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
     Mux(io.master.ar.fire, false.B, ar_valid)
   )
   val addr        = dataBuffer.out
-  val addr_offset = addr(2, 0);
+  val addr_offset = addr(1, 0);
   io.master.ar.valid      := ar_valid
   io.master.ar.bits.addr  := addr
   io.master.ar.bits.id    := 0.U
@@ -140,3 +140,64 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
   monitorEvent(memFinished, io.out.fire && is_mem)
   monitorEvent(memStalled, validBuffer && is_mem)
 }
+
+// class MEM extends Module with HasDecodeConstants with HasPerfCounters {
+//   val io = IO(new Bundle {
+//     val in     = Flipped(Decoupled(new EXU_Message))
+//     val out    = Decoupled(new MEM_Message)
+//     val master = new AXI4(64, 32)
+//   })
+
+//   val insert      = Wire(Bool())
+//   val dataBuffer  = RegEnable(io.in.bits.data, insert)
+//   val ctrlBuffer  = RegEnable(io.in.bits.ctrl, insert)
+//   val dnpcBuffer  = RegEnable(io.in.bits.dnpc, insert)
+//   val validBuffer = RegEnable(io.in.valid, insert)
+//   insert      := ~validBuffer || io.out.fire
+//   io.in.ready := insert
+
+//   val memOut  = Wire(UInt(32.W))
+//   val dataOut = WireDefault(dataBuffer)
+//   val dnpcOut = Wire(new dnpcSignal)
+
+//   // -------------------------- MEM --------------------------
+//   val memLen  = ctrlBuffer.fuOp(2, 1)
+//   val loadU   = ctrlBuffer.fuOp(0)
+//   val isMem   = ctrlBuffer.fuType === MEM
+//   val isWrite = ctrlBuffer.fuOp(3) === W
+
+//   val memIf       = Module(new MemInterface)
+//   val memReqValid = RegInit(false.B)
+//   memReqValid := Mux(insert, io.in.valid, Mux(memIf.io.in.ready, false.B, memReqValid))
+
+//   memIf.io.in.valid      := isMem && memReqValid
+//   memIf.io.in.bits.addr  := dataBuffer.out
+//   memIf.io.in.bits.wr    := isWrite
+//   memIf.io.in.bits.loadU := loadU
+//   memIf.io.in.bits.size  := memLen
+//   memIf.io.in.bits.data  := dataBuffer.rs2Val
+
+//   memIf.io.master <> io.master
+
+//   memIf.io.out.ready := io.out.ready
+//   memOut             := memIf.io.out.bits.data
+//   // ---------------------------------------------------------
+
+//   dataOut.out := Mux(isMem, memOut, dataBuffer.out)
+
+//   dnpcOut.valid := dnpcBuffer.valid
+//   dnpcOut.pc    := dnpcBuffer.pc
+
+//   io.out.bits.ctrl := ctrlBuffer
+//   io.out.bits.data := dataOut
+//   io.out.bits.dnpc := dnpcOut
+
+//   io.out.valid := Mux(
+//     isMem.asBool,
+//     memIf.io.out.valid,
+//     validBuffer
+//   )
+
+//   monitorEvent(memFinished, io.out.fire && isMem)
+//   monitorEvent(memStalled, validBuffer && isMem)
+// }

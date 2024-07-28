@@ -4,10 +4,11 @@ import chisel3.SpecifiedDirection.Flip
 
 class IFU extends Module with HasPerfCounters {
   val io = IO(new Bundle {
-    val valid  = Input(Bool())
-    val in     = Flipped(new dnpcSignal)
-    val out    = Decoupled(new IFU_Message)
-    val master = new AXI4(64, 32)
+    val valid       = Input(Bool())
+    val flushICache = Input(Bool())
+    val in          = Flipped(new dnpcSignal)
+    val out         = Decoupled(new IFU_Message)
+    val master      = new AXI4(32, 32)
   })
   val pc = RegInit(UInt(32.W), Config.resetPC)
 
@@ -19,24 +20,32 @@ class IFU extends Module with HasPerfCounters {
   val arValidNext = Wire(Bool())
   val arValid     = RegInit(true.B)
 
-  val icache = Module(new ICache)
-
-  arValidNext := Mux(insert, io.valid, Mux(icache.io.in.fire, false.B, arValid))
+  val icache    = Module(new ICache)
+  val cacheable = pc >= "hA000_0000".U && pc < "hA200_0000".U
+  io.master <> icache.io.master
+  arValidNext := Mux(insert, io.valid, Mux(Mux(cacheable, icache.io.in.fire, io.master.ar.fire), false.B, arValid))
   arValid     := arValidNext
 
-  icache.io.in.valid := arValid && ~reset.asBool
-  icache.io.in.bits  := pc
+  icache.io.in.valid    := arValid && ~reset.asBool && cacheable
+  icache.io.in.bits     := pc
+  icache.io.flushICache := io.flushICache
 
   val addrOffset = pc(2)
   val retData    = icache.io.out.bits
-  io.out.valid             := icache.io.out.valid
+  io.out.valid             := Mux(cacheable, icache.io.out.valid, io.master.r.valid)
   io.out.bits.pc           := pc
   io.out.bits.inst         := retData
   io.out.bits.access_fault := false.B
 
-  icache.io.out.ready := io.out.ready
+  when(!cacheable) {
+    io.master.ar.valid     := arValid && ~reset.asBool && ~cacheable
+    io.master.ar.bits.addr := pc
+    io.master.ar.bits.len  := 0.U
+    io.master.r.ready      := io.out.ready
+    io.out.bits.inst       := io.master.r.bits.data
+  }
 
-  io.master <> icache.io.master
+  icache.io.out.ready := io.out.ready
 
   monitorEvent(ifuFinished, io.out.fire)
   monitorEvent(ifuStalled, validBuffer && ~reset.asBool)
@@ -51,7 +60,7 @@ class FetchCacheLine extends Module {
       val valid  = Bool()
       val fin    = Bool()
     }
-    val master = new AXI4(64, 32)
+    val master = new AXI4(32, 32)
   })
 
   val data = Reg(Vec(4, UInt(32.W)))
@@ -81,13 +90,14 @@ class FetchCacheLine extends Module {
     Mux(
       io.master.ar.fire,
       false.B,
-      Mux(io.master.r.fire, rCnt < 3.U, reqValid)
+      reqValid
+      // Mux(io.master.r.fire, rCnt < 3.U, reqValid)
     )
   )
   io.master.ar.valid      := reqValid && ~reset.asBool
-  io.master.ar.bits.addr  := addrBuffer
+  io.master.ar.bits.addr  := Cat(io.in.bits(31, 4), 0.U(4.W))
   io.master.ar.bits.id    := 0.U
-  io.master.ar.bits.len   := 0.U
+  io.master.ar.bits.len   := 3.U
   io.master.ar.bits.size  := 2.U
   io.master.ar.bits.burst := "b01".U
 
@@ -108,17 +118,81 @@ class FetchCacheLine extends Module {
   io.master.b.ready := false.B
 
   io.out.offset := rCnt
-  io.out.data   := Mux(addrBuffer(2), io.master.r.bits.data(63, 32), io.master.r.bits.data(31, 0))
-  io.out.valid  := io.master.r.valid
+  io.out.data   := io.master.r.bits.data
+  io.out.valid  := io.master.r.valid && state === sFill
   io.out.fin    := state === sFill && rCnt === 4.U
   io.in.ready   := state === sIdle
 }
 
 class ICache extends Module with HasPerfCounters {
   val io = IO(new Bundle {
+    val in          = Flipped(Decoupled(UInt(32.W)))
+    val out         = Decoupled(UInt(32.W))
+    val flushICache = Input(Bool())
+    val master      = new AXI4(32, 32)
+  })
+  val numCacheLine = 4
+
+  val data     = Reg(Vec(numCacheLine, Vec(4, UInt(32.W))))
+  val tag      = Reg(Vec(numCacheLine, UInt(26.W)))
+  val valid    = RegInit(VecInit(Seq.fill(numCacheLine)(false.B)))
+  val inTag    = io.in.bits(31, 6)
+  val inOffset = io.in.bits(3, 2)
+  val inIndex  = io.in.bits(5, 4)
+
+  val fetchLine = Module(new FetchCacheLine)
+  io.master <> fetchLine.io.master
+
+  val sIdle :: sCheckHit :: sFetchLine :: Nil = Enum(3)
+
+  val state = RegInit(sIdle)
+
+  fetchLine.io.in.bits  := io.in.bits
+  fetchLine.io.in.valid := state === sFetchLine
+
+  val hitMap = valid.zip(tag).map { case (v, t) => v && t === inTag }
+  // val hit    = hitMap.reduce(_ || _)
+  val hit = valid(inIndex) && tag(inIndex) === inTag
+
+  state := MuxLookup(state, sIdle)(
+    Seq(
+      sIdle -> Mux(io.in.fire, sCheckHit, sIdle),
+      sCheckHit -> Mux(hit, Mux(io.out.fire, sIdle, sCheckHit), sFetchLine),
+      sFetchLine -> Mux(fetchLine.io.out.fin, sCheckHit, sFetchLine)
+    )
+  )
+
+  when(io.flushICache) {
+    valid.foreach(_ := false.B)
+  }
+
+  val replaceIdx = RegInit(0.U(2.W))
+  replaceIdx := Mux(replaceIdx === 2.U, replaceIdx, replaceIdx + 1.U)
+
+  when(fetchLine.io.out.valid) {
+    data(inIndex)(fetchLine.io.out.offset) := fetchLine.io.out.data
+  }
+  when(fetchLine.io.out.fin) {
+    tag(inIndex)   := inTag
+    valid(inIndex) := true.B
+  }
+
+  io.in.ready := state === sIdle && !io.flushICache
+
+  val line = Mux1H(hitMap, data)
+  // io.out.bits := line(inOffset)
+  io.out.bits := data(inIndex)(inOffset)
+
+  io.out.valid := state === sCheckHit && hit
+
+  monitorEvent(icacheMiss, state === sCheckHit && !hit)
+}
+
+class FullyAssocICache extends Module with HasPerfCounters {
+  val io = IO(new Bundle {
     val in     = Flipped(Decoupled(UInt(32.W)))
     val out    = Decoupled(UInt(32.W))
-    val master = new AXI4(64, 32)
+    val master = new AXI4(32, 32)
   })
   val numCacheLine = 3
 
@@ -127,6 +201,7 @@ class ICache extends Module with HasPerfCounters {
   val valid    = RegInit(VecInit(Seq.fill(numCacheLine)(false.B)))
   val inTag    = io.in.bits(31, 4)
   val inOffset = io.in.bits(3, 2)
+  val inIndex  = io.in.bits(5, 4)
 
   val fetchLine = Module(new FetchCacheLine)
   io.master <> fetchLine.io.master
@@ -149,22 +224,19 @@ class ICache extends Module with HasPerfCounters {
     )
   )
 
-  val replaceIdx = RegInit(0.U(2.W))
-  replaceIdx := Mux(replaceIdx === 2.U, replaceIdx, replaceIdx + 1.U)
+  val hasInvalid = !valid.reduce(_ && _)
+  val invalidIdx = PriorityMux(valid.zipWithIndex.map { case (v, i) => (!v -> i.U) })
+  val rndIdxReg  = RegInit(0.U(2.W))
+  val rndIdx     = RegEnable(rndIdxReg, state === sCheckHit && !hit)
+  val replaceIdx = Mux(hasInvalid, invalidIdx, rndIdx)
+  rndIdxReg := Mux(rndIdxReg === numCacheLine.U - 1.U, 0.U, rndIdxReg + 1.U)
 
   when(fetchLine.io.out.valid) {
-    data(0)(fetchLine.io.out.offset) := fetchLine.io.out.data
-    for (i <- 0 until (numCacheLine - 1)) {
-      data(i + 1)(fetchLine.io.out.offset) := data(i)(fetchLine.io.out.offset)
-    }
+    data(replaceIdx)(fetchLine.io.out.offset) := fetchLine.io.out.data
   }
   when(fetchLine.io.out.fin) {
-    tag(0)   := inTag
-    valid(0) := true.B
-    for (i <- 0 until (numCacheLine - 1)) {
-      valid(i + 1) := valid(i)
-      tag(i + 1)   := tag(i)
-    }
+    tag(replaceIdx)   := inTag
+    valid(replaceIdx) := true.B
   }
 
   io.in.ready := state === sIdle

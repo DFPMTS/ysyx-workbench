@@ -46,6 +46,9 @@ trait HasPerfCounters {
   // WBU
   // should count committed instructions types
 
+  // ICache
+  def icacheMiss = 8.U(Config.eventIdWidth)
+
   def monitorEvent(eventId: UInt, enable: Bool) = {
     if (Config.debug) {
       val monitor = Module(new EventMonitor)
@@ -53,6 +56,18 @@ trait HasPerfCounters {
       monitor.io.enable  := enable
     }
   }
+}
+
+class MemRequest extends Bundle {
+  val addr  = UInt(32.W)
+  val data  = UInt(32.W)
+  val size  = UInt(2.W)
+  val wr    = Bool()
+  val loadU = Bool()
+}
+
+class MemResponse extends Bundle {
+  val data = UInt(32.W)
 }
 
 class PC_Message extends Bundle {

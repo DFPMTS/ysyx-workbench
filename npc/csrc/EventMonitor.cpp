@@ -62,6 +62,8 @@ int getEventId(const std::string &eventName) {
     return 6;
   } else if (eventName == "memStalled") {
     return 7;
+  } else if (eventName == "icacheMiss") {
+    return 8;
   } else {
     return -1;
   }
