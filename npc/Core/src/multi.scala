@@ -18,6 +18,7 @@ class multi extends Module {
   // val pc = RegInit(UInt(32.W), "h80000000".U)
   // val pc = RegInit(UInt(32.W), "h0ff00000".U)
   val arbiter = Module(new AXI_Arbiter)
+  // val xbar    = Module(new XBar)
 
   val WBtoIF = Wire(new dnpcSignal)
   val WBtoDE = Wire(new WBSignal)
@@ -25,7 +26,7 @@ class multi extends Module {
   // IF
   ifu.io.in.pc    := WBtoIF.pc
   ifu.io.in.valid := WBtoIF.valid && !reset.asBool // ! IFU must latch pc/valid inside
-  ifu.io.master <> arbiter.io.IFU_master
+  ifu.io.master <> arbiter.io.IFUMaster
 
   // DE
   idu.io.in <> ifu.io.out
@@ -36,7 +37,9 @@ class multi extends Module {
 
   // MEM
   mem.io.in <> exu.io.out
-  mem.io.master <> arbiter.io.EXU_master
+  mem.io.master <> arbiter.io.LSUMaster
+  // mem.io.master <> xbar.io.in
+  // xbar.io.out <> arbiter.io.LSUMaster
 
   // WB
   wbu.io.in <> mem.io.out
@@ -65,7 +68,9 @@ class multi extends Module {
   // dontTouch(commit_inst)
 
   // AXI4 master
-  arbiter.io.out_slave.viewAs[AXI4ysyxSoC] <> io.master
+  // arbiter.io.winMaster <> xbar.io.in
+  arbiter.io.winMaster.viewAs[AXI4ysyxSoC] <> io.master
+  // xbar.io.out.viewAs[AXI4ysyxSoC] <> io.master
 
   // AXI4 slave
   io.slave.awready := false.B

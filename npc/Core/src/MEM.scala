@@ -58,6 +58,9 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
   val is_read       = RegEnable(is_read_w, insert)
   val is_write      = RegEnable(is_write_w, insert)
 
+  val addr        = dataBuffer.out
+  val addr_offset = addr(1, 0)
+
   // ar_valid/aw_valid/w_valid 当一个valid请求进入时置为true,在相应通道握手后为false
   val ar_valid = RegInit(false.B)
   ar_valid := Mux(
@@ -65,8 +68,6 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
     io.in.valid && is_read_w && !invalid,
     Mux(io.master.ar.fire, false.B, ar_valid)
   )
-  val addr        = dataBuffer.out
-  val addr_offset = addr(1, 0);
   io.master.ar.valid      := ar_valid
   io.master.ar.bits.addr  := addr
   io.master.ar.bits.id    := 0.U
@@ -76,6 +77,7 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
 
   val rValidBuffer = RegNext(io.master.r.valid)
   val rdataBuffer  = RegNext(io.master.r.bits.data)
+  // val rdataBuffer = io.master.r.bits.data
   io.master.r.ready := Mux(validBuffer && is_read, io.out.ready, false.B)
 
   val aw_valid = RegInit(false.B)
