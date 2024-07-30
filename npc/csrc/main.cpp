@@ -15,6 +15,7 @@ void printPerfCounters() {
   std::cout << "-----------------------------------" << std::endl;
   std::cout << "ifuFinished" << " " << getEventCount("ifuFinished")
             << std::endl;
+  std::cout << "icacheMiss" << " " << getEventCount("icacheMiss") << std::endl;
   std::cout << "ifuStalled" << " " << getEventCount("ifuStalled") << std::endl;
 
   std::cout << "iduBruInst" << " " << getEventCount("iduBruInst") << std::endl;
@@ -34,13 +35,21 @@ void printPerfCounters() {
 int main(int argc, char *argv[]) {
   Verilated::commandArgs(argc, argv);
   init_monitor(argc, argv);
-  int T = 1000;
+
   bool commit = false;
   bool booted = false;
 #ifdef NVBOARD
   nvboard_init(1);
 #endif
   Log("Simulation begin");
+  begin_wave = true;
+  // int T = 1000000;
+  // while (true) {
+  //   trace_pc();
+  // }
+  // return 0;
+  // begin_wave = true;
+
   while (running) {
     cpu_step();
     ++totalCycles;
@@ -58,10 +67,15 @@ int main(int argc, char *argv[]) {
       commit = true;
       trace(PC, INST);
       if (PC == 0xa0000000) {
+        begin_wave = true;
         printPerfCounters();
         clearAllEventCount();
+        totalCycles = 0;
         booted = true;
       }
+    }
+    if (totalCycles % 1000000 == 0) {
+      std::cerr << "Total cycles: " << totalCycles << std::endl;
     }
   }
   ++totalCycles;
@@ -69,7 +83,7 @@ int main(int argc, char *argv[]) {
   int retval = gpr(10);
 
 #ifdef WAVE
-  vcd->close();
+  fst->close();
 #endif
 
   if (retval == 0) {

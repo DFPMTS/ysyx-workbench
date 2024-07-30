@@ -101,3 +101,9 @@ void difftest_step() {
     access_device = false;
   }
 }
+
+void trace_pc() {
+  ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
+  trace_write("%08x\n", ref.pc);
+  difftest_step();
+}

@@ -6,13 +6,14 @@
 #include <Vtop___024root.h>
 #include <iostream>
 #include <verilated.h>
-#include <verilated_vcd_c.h>
+#include <verilated_fst_c.h>
 
 extern Vtop *top;
-extern VerilatedVcdC *vcd;
+extern VerilatedFstC *fst;
 
 #define SIM_T 10
 extern uint64_t eval_time;
+extern bool begin_wave;
 
 #define CONCAT(x, y) concat_temp(x, y)
 #define concat_temp(x, y) x##y

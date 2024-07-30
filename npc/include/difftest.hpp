@@ -27,5 +27,6 @@ void init_difftest(const char *diff_so_file);
 void trace(uint32_t pc, uint32_t inst);
 void difftest();
 void difftest_step();
+void trace_pc();
 
 #endif

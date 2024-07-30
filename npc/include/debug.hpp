@@ -19,6 +19,11 @@ extern FILE *log_fd;
     fflush(log_fd);                                                            \
   } while (0)
 
+#define trace_write(...)                                                       \
+  do {                                                                         \
+    fprintf(log_fd, __VA_ARGS__);                                              \
+  } while (0)
+
 #define Log(format, ...)                                                       \
   _Log("[%s:%d %s] " format "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 

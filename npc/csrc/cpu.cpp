@@ -3,7 +3,7 @@
 #include "disasm.hpp"
 
 Vtop *top;
-VerilatedVcdC *vcd;
+VerilatedFstC *fst;
 uint64_t eval_time;
 
 static const char *regs[] = {
@@ -12,6 +12,7 @@ static const char *regs[] = {
 };
 
 static uint32_t *gprs[16];
+bool begin_wave = false;
 
 void check_gpr_bound(int id) { assert(id >= 0 && id < 16); }
 
@@ -76,26 +77,34 @@ void cpu_step() {
 
   top->eval();
 #ifdef WAVE
-  eval_time = sim_time * SIM_T - 2;
-  vcd->dump(eval_time);
+  if (begin_wave) {
+    eval_time = sim_time * SIM_T - 2;
+    fst->dump(eval_time);
+  }
 #endif
 
   top->clock = 1;
   top->eval();
 #ifdef WAVE
-  eval_time = sim_time * SIM_T;
-  vcd->dump(eval_time);
+  if (begin_wave) {
+    eval_time = sim_time * SIM_T;
+    fst->dump(eval_time);
+  }
 #endif
 
   top->clock = 0;
   top->eval();
 #ifdef WAVE
-  eval_time = sim_time * SIM_T + 2;
-  vcd->dump(eval_time);
+  if (begin_wave) {
+    eval_time = sim_time * SIM_T + 2;
+    fst->dump(eval_time);
+  }
 #endif
 
 #ifdef WAVE
-  vcd->flush();
+  if (begin_wave) {
+    fst->flush();
+  }
 #endif
   ++sim_time;
 }
@@ -110,10 +119,10 @@ void init_cpu() {
   init_regs();
 
 #ifdef WAVE
-  vcd = new VerilatedVcdC;
+  fst = new VerilatedFstC;
   Verilated::traceEverOn(true);
-  top->trace(vcd, 5);
-  vcd->open("wave.vcd");
+  top->trace(fst, 5);
+  fst->open("wave.fst");
 #endif
 
   int T = 10;
