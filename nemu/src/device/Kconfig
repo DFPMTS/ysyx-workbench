@@ -207,4 +207,14 @@ config SDRAM_SIZE
   default 0x02000000
 endif # HAS_SDRAM
 
+menuconfig HAS_UART
+  bool "Enable UART"
+  default n
+
+if HAS_UART
+config UART_ADDR
+  hex "Physical address of the UART"
+  default 0x10000000
+endif # HAS_UART
+
 endif # DEVICE
