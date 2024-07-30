@@ -32,7 +32,7 @@ __attribute_maybe_unused__ static void uart_init()
   outb(UART_BASE + UART_LC, LC_old);
 }
 
-static void print_decimal(uint32_t n) {
+__attribute_maybe_unused__ static void print_decimal(uint32_t n) {
   if (n == 0) {
     putch('0');
     return;
@@ -48,7 +48,7 @@ static void print_decimal(uint32_t n) {
   }
 }
 
-static void print_hello() {
+__attribute_maybe_unused__ static void print_hello() {
   uint32_t vendorid;
   uint32_t studentid;
   asm volatile("csrr %[vendorid], mvendorid" : [vendorid] "=r"(vendorid));
