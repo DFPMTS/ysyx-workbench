@@ -138,8 +138,8 @@ static int decode_exec(Decode *s) {
   // -----------------------------------------------Zicsr-----------------------------------------------  
   // ! Note that there are special rules for rd=x0/rs1=x0, but we omitted them here for simplicity
   // ! Also, we assume all CSR bits are writable
-  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, R(rd) = csrrw(imm, src1));
-  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, R(rd) = csrrs(imm, src1));
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, R(rd) = csrrw(BITS(imm,11,0), src1));
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, R(rd) = csrrs(BITS(imm,11,0), src1));
 
   // --------------------------------------------Trap-Return--------------------------------------------
   INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, s->dnpc = cpu.mepc);    
