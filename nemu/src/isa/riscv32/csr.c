@@ -4,6 +4,9 @@
 #include <isa.h>
 #include <cpu/cpu.h>
 
+static word_t mvenderid = 0x79737978;
+static word_t marchid = 23060238;
+
 word_t *get_csr(word_t csr_addr) {
   switch (csr_addr) {
   case 0x300: // mstatus
@@ -17,6 +20,12 @@ word_t *get_csr(word_t csr_addr) {
     break;
   case 0x342: // mcause
     return &cpu.mcause;
+    break;
+  case 0xf11: // mvendorid
+    return &mvenderid;
+    break;  
+  case 0xf12: // marchid
+    return &marchid;
     break;
   default:
     panic("Invalid csr address: %u\n", csr_addr);
