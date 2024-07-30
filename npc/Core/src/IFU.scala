@@ -143,12 +143,12 @@ class ICache extends Module with HasPerfCounters {
   val fetchLine = Module(new FetchCacheLine)
   io.master <> fetchLine.io.master
 
-  val sIdle :: sCheckHit :: sFetchLine :: Nil = Enum(3)
+  val sIdle :: sFetchReq :: sFetchWaitReply :: Nil = Enum(3)
 
   val state = RegInit(sIdle)
 
   fetchLine.io.in.bits  := io.in.bits
-  fetchLine.io.in.valid := state === sFetchLine
+  fetchLine.io.in.valid := state === sFetchReq
 
   val hitMap = valid.zip(tag).map { case (v, t) => v && t === inTag }
   // val hit    = hitMap.reduce(_ || _)
@@ -156,9 +156,9 @@ class ICache extends Module with HasPerfCounters {
 
   state := MuxLookup(state, sIdle)(
     Seq(
-      sIdle -> Mux(io.in.fire, sCheckHit, sIdle),
-      sCheckHit -> Mux(hit, Mux(io.out.fire, sIdle, sCheckHit), sFetchLine),
-      sFetchLine -> Mux(fetchLine.io.out.fin, sCheckHit, sFetchLine)
+      sIdle -> Mux(io.in.fire, Mux(hit, sIdle, sFetchReq), sIdle),
+      sFetchReq -> Mux(fetchLine.io.in.fire, sFetchWaitReply, sFetchReq),
+      sFetchWaitReply -> Mux(io.out.fire, sIdle, sFetchWaitReply)
     )
   )
 
@@ -183,9 +183,9 @@ class ICache extends Module with HasPerfCounters {
   // io.out.bits := line(inOffset)
   io.out.bits := data(inIndex)(inOffset)
 
-  io.out.valid := state === sCheckHit && hit
+  io.out.valid := (io.in.fire || state === sFetchWaitReply) && hit
 
-  monitorEvent(icacheMiss, state === sCheckHit && !hit)
+  monitorEvent(icacheMiss, state === sIdle && !hit)
 }
 
 class FullyAssocICache extends Module with HasPerfCounters {
