@@ -27,22 +27,27 @@ trait HasLSUOps {
 
 class MEM extends Module with HasDecodeConstants with HasPerfCounters {
   val io = IO(new Bundle {
-    val in     = Flipped(Decoupled(new EXU_Message))
-    val out    = Decoupled(new MEM_Message)
-    val master = new AXI4(32, 32)
+    val in      = Flipped(Decoupled(new EXU_Message))
+    val wb      = new WBSignal
+    val inDnpc  = Input(new dnpcSignal)
+    val outDnpc = new dnpcSignal
+    val valid   = Output(Bool())
+    val master  = new AXI4(32, 32)
   })
 
   val insert      = Wire(Bool())
   val dataBuffer  = RegEnable(io.in.bits.data, insert)
   val ctrlBuffer  = RegEnable(io.in.bits.ctrl, insert)
-  val dnpcBuffer  = RegEnable(io.in.bits.dnpc, insert)
   val validBuffer = RegEnable(io.in.valid, insert)
-  insert      := ~validBuffer || io.out.fire
+  val dnpcBuffer  = RegEnable(io.in.bits.dnpc, insert)
+
+  val outValid = Wire(Bool())
+  insert      := ~validBuffer || outValid
   io.in.ready := insert
 
-  val memOut  = Wire(UInt(32.W))
-  val dataOut = WireDefault(dataBuffer)
-  val dnpcOut = Wire(new dnpcSignal)
+  val wbOut = Wire(new WBSignal)
+
+  val memOut = Wire(UInt(32.W))
 
   // -------------------------- MEM --------------------------
   val memLen     = ctrlBuffer.fuOp(2, 1)
@@ -78,7 +83,7 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
   val rValidBuffer = RegNext(io.master.r.valid)
   val rdataBuffer  = RegNext(io.master.r.bits.data)
   // val rdataBuffer = io.master.r.bits.data
-  io.master.r.ready := Mux(validBuffer && is_read, io.out.ready, false.B)
+  io.master.r.ready := Mux(validBuffer && is_read, true.B, false.B)
 
   val aw_valid = RegInit(false.B)
   aw_valid := Mux(
@@ -111,7 +116,7 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
   io.master.w.bits.last := true.B
 
   val bValidBuffer = RegNext(io.master.b.valid)
-  io.master.b.ready := Mux(validBuffer && is_write, io.out.ready, false.B)
+  io.master.b.ready := Mux(validBuffer && is_write, true.B, false.B)
 
   val raw_data      = rdataBuffer >> (addr_offset << 3.U)
   val sign_ext_data = WireDefault(raw_data)
@@ -122,25 +127,31 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
   }
 
   memOut := sign_ext_data
-  // ---------------------------------------------------------
 
-  dataOut.out := Mux(is_mem, memOut, dataBuffer.out)
+  wbOut.rd   := ctrlBuffer.rd
+  wbOut.wen  := outValid && ctrlBuffer.regWe
+  wbOut.data := Mux(is_mem, memOut, dataBuffer.out)
 
-  dnpcOut.valid := dnpcBuffer.valid
-  dnpcOut.pc    := dnpcBuffer.pc
+  io.wb := wbOut
 
-  io.out.bits.ctrl := ctrlBuffer
-  io.out.bits.data := dataOut
-  io.out.bits.dnpc := dnpcOut
-
-  io.out.valid := Mux(
+  outValid := Mux(
     is_mem.asBool && !invalidBuffer,
     Mux(is_read, rValidBuffer, bValidBuffer),
     validBuffer
   )
 
-  monitorEvent(memFinished, io.out.fire && is_mem)
+  io.valid := outValid
+
+  io.outDnpc := dnpcBuffer
+
+  monitorEvent(memFinished, outValid && is_mem)
   monitorEvent(memStalled, validBuffer && is_mem)
+
+  if (Config.debug) {
+    dontTouch(ctrlBuffer)
+    dontTouch(dataBuffer)
+    dontTouch(dnpcBuffer)
+  }
 }
 
 // class MEM extends Module with HasDecodeConstants with HasPerfCounters {

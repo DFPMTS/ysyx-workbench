@@ -4,14 +4,18 @@ import scala.reflect.internal.Mode
 
 class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   val io = IO(new Bundle {
-    val in  = Flipped(Decoupled(new IFU_Message))
-    val wb  = Input(new WBSignal)
-    val out = Decoupled(new IDU_Message)
+    val in       = Flipped(Decoupled(new IFU_Message))
+    val EXBypass = Input(new WBSignal)
+    val wb       = Input(new WBSignal)
+    val out      = Decoupled(new IDU_Message)
+    val flush    = Input(Bool())
   })
-  val counter     = RegInit(0.U(3.W))
-  val insert      = Wire(Bool())
-  val inBuffer    = RegEnable(io.in.bits, insert)
-  val validBuffer = RegEnable(io.in.valid, insert)
+  val counter = RegInit(0.U(3.W))
+  val insert  = Wire(Bool())
+  // val inBuffer = RegEnable(io.in.bits, insert)
+  val inBuffer = io.in.bits
+  // val validBuffer = RegEnable(io.in.valid, insert)
+  val validBuffer = io.in.valid
   counter := Mux(
     io.in.fire,
     0.U,
@@ -19,8 +23,9 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   )
   insert := ~validBuffer || (counter === 0.U && io.out.ready)
 
-  io.in.ready  := insert
-  io.out.valid := validBuffer && counter === 0.U
+  // io.in.ready  := insert
+  io.in.ready  := io.out.ready
+  io.out.valid := validBuffer && counter === 0.U && !io.flush
 
   val ctrl = Wire(new ControlSignal)
   val data = Wire(new DataSignal)
@@ -29,14 +34,14 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   data.pc := inBuffer.pc
 
   val regfile = Module(new RegFile)
-  regfile.io.reg_we  := io.wb.wen
-  regfile.io.wr_sel  := io.wb.rd
-  regfile.io.wb_data := io.wb.data
-  regfile.io.rs1_sel := ctrl.rs1
-  regfile.io.rs2_sel := ctrl.rs2
-  data.src1          := MuxLookup(ctrl.src1Type, 0.U)(Seq(REG -> regfile.io.rs1, PC -> inBuffer.pc, ZERO -> 0.U))
-  data.src2          := MuxLookup(ctrl.src2Type, 0.U)(Seq(REG -> regfile.io.rs2, IMM -> data.imm, ZERO -> 0.U))
-  data.rs2Val        := regfile.io.rs2
+  regfile.io.wb     := io.wb
+  regfile.io.rs1Sel := ctrl.rs1
+  regfile.io.rs2Sel := ctrl.rs2
+  val rs1Val = io.EXBypass.tryBypass(ctrl.rs1, regfile.io.rs1)
+  val rs2Val = io.EXBypass.tryBypass(ctrl.rs2, regfile.io.rs2)
+  data.src1   := MuxLookup(ctrl.src1Type, 0.U)(Seq(REG -> rs1Val, PC -> inBuffer.pc, ZERO -> 0.U))
+  data.src2   := MuxLookup(ctrl.src2Type, 0.U)(Seq(REG -> rs2Val, IMM -> data.imm, ZERO -> 0.U))
+  data.rs2Val := rs2Val
 
   val immgen = Module(new ImmGen)
   immgen.io.inst      := inBuffer.inst

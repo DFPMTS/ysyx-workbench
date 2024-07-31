@@ -154,7 +154,7 @@ class AXI_Arbiter extends Module {
     slave.b.ready := false.B
   }
 
-  when(LSUreq || state === sLSU) {
+  when((LSUreq && state === sIdle) || state === sLSU) {
     win <> io.LSUMaster
   }.elsewhen(IFUreq || state === sIFU) {
     win <> io.IFUMaster

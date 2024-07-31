@@ -3,21 +3,24 @@ import chisel3.util._
 
 class RegFile extends Module {
   val io = IO(new Bundle {
-    val rs1_sel = Input(UInt(5.W))
-    val rs2_sel = Input(UInt(5.W))
-    val wr_sel  = Input(UInt(5.W))
-    val reg_we  = Input(UInt(1.W))
-    val wb_data = Input(UInt(32.W))
-    val rs1     = Output(UInt(32.W))
-    val rs2     = Output(UInt(32.W))
+    val rs1Sel = Input(UInt(4.W))
+    val rs2Sel = Input(UInt(4.W))
+    val wb     = Input(new WBSignal)
+    val rs1    = Output(UInt(32.W))
+    val rs2    = Output(UInt(32.W))
   })
 
-  val regs = Reg(Vec(16, UInt(32.W)))
+  val regs = RegInit({
+    val regs = Wire(Vec(16, UInt(32.W)))
+    regs    := DontCare
+    regs(0) := 0.U
+    regs
+  })
 
-  when(io.wr_sel =/= 0.U && io.reg_we.asBool) {
-    regs(io.wr_sel(3, 0)) := io.wb_data
+  when(io.wb.rd =/= 0.U && io.wb.wen) {
+    regs(io.wb.rd) := io.wb.data
   }
 
-  io.rs1 := regs(io.rs1_sel(3, 0))
-  io.rs2 := regs(io.rs2_sel(3, 0))
+  io.rs1 := io.wb.tryBypass(io.rs1Sel, regs(io.rs1Sel))
+  io.rs2 := io.wb.tryBypass(io.rs2Sel, regs(io.rs2Sel))
 }

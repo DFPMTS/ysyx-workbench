@@ -26,17 +26,21 @@ static uint32_t dummy = 0;
 #define MEM CONCAT(CPU, __DOT__mem__DOT__)
 #define WBU CONCAT(CPU, __DOT__wbu__DOT__)
 
+#define LAST_STAGE MEM
+
 #define REG(x) (CONCAT(REGFILE, x))
-#define PC CONCAT(IFU, pc)
-#define INST CONCAT(WBU, ctrlBuffer_inst)
-#define VALID CONCAT(WBU, validBuffer)
+#define PC CONCAT(CPU, __DOT__archPC)
+#define INST CONCAT(LAST_STAGE, ctrlBuffer_inst)
+#define VALID CONCAT(CPU, __DOT___mem_io_valid)
 #define JUMP                                                                   \
-  (CONCAT(WBU, ctrlBuffer_fuType) == 1 && CONCAT(WBU, ctrlBuffer_fuOp == 0))
-#define RD CONCAT(WBU, ctrlBuffer_rd)
-#define RS1 CONCAT(WBU, ctrlBuffer_rs1)
-#define IMM CONCAT(WBU, dataBuffer_imm)
+  (CONCAT(LAST_STAGE, ctrlBuffer_fuType) == 1 &&                               \
+   CONCAT(LAST_STAGE, ctrlBuffer_fuOp == 0))
+#define RD CONCAT(LAST_STAGE, ctrlBuffer_rd)
+#define RS1 CONCAT(LAST_STAGE, ctrlBuffer_rs1)
+#define IMM CONCAT(LAST_STAGE, dataBuffer_imm)
 #define DNPC                                                                   \
-  (CONCAT(WBU, dnpcBuffer_valid) ? CONCAT(WBU, dnpcBuffer_pc) : PC + 4)
+  (CONCAT(LAST_STAGE, dnpcBuffer_valid) ? CONCAT(LAST_STAGE, dnpcBuffer_pc)    \
+                                        : PC + 4)
 
 #ifdef NPC
 #define CPU top->rootp->npc_top__DOT__npc

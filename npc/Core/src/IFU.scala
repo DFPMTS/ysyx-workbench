@@ -4,48 +4,51 @@ import chisel3.SpecifiedDirection.Flip
 
 class IFU extends Module with HasPerfCounters {
   val io = IO(new Bundle {
-    val valid       = Input(Bool())
     val flushICache = Input(Bool())
     val in          = Flipped(new dnpcSignal)
     val out         = Decoupled(new IFU_Message)
     val master      = new AXI4(32, 32)
   })
-  val pc = RegInit(UInt(32.W), Config.resetPC)
-
-  val insert = Wire(Bool())
-  // val dnpcBuffer  = RegEnable(io.in.pc, insert)
-  pc := Mux(insert && io.valid, Mux(io.in.valid, io.in.pc, pc + 4.U), pc)
-  val validBuffer = RegEnable(io.valid, true.B, insert)
-  insert := (~validBuffer || io.out.fire)
+  val pc          = RegInit(UInt(32.W), Config.resetPC)
+  val flushBuffer = RegInit(false.B)
+  val icache      = Module(new ICache)
+  val validBuffer = RegInit(true.B)
   val arValidNext = Wire(Bool())
   val arValid     = RegInit(true.B)
 
-  val icache    = Module(new ICache)
-  val cacheable = pc >= "hA000_0000".U && pc < "hA200_0000".U
+  flushBuffer := Mux(
+    io.in.valid && !arValid && !icache.io.out.valid,
+    true.B,
+    Mux(icache.io.out.fire, false.B, flushBuffer)
+  )
+  val flush    = flushBuffer || io.in.valid
+  val flushNow = io.in.valid && (arValid || icache.io.out.valid)
+  val flushFin = flushNow || (flushBuffer && icache.io.out.fire)
+  val insert   = Wire(Bool())
+  // val dnpcBuffer  = RegEnable(io.in.pc, insert)
+  // pc := Mux(insert && io.valid, Mux(io.in.valid, io.in.pc, pc + 4.U), pc)
+  val flushPCBuffer = RegEnable(io.in.pc, io.in.valid)
+  val flushPC       = Mux(io.in.valid, io.in.pc, flushPCBuffer)
+  pc := Mux(flushFin, flushPC, Mux(io.out.fire, pc + 4.U, pc))
+
+  insert := (~validBuffer || io.out.fire) || flushFin
+
   io.master <> icache.io.master
-  arValidNext := Mux(insert, io.valid, Mux(Mux(cacheable, icache.io.in.fire, io.master.ar.fire), false.B, arValid))
+  arValidNext := Mux(insert, true.B, Mux(icache.io.in.fire, false.B, arValid))
   arValid     := arValidNext
 
-  icache.io.in.valid    := arValid && ~reset.asBool && cacheable
+  icache.io.in.valid    := arValid && ~reset.asBool && !flush
   icache.io.in.bits     := pc
   icache.io.flushICache := io.flushICache
 
   val addrOffset = pc(2)
   val retData    = icache.io.out.bits
-  io.out.valid             := Mux(cacheable, icache.io.out.valid, io.master.r.valid)
+  io.out.valid             := icache.io.out.valid && !flush
   io.out.bits.pc           := pc
   io.out.bits.inst         := retData
   io.out.bits.access_fault := false.B
 
-  when(!cacheable) {
-    io.master.ar.valid     := arValid && ~reset.asBool && ~cacheable
-    io.master.ar.bits.addr := pc
-    io.master.ar.bits.len  := 0.U
-    io.master.r.ready      := io.out.ready
-    io.out.bits.inst       := io.master.r.bits.data
-  }
-
-  icache.io.out.ready := io.out.ready
+  icache.io.out.ready := io.out.ready || flush
 
   monitorEvent(ifuFinished, io.out.fire)
   monitorEvent(ifuStalled, validBuffer && ~reset.asBool)
@@ -68,9 +71,6 @@ class FetchCacheLine extends Module {
   val rCnt = RegInit(0.U(3.W))
 
   rCnt := Mux(io.in.fire, 0.U, Mux(io.master.r.fire, rCnt + 1.U, rCnt))
-  val nextAddr   = Wire(UInt(32.W))
-  val addrBuffer = Reg(UInt(32.W))
-  addrBuffer := Mux(io.in.fire, Cat(io.in.bits(31, 4), 0.U(4.W)), nextAddr)
 
   val sIdle :: sFill :: Nil = Enum(2)
   val state                 = RegInit(sIdle)
@@ -81,7 +81,12 @@ class FetchCacheLine extends Module {
     )
   )
 
-  nextAddr := Mux(io.master.r.valid, addrBuffer + 4.U, addrBuffer)
+  val isBurst = io.in.bits >= "hA0000000".U && io.in.bits < "hA2000000".U
+
+  val lowAddrBuffer = Reg(UInt(4.W))
+  val nextLowAddr   = Mux(!isBurst && io.master.r.valid, lowAddrBuffer + 4.U, lowAddrBuffer)
+  lowAddrBuffer := Mux(io.in.fire, 0.U(4.W), nextLowAddr)
+  val addr = Cat(io.in.bits(31, 4), lowAddrBuffer)
 
   val reqValid = Reg(Bool())
   reqValid := Mux(
@@ -90,14 +95,13 @@ class FetchCacheLine extends Module {
     Mux(
       io.master.ar.fire,
       false.B,
-      reqValid
-      // Mux(io.master.r.fire, rCnt < 3.U, reqValid)
+      Mux(!isBurst && io.master.r.fire, rCnt < 3.U, reqValid)
     )
   )
   io.master.ar.valid      := reqValid && ~reset.asBool
-  io.master.ar.bits.addr  := Cat(io.in.bits(31, 4), 0.U(4.W))
+  io.master.ar.bits.addr  := addr
   io.master.ar.bits.id    := 0.U
-  io.master.ar.bits.len   := 3.U
+  io.master.ar.bits.len   := Mux(isBurst, 3.U, 0.U)
   io.master.ar.bits.size  := 2.U
   io.master.ar.bits.burst := "b01".U
 
@@ -183,7 +187,7 @@ class ICache extends Module with HasPerfCounters {
   // io.out.bits := line(inOffset)
   io.out.bits := data(inIndex)(inOffset)
 
-  io.out.valid := (io.in.fire || state === sFetchWaitReply) && hit
+  io.out.valid := hit
 
   monitorEvent(icacheMiss, state === sIdle && !hit)
 }

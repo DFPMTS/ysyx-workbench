@@ -79,9 +79,9 @@ class ControlSignal extends Bundle {
   val fuType   = UInt(2.W)
   val fuOp     = UInt(4.W)
 
-  val rs1 = UInt(5.W)
-  val rs2 = UInt(5.W)
-  val rd  = UInt(5.W)
+  val rs1 = UInt(4.W)
+  val rs2 = UInt(4.W)
+  val rd  = UInt(4.W)
 }
 
 class DataSignal extends Bundle {
@@ -100,8 +100,11 @@ class dnpcSignal extends Bundle {
 
 class WBSignal extends Bundle {
   val wen  = Bool()
-  val rd   = UInt(5.W)
+  val rd   = UInt(4.W)
   val data = UInt(32.W)
+  def tryBypass(rs: UInt, rsVal: UInt) = {
+    Mux(wen && rd === rs && rs =/= 0.U, data, rsVal)
+  }
 }
 
 class IDU_Message extends Bundle {
