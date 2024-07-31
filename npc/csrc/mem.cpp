@@ -29,7 +29,7 @@ uint8_t mrom[MROM_SIZE];
 uint8_t flash[FLASH_SIZE];
 uint8_t psram[PSRAM_SIZE];
 uint8_t sdram[SDRAM_SIZE];
-#define ADDR_MASK (~0x7u)
+#define ADDR_MASK (~0x3u)
 #define BYTE_MASK (0xFFu)
 
 static bool in_pmem(paddr_t addr) { return addr - MEM_BASE < MEM_SIZE; }
@@ -95,12 +95,12 @@ void load_img(const char *img) {
 }
 
 mem_word_t host_read(uint8_t *addr) {
-  auto retval = *(uint64_t *)(addr);
+  auto retval = *(mem_word_t *)(addr);
   return retval;
 }
 void host_write(uint8_t *addr, mem_word_t wdata, unsigned char wmask) {
   uint8_t *data = (uint8_t *)&wdata;
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 4; ++i) {
     if ((wmask >> i) & 1) {
       addr[i] = data[i];
     }
@@ -129,7 +129,7 @@ mem_word_t mem_read(paddr_t addr) {
   }
 #ifdef MTRACE
   if (valid)
-    log_write("0x%016lx / %lu\n", retval, retval);
+    log_write("0x%08x / %lu\n", retval, retval);
   else
     log_write("NOT VALID / NOT VALID\n");
 #endif
@@ -146,8 +146,8 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
     return;
   addr &= ADDR_MASK;
 #ifdef MTRACE
-  log_write("(%lu)write: 0x%08x - %x : 0x%016lx / %lu\n", eval_time, addr,
-            wmask, wdata, wdata);
+  log_write("(%lu)write: 0x%08x - %x : 0x%08x / %lu\n", eval_time, addr, wmask,
+            wdata, wdata);
 #endif
   if (in_pmem(addr)) {
     host_write(guest_to_host(addr), wdata, wmask);

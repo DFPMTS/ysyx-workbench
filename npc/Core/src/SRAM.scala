@@ -5,7 +5,7 @@ import os.stat
 
 // ar.valid and aw.valid MUST NOT be high at the same time
 class SRAM extends Module {
-  val io = IO(Flipped(new AXI4(64, 32)))
+  val io = IO(Flipped(new AXI4(32, 32)))
 
   val read_lat  = LFSR16(3)
   val write_lat = LFSR16(3)
@@ -21,7 +21,7 @@ class SRAM extends Module {
   val data = Mux(io.w.fire, io.w.bits.data, data_buffer)
   val strb = Mux(io.w.fire, io.w.bits.strb, strb_buffer)
 
-  val out_data_buffer = Reg(UInt(64.W))
+  val out_data_buffer = Reg(UInt(32.W))
 
   val s_Idle :: s_Read :: s_Write :: s_Wait_W :: Nil = Enum(4)
 
