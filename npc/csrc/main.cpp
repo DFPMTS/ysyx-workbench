@@ -74,8 +74,9 @@ int main(int argc, char *argv[]) {
         booted = true;
       }
     }
-    if (totalCycles % 1000000 == 0) {
+    if (totalCycles % 10000000 == 0) {
       std::cerr << "Total cycles: " << totalCycles << std::endl;
+      printPerfCounters();
     }
   }
   ++totalCycles;

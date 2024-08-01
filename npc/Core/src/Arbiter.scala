@@ -96,11 +96,11 @@ class AXI_Arbiter extends Module {
   val nextState = WireDefault(sIdle)
   val state     = RegNext(nextState, sIdle)
 
-  val IFUreq = io.IFUMaster.ar.valid || io.IFUMaster.aw.valid || io.IFUMaster.w.valid
-  val LSUreq = io.LSUMaster.ar.valid || io.LSUMaster.aw.valid || io.LSUMaster.w.valid
+  val IFUreq = io.IFUMaster.ar.valid
+  val LSUreq = io.LSUMaster.ar.valid
 
-  val IFUreply = (io.IFUMaster.r.fire && io.IFUMaster.r.bits.last) || io.IFUMaster.b.fire
-  val LSUreply = (io.LSUMaster.r.fire && io.LSUMaster.r.bits.last) || io.LSUMaster.b.fire
+  val IFUreply = io.IFUMaster.r.fire && io.IFUMaster.r.bits.last
+  val LSUreply = io.LSUMaster.r.fire && io.LSUMaster.r.bits.last
   // 注意这里有问题：假设一个master能发出多个请求（如ar通道多次握手），当第一个请求得到回复后就会直接变为Idle状态，这是错误的
   // 修改方法1：让ar aw w仅能握手一次，即在ar aw w握手后将其ready置为false
   nextState := MuxLookup(state, sIdle)(
@@ -111,53 +111,29 @@ class AXI_Arbiter extends Module {
     )
   )
 
+  val win = Wire(Flipped(new AXI4(32, 32)))
+
+  win :>= io.LSUMaster
+  win :>= io.IFUMaster
+
   for (master <- List(io.IFUMaster, io.LSUMaster)) {
     master.ar.ready := false.B
-
     master.aw.ready := false.B
-
-    master.w.ready := false.B
-
-    master.r.valid     := false.B
-    master.r.bits.data := 0.U
-    master.r.bits.resp := 0.U
-    master.r.bits.last := true.B
-    master.r.bits.id   := 0.U
-
-    master.b.valid     := false.B
-    master.b.bits.resp := 0.U
-    master.b.bits.id   := 0.U
+    master.w.ready  := false.B
+    master.r.valid  := false.B
+    master.b.valid  := false.B
   }
 
-  val win = Wire(Flipped(new AXI4(32, 32)))
-  for (slave <- List(win)) {
-    slave.aw.valid      := false.B
-    slave.aw.bits.addr  := 0.U
-    slave.aw.bits.id    := 0.U
-    slave.aw.bits.len   := 0.U
-    slave.aw.bits.size  := 0.U
-    slave.aw.bits.burst := "b01".U
+  io.LSUMaster.aw <> win.aw
+  io.LSUMaster.w <> win.w
+  io.LSUMaster.b <> win.b
 
-    slave.w.valid     := false.B
-    slave.w.bits.data := 0.U
-    slave.w.bits.strb := 0.U
-    slave.w.bits.last := true.B
-
-    slave.ar.valid      := false.B
-    slave.ar.bits.addr  := 0.U
-    slave.ar.bits.id    := 0.U
-    slave.ar.bits.len   := 0.U
-    slave.ar.bits.size  := 0.U
-    slave.ar.bits.burst := "b01".U
-
-    slave.r.ready := false.B
-    slave.b.ready := false.B
-  }
-
-  when((LSUreq && state === sIdle) || state === sLSU) {
-    win <> io.LSUMaster
-  }.elsewhen(IFUreq || state === sIFU) {
-    win <> io.IFUMaster
+  when((state === sIdle && !LSUreq && IFUreq) || state === sIFU) {
+    win.ar <> io.IFUMaster.ar
+    win.r <> io.IFUMaster.r
+  }.otherwise {
+    win.ar <> io.LSUMaster.ar
+    win.r <> io.LSUMaster.r
   }
 
   // io.winMaster <> win

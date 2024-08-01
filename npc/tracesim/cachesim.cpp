@@ -101,7 +101,8 @@ public:
            m_config == DirectMapped ? "Direct Mapped" : "Fully Associative");
     printf("Access: %lu, Miss: %lu\n", num_access, num_miss);
     printf("Miss rate: %.2lf%%\n", 100.0 * num_miss / num_access);
-    printf("Miss penalty: %.2lf\n", (double)133 * num_miss / num_access);
+    printf("Miss penalty: %.2lf\n",
+           (double)133 * (m_cacheline_size / 16) * num_miss / num_access);
     printf("Baseline: %.2lf\n", (double)(68.5));
     printf("\n");
   }
@@ -235,16 +236,30 @@ int main(int argc, char *argv[]) {
   run_trace(icache);
   icache.print_stat();
 
-  icache = Cache(8, 16, DirectMapped);
+  icache = Cache(16, 16, DirectMapped);
   run_trace(icache);
   icache.print_stat();
 
-  icache = Cache(8, 16, FullyAssociative);
+  icache = Cache(16, 16, FullyAssociative);
   icache.replacement_policy = Random;
   run_trace(icache);
   icache.print_stat();
 
-  icache = Cache(8, 16, FullyAssociative);
+  icache = Cache(16, 16, FullyAssociative);
+  icache.replacement_policy = FIFO;
+  run_trace(icache);
+  icache.print_stat();
+
+  icache = Cache(8, 32, DirectMapped);
+  run_trace(icache);
+  icache.print_stat();
+
+  icache = Cache(8, 32, FullyAssociative);
+  icache.replacement_policy = Random;
+  run_trace(icache);
+  icache.print_stat();
+
+  icache = Cache(8, 32, FullyAssociative);
   icache.replacement_policy = FIFO;
   run_trace(icache);
   icache.print_stat();
