@@ -32,14 +32,15 @@ void do_syscall(Context *c) {
   a[3] = c->GPR4;
   char *syscall_name = syscall_name_table[a[0]];
   switch (a[0]) {
+    case SYS_exit:
+      Log("%s(%d)",syscall_name, a[1]);
+      halt(c->GPR2);
+      break;
     case SYS_yield:      
       yield();      
       retval = 0;
       Log("%s() = %d",syscall_name, retval);
-      break;
-    case SYS_exit:
-      Log("%s(%d)",syscall_name, a[1]);
-      halt(c->GPR2);
+      break;    
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
   c->GPRx = retval;
