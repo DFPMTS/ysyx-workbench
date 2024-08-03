@@ -10,14 +10,15 @@ Context* __am_irq_handle(Context *c) {
     ev.event = EVENT_ERROR;
     switch (c->mcause) {
     case 11: // ecall from m
-      switch (c->GPR1) {
-      case -1:
+      if (c->GPR1 == -1) {
         // yield
         ev.event = EVENT_YIELD;
         c->mepc += 4;
         break;
-      }
-      break;
+      } else if (c->GPR1 >= 0 && c->GPR1 <= 19){
+        ev.event = EVENT_SYSCALL;
+        c->mepc += 4;        
+      }      
     }
 
     c = user_handler(ev, c);
