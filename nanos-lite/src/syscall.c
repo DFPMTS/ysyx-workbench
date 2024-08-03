@@ -41,6 +41,20 @@ void do_syscall(Context *c) {
       retval = 0;
       Log("%s() = %d",syscall_name, retval);
       break;    
+    case SYS_write:
+      // fd: a[1], buf: a[2], len: a[3]
+      // printf("fd: %d buf: %x len: %d\n",a[1],a[2],a[3]);
+      if (a[1] == 1) {
+        // stdout
+        for (int i = 0; i < a[3]; ++i) {
+          putch(((char *)a[2])[i]);
+        }
+        retval = a[3];
+      } else {
+        panic("SYS_write only support fd=1");
+      }
+      Log("%s(%d, %x, %u) = %d", syscall_name, a[1], a[2], a[3], retval);
+      break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
   c->GPRx = retval;
