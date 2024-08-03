@@ -9,9 +9,32 @@
 # define Elf_Phdr Elf32_Phdr
 #endif
 
+size_t ramdisk_read(void *buf, size_t offset, size_t len);
+size_t ramdisk_write(const void *buf, size_t offset, size_t len);
+
 static uintptr_t loader(PCB *pcb, const char *filename) {
-  TODO();
-  return 0;
+  Elf32_Ehdr ehdr;
+  // ELF header
+  ramdisk_read(&ehdr, 0, sizeof(ehdr));
+
+  // check ELF magic number
+  assert(*(uint32_t*)&ehdr.e_ident == 0x464c457f);
+
+  // check machine 
+  assert(ehdr.e_machine == EM_RISCV);
+
+  // program headers
+  for (int phdr_i = 0; phdr_i < ehdr.e_phnum; ++phdr_i) {
+    Elf32_Phdr phdr;
+    ramdisk_read(&phdr, ehdr.e_phoff + ehdr.e_phentsize * phdr_i,
+                 ehdr.e_phentsize);
+    if(phdr.p_type == PT_LOAD) {
+      ramdisk_read((void *)phdr.p_vaddr, phdr.p_offset, phdr.p_filesz);
+      memset((void *)(phdr.p_vaddr + phdr.p_filesz),
+             phdr.p_memsz - phdr.p_filesz, 0);
+    }
+  }
+  return (uintptr_t)(ehdr.e_entry);
 }
 
 void naive_uload(PCB *pcb, const char *filename) {
