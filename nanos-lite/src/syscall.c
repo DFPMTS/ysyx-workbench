@@ -55,6 +55,9 @@ void do_syscall(Context *c) {
       }
       Log("%s(%d, %x, %u) = %d", syscall_name, a[1], a[2], a[3], retval);
       break;
+    case SYS_brk:
+      retval = 0;
+      break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
   c->GPRx = retval;

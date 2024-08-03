@@ -70,7 +70,19 @@ int _write(int fd, void *buf, size_t count) {
 }
 
 void *_sbrk(intptr_t increment) {
-  return (void *)-1;
+  extern char _end;
+  static intptr_t brk = (intptr_t)&_end;
+  intptr_t new_brk = brk + increment;
+  intptr_t last_brk = brk;
+
+  if (_syscall_(SYS_brk, new_brk, 0, 0) == 0) {
+    // brk succeed
+    brk += new_brk;
+    return (void *)last_brk;
+  } else {
+    // brk failed
+    return (void *)-1;
+  }
 }
 
 int _read(int fd, void *buf, size_t count) {
