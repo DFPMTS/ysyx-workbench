@@ -9,6 +9,14 @@
 # define Elf_Phdr Elf32_Phdr
 #endif
 
+#if defined(__ISA_AM_NATIVE__)
+# define EXPECT_EM EM_X86_64
+#elif defined(__ISA_RISCV32__)
+# define EXPECT_EM EM_RISCV
+#else
+# error Unsupported ISA
+#endif
+
 size_t ramdisk_read(void *buf, size_t offset, size_t len);
 size_t ramdisk_write(const void *buf, size_t offset, size_t len);
 
@@ -21,7 +29,7 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   assert(*(uint32_t*)&ehdr.e_ident == 0x464c457f);
 
   // check machine 
-  assert(ehdr.e_machine == EM_RISCV);
+  assert(ehdr.e_machine == EXPECT_EM);
 
   // program headers
   for (int phdr_i = 0; phdr_i < ehdr.e_phnum; ++phdr_i) {
