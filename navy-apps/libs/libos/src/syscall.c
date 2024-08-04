@@ -77,7 +77,7 @@ void *_sbrk(intptr_t increment) {
 
   if (_syscall_(SYS_brk, new_brk, 0, 0) == 0) {
     // brk succeed
-    brk += new_brk;
+    brk = new_brk;
     return (void *)last_brk;
   } else {
     // brk failed
