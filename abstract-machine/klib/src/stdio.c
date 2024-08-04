@@ -9,6 +9,8 @@ typedef struct FormatOptions{
   char *out;
   const char *fmt;
   int printed;
+  uint32_t limit;
+  uint32_t expected_to_print;
   
   // flags
   int is_sharp; //  #  The value should be converted to an "alternate form".
@@ -143,6 +145,10 @@ static void collect_length_modifier(FormatOptions *opt)
 // don't do padding
 static void out_char(FormatOptions *opt, char c)
 {
+  ++opt->expected_to_print;
+  if (opt->printed >= opt->limit) {
+    return;
+  }
   ++opt->printed;
   if(opt->out == NULL){
     putch(c);
@@ -226,11 +232,13 @@ static void out_int(FormatOptions *opt, unsigned long long x) {
   }
 }
 
-static int xprintf(char *out, const char *fmt, va_list ap) {
+static int xprintf(char *out, uint32_t limit, const char *fmt, va_list ap) {
   FormatOptions opt;
   opt.fmt = fmt;
   opt.out = out;
+  opt.limit = limit;
   opt.printed = 0;
+  opt.expected_to_print = 0;
   long long x_s;
   unsigned long long x_u;
   while (*opt.fmt != '\0') {
@@ -334,41 +342,49 @@ static int xprintf(char *out, const char *fmt, va_list ap) {
     }
     opt.fmt++;
   }
-  if (opt.out != NULL)
+  assert(opt.printed <= opt.limit);
+  // sprintf/snprintf should be null-terminated
+  if (opt.out != NULL && opt.printed < opt.limit)
     *opt.out = '\0';
-  return opt.printed;
+  return opt.expected_to_print;
 }
 
 int printf(const char *fmt, ...) {
   va_list ap;
 
   va_start(ap,fmt);
-  int ret_val = xprintf(NULL, fmt, ap);
+  int ret_val = xprintf(NULL, -1, fmt, ap);
   va_end(ap);
 
   return ret_val;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {  
-  return xprintf(out, fmt, ap);
+  return xprintf(out, -1, fmt, ap);
 }
 
 int sprintf(char *out, const char *fmt, ...) {
   va_list ap;
 
   va_start(ap,fmt);
-  int ret_val = xprintf(out, fmt, ap);
+  int ret_val = xprintf(out, -1, fmt, ap);
   va_end(ap);
 
   return ret_val;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
-  panic("Not implemented");
+  va_list ap;
+
+  va_start(ap,fmt);
+  int ret_val = xprintf(out, n, fmt, ap);
+  va_end(ap);
+
+  return ret_val;
 }
 
 int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
-  panic("Not implemented");
+  return xprintf(out, n, fmt, ap);
 }
 
 #endif
