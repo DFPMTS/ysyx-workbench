@@ -1,5 +1,5 @@
-#HAS_NAVY = 1
-RAMDISK_FILE = build/ramdisk.img
+HAS_NAVY = 1
+RAMDISK_FILE = $(abspath build/ramdisk.img)
 
 NAME = nanos-lite
 SRCS = $(shell find -L ./src/ -name "*.c" -o -name "*.cpp" -o -name "*.S")
