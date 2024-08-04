@@ -1,16 +1,15 @@
 #include <unistd.h>
 #include <stdio.h>
-#include <sys/time.h>
+#include <NDL.h>
 
 int main() {
-  struct timeval tv;
-  struct timezone tz;
-  long sec = 0;
+  uint32_t sec = 0;
+  NDL_Init(0);
   while (1) {
-    gettimeofday(&tv,&tz);
-    if(tv.tv_usec + tv.tv_sec * 1000000 >= sec * 500000){
-        printf("sec: %ld, us: %ld\n", tv.tv_sec, tv.tv_usec);
-        sec++;
+    uint32_t ticks = NDL_GetTicks();
+    if (ticks >= sec * 500) {
+      printf("sec: %u, ticks: %u\n", sec, ticks);
+      sec++;
     }
   }
 }
