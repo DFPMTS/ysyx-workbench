@@ -45,7 +45,7 @@ void do_syscall(Context *c) {
   a[1] = c->GPR2;
   a[2] = c->GPR3;
   a[3] = c->GPR4;
-  char *syscall_name = syscall_name_table[a[0]];
+  __attribute__((unused)) char *syscall_name = syscall_name_table[a[0]];
   switch (a[0]) {
     case SYS_exit:
       Trace("%s(%d)",syscall_name, a[1]);
