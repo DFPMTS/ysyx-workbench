@@ -7,6 +7,9 @@
   printf("\33[1;35m[%s,%d,%s] " format "\33[0m\n", \
       __FILE__, __LINE__, __func__, ## __VA_ARGS__)
 
+#define Trace(format, ...) \
+  printf("\33[1;33m" format "\33[0m\n", ## __VA_ARGS__)
+
 #undef panic
 #define panic(format, ...) \
   do { \
