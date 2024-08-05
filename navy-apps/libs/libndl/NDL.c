@@ -40,10 +40,31 @@ void NDL_OpenCanvas(int *w, int *h) {
       if (strcmp(buf, "mmap ok") == 0) break;
     }
     close(fbctl);
+  } else {
+    if (*w == 0 && *h == 0) {
+      char buf[64];
+      int fd = open("/proc/dispinfo", 0);
+      read(fd, buf, sizeof(buf));
+      sscanf(buf, "WIDTH : %d HEIGHT : %d", w, h);
+    } else {
+      screen_w = *w;
+      screen_h = *h;
+    }
   }
 }
 
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
+  char buf[64];
+  int real_w, real_h;
+  int fd = open("/proc/dispinfo", 0);
+  read(fd, buf, sizeof(buf));
+  sscanf(buf, "WIDTH : %d HEIGHT : %d", &real_w, &real_h);
+  int offset_x = (real_w - screen_w) / 2, offset_y = (real_h - screen_h) / 2;
+  fd = open("/dev/fb", 0);
+  for (int i = 0; i < h; ++i) {
+    lseek(fd, (offset_y + y + i) * real_w + (offset_x + x), SEEK_SET);
+    write(fd, &pixels[i * w], w);
+  }
 }
 
 void NDL_OpenAudio(int freq, int channels, int samples) {

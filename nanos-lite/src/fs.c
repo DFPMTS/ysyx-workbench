@@ -11,10 +11,13 @@ typedef struct {
   size_t disk_offset;
   ReadFn read;
   WriteFn write;
+  bool not_seekable;
   size_t open_offset;
 } Finfo;
 
-enum { FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENTS, FD_FB };
+enum { FD_STDIN, FD_STDOUT, FD_STDERR, FD_EVENTS, FD_DISPINFO, FD_FB };
+
+enum { FD_SEEKABLE, FD_NOT_SEEKABLE };
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
   panic("should not reach here");
@@ -25,6 +28,10 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
   panic("should not reach here");
   return 0;
 }
+
+size_t dispinfo_read(void *buf, size_t offset, size_t len);
+
+size_t fb_write(const void *buf, size_t offset, size_t len);
 
 size_t events_read(void *buf, size_t offset, size_t len);
 
@@ -37,15 +44,19 @@ size_t ramdisk_write(const void *buf, size_t offset, size_t len);
 
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
-  [FD_STDIN]  = {"stdin", 0, 0, invalid_read, invalid_write},
-  [FD_STDOUT] = {"stdout", 0, 0, invalid_read, serial_write},
-  [FD_STDERR] = {"stderr", 0, 0, invalid_read, serial_write},
-  [FD_EVENTS] = {"/dev/events", 0, 0, events_read, invalid_write},
+  [FD_STDIN]  = {"stdin", 0, 0, invalid_read, invalid_write, FD_NOT_SEEKABLE},
+  [FD_STDOUT] = {"stdout", 0, 0, invalid_read, serial_write, FD_NOT_SEEKABLE},
+  [FD_STDERR] = {"stderr", 0, 0, invalid_read, serial_write, FD_NOT_SEEKABLE},
+  [FD_EVENTS] = {"/dev/events", 0, 0, events_read, invalid_write, FD_NOT_SEEKABLE},
+  [FD_DISPINFO]  = {"/proc/dispinfo", 0, 0, dispinfo_read, invalid_write, FD_NOT_SEEKABLE},
+  [FD_FB]     = {"/dev/fb", 0, 0, invalid_read, fb_write, FD_SEEKABLE},
 #include "files.h"
 };
 
 void init_fs() {
-  // TODO: initialize the size of /dev/fb
+  AM_GPU_CONFIG_T config;
+  ioe_read(AM_GPU_CONFIG, &config);
+  file_table[FD_FB].size = config.height * config.width * 4;
 }
 
 int fs_open(const char *pathname)
@@ -59,37 +70,35 @@ int fs_open(const char *pathname)
   panic("File not found: %s",pathname);
 }
 
-enum {
-  READ = 0,
-  WRITE = 1
-};
-
-static bool is_disk(Finfo *file, bool is_write)
+static bool is_seekable(Finfo *file)
 {
-  return is_write ? (file->write == NULL): (file->read == NULL);
+  return !file->not_seekable;
 }
 
 static ReadFn get_read_fn(Finfo *file)
 {
-  return is_disk(file, READ) ? ramdisk_read : file->read;
+  return file->read == NULL ? ramdisk_read : file->read;
 }
 
 static WriteFn get_write_fn(Finfo *file)
 {
-  return is_disk(file, WRITE) ? ramdisk_write : file->write;
+  return file->write == NULL ? ramdisk_write : file->write;
 }
 
-static size_t get_real_count(Finfo *file, size_t count, bool is_write){
+static size_t get_real_count(Finfo *file, size_t count){  
+  // by default real_count is whatever user give
   size_t real_count = count;
-  if(is_disk(file, is_write)){
+  // if it is a seekable file, truncate to end of file
+  if(is_seekable(file)){
     size_t len_to_end = file->size - file->open_offset;
     real_count = (len_to_end < count) ? len_to_end : count;
   }
   return real_count;
 }
 
-static size_t get_offset_advance(Finfo *file, size_t retval, bool is_write){
-  return is_disk(file, is_write) ? retval : 0;
+static size_t get_offset_advance(Finfo *file, size_t retval){
+  // only seekable device need to move open_offset;
+  return is_seekable(file) ? retval : 0;
 }
 
 size_t fs_read(int fd, void *buf, size_t count){
@@ -97,11 +106,11 @@ size_t fs_read(int fd, void *buf, size_t count){
   Finfo *file = &file_table[fd];    
   
   ReadFn read_fn = get_read_fn(file);
-  size_t real_count = get_real_count(file, count, READ);
+  size_t real_count = get_real_count(file, count);
   size_t retval =
       read_fn(buf, file->disk_offset + file->open_offset, real_count);
 
-  file->open_offset += get_offset_advance(file, retval, READ);
+  file->open_offset += get_offset_advance(file, retval);
   return retval;
 }
 
@@ -110,17 +119,17 @@ size_t fs_write(int fd, const void *buf, size_t count) {
   Finfo *file = &file_table[fd];    
   
   WriteFn write_fn = get_write_fn(file);
-  size_t real_count = get_real_count(file, count, WRITE);
+  size_t real_count = get_real_count(file, count);
   size_t retval =
       write_fn(buf, file->disk_offset + file->open_offset, real_count);
 
-  file->open_offset += get_offset_advance(file, retval, WRITE);
+  file->open_offset += get_offset_advance(file, retval);
   return retval;
 }
 
 size_t fs_lseek(int fd, size_t offset, int whence) {
   Finfo *file = &file_table[fd];
-  if (!is_disk(file, READ) || !is_disk(file, WRITE)){
+  if (!is_seekable(file)){
     return -1;
   }
   size_t new_offset = -1;
