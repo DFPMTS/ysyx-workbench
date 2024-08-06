@@ -43,8 +43,8 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
     if(phdr.p_type == PT_LOAD) {
       fs_lseek(fd, phdr.p_offset, SEEK_SET);
       fs_read(fd, (void *)(uintptr_t)phdr.p_vaddr, phdr.p_filesz);
-      memset((void *)(uintptr_t)(phdr.p_vaddr + phdr.p_filesz),
-             phdr.p_memsz - phdr.p_filesz, 0);
+      memset((void *)(uintptr_t)(phdr.p_vaddr + phdr.p_filesz), 0,
+             phdr.p_memsz - phdr.p_filesz);
     }
   }
   return (uintptr_t)(ehdr.e_entry);
