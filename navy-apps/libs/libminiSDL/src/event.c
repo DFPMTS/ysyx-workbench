@@ -24,27 +24,44 @@ int SDL_PushEvent(SDL_Event *ev) {
   return 0;
 }
 
-int SDL_PollEvent(SDL_Event *ev) {
-  return 0;
+static void parse_event(SDL_Event *ev, char *buf)
+{
+  char op[10];
+  char key[20];
+  sscanf(buf, "%s %s", op, key);
+  if (strcmp(op, "kd") == 0) {
+    ev->type = SDL_KEYDOWN;
+  } else if (strcmp(op, "ku") == 0) {
+    ev->type = SDL_KEYUP;
+  } else {
+    assert(0);
+  }
+  ev->key.keysym.sym = find_key(key);
 }
 
+// ! NOTE: if event == NULL, the event should NOT be remove from queue
+int SDL_PollEvent(SDL_Event *ev) {
+  if(!ev){
+    return 1;
+  }
+  char buf[64]  ;
+  if (NDL_PollEvent(buf,sizeof(buf))){
+    parse_event(ev, buf);
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+// ! NOTE: if event == NULL, the event should NOT be remove from queue
 int SDL_WaitEvent(SDL_Event *event) {
   if(!event){
     return 1;
   }
   char buf[64];
-  char op[10];
-  char key[20];
   while(!NDL_PollEvent(buf,sizeof(buf)));
-  sscanf(buf, "%s %s", op, key);
-  if (strcmp(op, "kd") == 0) {
-    event->type = SDL_KEYDOWN;
-  } else if (strcmp(op, "ku") == 0) {
-    event->type = SDL_KEYUP;
-  } else {
-    assert(0);
-  }
-  event->key.keysym.sym = find_key(key);
+  parse_event(event, buf);
+
   return 1;
 }
 
