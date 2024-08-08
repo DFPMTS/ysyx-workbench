@@ -21,10 +21,17 @@ void hello_fun(void *arg) {
   }
 }
 
+void context_kload(PCB *pcb, void *entry, void *arg);
+void context_uload(PCB *pcb, const char *filename, char *const argv[],
+                   char *const envp[]);
+
 void init_proc() {
   switch_boot_pcb();
   context_kload(&pcb[0], hello_fun, "Goodbye");
-  context_kload(&pcb[1], hello_fun, "World");
+  context_uload(&pcb[1], "/bin/pal", (char *[]){"--skip", NULL},
+                (char *[]){NULL});
+  // context_uload(&pcb[1], "/bin/pal", (char *[]){NULL},
+  //               (char *[]){NULL});
   Log("Initializing processes...");
 
   // load program here
@@ -41,14 +48,4 @@ Context *schedule(Context *prev) {
     current = &pcb[0];
   }
   return current->cp;
-}
-
-void context_kload(PCB *pcb, void *entry, void *arg)
-{
-  kcontext((Area){pcb, &pcb[0] + 1}, entry, arg);
-}
-
-static uintptr_t loader(PCB *pcb, const char *filename);
-
-void context_uload(PCB *pcb, const char* filename){
 }
