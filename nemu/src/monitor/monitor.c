@@ -44,7 +44,8 @@ void sdb_set_batch_mode();
 static char *log_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
-static char *elf_file = NULL;
+static char *elf_files[16];
+static int elf_files_cnt = 0;
 static int difftest_port = 1234;
 
 static long load_img() {
@@ -86,7 +87,7 @@ static int parse_args(int argc, char *argv[]) {
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
-      case 'e': elf_file = optarg; break;
+      case 'e': elf_files[elf_files_cnt++] = optarg; printf("ELF: %s\n",optarg); break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
@@ -136,7 +137,8 @@ void init_monitor(int argc, char *argv[]) {
   init_iringbuf();
 
   /* Initialize ftrace */
-  init_func_sym(elf_file);
+  for (int i = 0; i < elf_files_cnt; ++i)
+    init_func_sym(elf_files[i]);
 
 #ifndef CONFIG_ISA_loongarch32r
   IFDEF(CONFIG_ITRACE, init_disasm(

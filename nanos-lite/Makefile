@@ -1,6 +1,12 @@
 HAS_NAVY = 1
 RAMDISK_FILE = $(abspath build/ramdisk.img)
 
+get_elf_path = /home/dfpmts/Documents/ysyx-workbench/navy-apps/apps/$(1)/build/$(1)-riscv32
+
+ELFS = nterm pal
+
+ELFS := $(foreach elf,$(ELFS),$(call get_elf_path,$(elf)))
+
 NAME = nanos-lite
 SRCS = $(shell find -L ./src/ -name "*.c" -o -name "*.cpp" -o -name "*.S")
 include $(AM_HOME)/Makefile

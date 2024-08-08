@@ -11,6 +11,8 @@ static const char *keyname[] = {
   _KEYS(keyname)
 };
 
+static uint8_t keystate[ARRLEN(keyname)];
+
 static int find_key(const char *s){
   for (int i = 0; i < ARRLEN(keyname); ++i) {
     if(strcmp(keyname[i], s) == 0){
@@ -29,14 +31,16 @@ static void parse_event(SDL_Event *ev, char *buf)
   char op[10];
   char key[20];
   sscanf(buf, "%s %s", op, key);
+  ev->key.keysym.sym = find_key(key);
   if (strcmp(op, "kd") == 0) {
     ev->type = SDL_KEYDOWN;
+    keystate[ev->key.keysym.sym] = 1;
   } else if (strcmp(op, "ku") == 0) {
     ev->type = SDL_KEYUP;
+    keystate[ev->key.keysym.sym] = 0;
   } else {
     assert(0);
-  }
-  ev->key.keysym.sym = find_key(key);
+  }  
 }
 
 // ! NOTE: if event == NULL, the event should NOT be remove from queue
@@ -70,5 +74,5 @@ int SDL_PeepEvents(SDL_Event *ev, int numevents, int action, uint32_t mask) {
 }
 
 uint8_t* SDL_GetKeyState(int *numkeys) {
-  return NULL;
+  return keystate;
 }

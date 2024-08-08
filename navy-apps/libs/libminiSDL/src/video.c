@@ -21,12 +21,23 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_
     dstrect->w = w;
     dstrect->h = h;
   }
-  uint32_t *dst_pixels = dst->pixels;
-  uint32_t *src_pixels = src->pixels;
-  for (int i = 0; i < h; ++i) {
-    for (int j = 0; j < w; ++j) {
-      dst_pixels[(dst_y + i) * dst->w + (dst_x + j)] =
-          src_pixels[(src_y + i) * src->w + (src_x + j)];
+  // printf("SDL_BlitSurface src: %p src_x: %d, src_y: %d, w: %d, h: %d, dst: %p, dst_x: %d, dst_y: %d\n", src, src_x, src_y, w, h, dst, dst_x, dst_y);
+  if (dst->format->BitsPerPixel == 32) {
+    uint32_t *dst_pixels = dst->pixels;
+    uint32_t *src_pixels = src->pixels;
+    for (int i = 0; i < h; ++i) {
+      for (int j = 0; j < w; ++j) {
+        dst_pixels[(dst_y + i) * dst->w + (dst_x + j)] =
+            src_pixels[(src_y + i) * src->w + (src_x + j)];
+      }
+    }
+  } else {
+    assert(dst->format->BitsPerPixel == 8);
+    for (int i = 0; i < h; ++i) {
+      for (int j = 0; j < w; ++j) {
+        dst->pixels[(dst_y + i) * dst->w + (dst_x + j)] =
+            src->pixels[(src_y + i) * src->w + (src_x + j)];
+      }
     }
   }
 }
@@ -39,12 +50,28 @@ void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
     x = dstrect->x;
     y = dstrect->y;
   }
-  uint32_t *pixels = dst->pixels;
-  for (int i = 0; i < h; ++i) {
-    for (int j = 0; j < w; ++j) {
-      pixels[(y + i) * dst->w + (x + j)] = color;
+  // printf("SDL_FillRect surface: %p x: %d, y: %d, w: %d, h: %d color: %d\n", dst,
+  //        x, y, w, h, color);
+  if(dst->format->BitsPerPixel == 32){
+    uint32_t *pixels = dst->pixels;
+    for (int i = 0; i < h; ++i) {
+      for (int j = 0; j < w; ++j) {
+        pixels[(y + i) * dst->w + (x + j)] = color;
+      }
+    }
+  } else {
+    assert(dst->format->BitsPerPixel == 8);
+    for (int i = 0; i < h; ++i) {
+      for (int j = 0; j < w; ++j) {
+        dst->pixels[(y + i) * dst->w + (x + j)] = color;
+      }
     }
   }
+}
+
+static uint32_t construct_rgb(SDL_Color *c)
+{
+  return c->b + (c->g << 8) + (c->r << 16);
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
@@ -52,7 +79,23 @@ void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
     w = s->w;
     h = s->h;
   }
-  NDL_DrawRect(s->pixels, x, y, w, h);
+  // printf ("SDL_UpdateRect surface: %p x: %d, y: %d, w: %d, h: %d\n", s, x, y, w, h);
+  if(s->format->BitsPerPixel == 32){
+    NDL_DrawRect(s->pixels, x, y, w, h);
+  } else {
+    assert(s->format->BitsPerPixel == 8);
+    uint32_t *pixels = malloc(w * h * sizeof(uint32_t));
+    for (int i = 0; i < h; ++i) {
+      for (int j = 0; j < w; ++j) {
+        SDL_Color* color =
+            &s->format->palette->colors[s->pixels[(y + i) * s->w + (x + j)]];
+        // SDL_Color stores ABGR [31:0], while we need RGB [23:0]
+        pixels[i * w + j] = construct_rgb(color);
+      }
+    }
+    NDL_DrawRect(pixels, x, y, w, h);
+    free(pixels);
+  }
 }
 
 // APIs below are already implemented.
@@ -169,6 +212,7 @@ void SDL_SetPalette(SDL_Surface *s, int flags, SDL_Color *colors, int firstcolor
   assert(s->format->palette);
   assert(firstcolor == 0);
 
+  // printf("SDL_SetPalette surface: %p ncolors: %d\n", s, ncolors);
   s->format->palette->ncolors = ncolors;
   memcpy(s->format->palette->colors, colors, sizeof(SDL_Color) * ncolors);
 
@@ -214,7 +258,7 @@ SDL_Surface *SDL_ConvertSurface(SDL_Surface *src, SDL_PixelFormat *fmt, uint32_t
   assert(src->format->BitsPerPixel == 32);
   assert(src->w * src->format->BytesPerPixel == src->pitch);
   assert(src->format->BitsPerPixel == fmt->BitsPerPixel);
-
+  // printf ("SDL_ConvertSurface\n");
   SDL_Surface* ret = SDL_CreateRGBSurface(flags, src->w, src->h, fmt->BitsPerPixel,
     fmt->Rmask, fmt->Gmask, fmt->Bmask, fmt->Amask);
 
@@ -227,6 +271,7 @@ SDL_Surface *SDL_ConvertSurface(SDL_Surface *src, SDL_PixelFormat *fmt, uint32_t
 
 uint32_t SDL_MapRGBA(SDL_PixelFormat *fmt, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
   assert(fmt->BytesPerPixel == 4);
+  // printf ("SDL_MapRGBA\n");
   uint32_t p = (r << fmt->Rshift) | (g << fmt->Gshift) | (b << fmt->Bshift);
   if (fmt->Amask) p |= (a << fmt->Ashift);
   return p;

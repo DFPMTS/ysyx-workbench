@@ -47,6 +47,7 @@ void do_syscall(Context *c) {
   a[3] = c->GPR4;
   char *syscall_name = syscall_name_table[a[0]];
   (void) syscall_name;
+  // printf("%s\n",syscall_name);
   switch (a[0]) {
     case SYS_exit:
       Trace("%s(%d)",syscall_name, a[1]);
