@@ -1,6 +1,7 @@
+#include "syscall.h"
 #include <common.h>
 #include <fs.h>
-#include "syscall.h"
+#include <proc.h>
 
 char *syscall_name_table[] = {
   "exit",
@@ -39,8 +40,10 @@ int gettimeofday(struct timeval *tv, void *tz) {
   return 0;
 }
 
+void naive_uload(PCB *pcb, const char *filename);
+
 void do_syscall(Context *c) {
-  uintptr_t a[4], retval;
+  uintptr_t a[4], retval = 0;
   a[0] = c->GPR1;
   a[1] = c->GPR2;
   a[2] = c->GPR3;
@@ -51,7 +54,8 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_exit:
       Trace("%s(%d)",syscall_name, a[1]);
-      halt(c->GPR2);
+      naive_uload(NULL, "/bin/nterm");
+      // halt(c->GPR2);
       break;
 
     case SYS_yield:
@@ -93,6 +97,12 @@ void do_syscall(Context *c) {
     case SYS_brk:
       retval = 0;
       Trace("%s(%p) = %d", syscall_name, a[1], retval);
+      break;
+
+    case SYS_execve:
+      retval = 0;
+      Trace("%s(\"%s\", %p, %p)", syscall_name, (char *)a[1], a[2], a[3], retval);
+      naive_uload(NULL, (char *)a[1]);
       break;
 
     case SYS_gettimeofday:
