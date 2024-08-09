@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ELF_BUF_SIZE 32 * 1024 * 1024
+#define ELF_BUF_SIZE 64 * 1024 * 1024
 
 static char buf[ELF_BUF_SIZE + 10];
 
