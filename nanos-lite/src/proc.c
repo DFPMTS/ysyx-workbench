@@ -28,7 +28,7 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[],
 void init_proc() {
   switch_boot_pcb();
   context_kload(&pcb[0], hello_fun, "Goodbye");
-  context_uload(&pcb[1], "/bin/pal", (char *[]){"--skip", NULL},
+  context_uload(&pcb[1], "/bin/nterm", (char *[]){"/bin/nterm", NULL},
                 (char *[]){NULL});
   // context_uload(&pcb[1], "/bin/pal", (char *[]){NULL},
   //               (char *[]){NULL});
@@ -42,7 +42,9 @@ Context *schedule(Context *prev) {
   // update current PCB's cp
   current->cp = prev;
   // choose next PCB to run
-  if (current == &pcb[0]) {
+  if (current == &pcb_boot) {
+    current = &pcb[1];
+  } else if (current == &pcb[0]) {
     current = &pcb[1];
   } else {
     current = &pcb[0];

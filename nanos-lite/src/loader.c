@@ -88,9 +88,11 @@ static void copy_ptr_str_to_stack(char *sp, char **write_ptr_p,
 
 void context_uload(PCB *pcb, const char *filename, char *const argv[],
                    char *const envp[]) {
+  printf("call context_uload\n");
   void *entry = (void *)loader(pcb, filename);
   Context *c = ucontext(NULL, (Area){pcb, &pcb[0] + 1}, entry);
-  char *sp = heap.end;
+  // 32KB stack
+  char *sp = (char *)new_page(8) + 8 * PGSIZE;
 
   /* Calculate sp offset */
   int argc = 0;
@@ -99,9 +101,6 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[],
     sp -= strlen(argv[argc]) + 1;
     ++argc;
   }
-  // argv[0] : file name
-  ++argc;
-  sp -= strlen(filename) + 1;
 
   int envc = 0;
   while (envp[envc]) {
@@ -123,22 +122,12 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[],
   *(int *)(write_ptr) = argc;
   write_ptr += sizeof(int);
 
-  // argv[0]: filename
-  *(char **)(write_ptr) = sp + str_offset;
-  write_ptr += sizeof(char *);
-
-  // argv[0] content
-  strcpy(sp + str_offset, filename);
-  str_offset += strlen(filename) + 1;
-
   // argv & argv's strings
-  // filename has been handled, so argc - 1
-  copy_ptr_str_to_stack(sp, &write_ptr, &str_offset, argc - 1, argv); 
+  copy_ptr_str_to_stack(sp, &write_ptr, &str_offset, argc, argv); 
 
   // envp & envp's strings
   copy_ptr_str_to_stack(sp, &write_ptr, &str_offset, envc, envp);
 
   c->gpr[8] = (uintptr_t)sp;
-
-  assert(sp + str_offset == heap.end);
+  printf("ret context_uload\n");
 }

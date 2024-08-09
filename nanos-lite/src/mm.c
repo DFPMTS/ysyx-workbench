@@ -3,7 +3,22 @@
 static void *pf = NULL;
 
 void* new_page(size_t nr_page) {
-  return NULL;
+  // heap_ptr: point to end of heap
+  // allocate: first round down heap_ptr to PAGE_SZ
+  //           then return heap_ptr - nr_page * PAGE_SZ
+
+  static uint32_t heap_ptr = -1;
+  // initialize heap_ptr to heap.end
+  if (heap_ptr == -1) {
+    heap_ptr = (uint32_t)heap.end;
+  }
+
+  // move to page boundry
+  heap_ptr &= ~PGMASK;
+  // decre by nr_page * PGSIZE
+  heap_ptr -= nr_page * PGSIZE;
+
+  return (void *)heap_ptr;
 }
 
 #ifdef HAS_VME

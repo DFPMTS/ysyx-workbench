@@ -40,7 +40,10 @@ int gettimeofday(struct timeval *tv, void *tz) {
   return 0;
 }
 
-void naive_uload(PCB *pcb, const char *filename);
+void switch_boot_pcb();
+
+void context_uload(PCB *pcb, const char *filename, char *const argv[],
+                   char *const envp[]);
 
 void do_syscall(Context *c) {
   uintptr_t a[4], retval = 0;
@@ -54,7 +57,10 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_exit:
       Trace("%s(%d)",syscall_name, a[1]);
-      naive_uload(NULL, "/bin/nterm");
+      context_uload(current, "/bin/nterm", (char *[]){"/bin/nterm", NULL},
+                    (char *[]){NULL});
+      switch_boot_pcb();
+      yield();
       // halt(c->GPR2);
       break;
 
@@ -102,7 +108,9 @@ void do_syscall(Context *c) {
     case SYS_execve:
       retval = 0;
       Trace("%s(\"%s\", %p, %p)", syscall_name, (char *)a[1], a[2], a[3], retval);
-      naive_uload(NULL, (char *)a[1]);
+      context_uload(current, (char *)a[1], (char *const *)a[2], (char *const *)a[3]);
+      switch_boot_pcb();
+      yield();
       break;
 
     case SYS_gettimeofday:
