@@ -25,6 +25,7 @@ typedef struct {
   word_t mtvec;
   word_t mepc;
   word_t mcause;  
+  word_t satp;
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
 word_t csrrw(word_t csr, uint32_t value);
