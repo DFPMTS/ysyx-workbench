@@ -31,13 +31,40 @@ static char *trim_white_space(char *cmd) {
 }
 
 static void sh_handle_cmd(const char *cmd) {
+  // copy cmd since strtok_r will modify string
   char copy[256];
   strcpy(copy, cmd);
-  char *trimmed = trim_white_space(copy);
-  if (strlen(trimmed) == 0) {
+
+  // upto 16 args
+  char *argv[16];
+  int argc = 0;
+  /*
+  The standard white-space characters are the following:
+  space (' '), form feed ('\f'), new-line ('\n'),
+  carriage return ('\r'), horizontal tab ('\t'),
+  and vertical tab ('\v').
+  C11dr §7.4.1.10 2
+  */
+
+  // get command
+  const char *standard_white_space = " \f\n\r\t\v";
+  char *saved_ptr;
+  char *command = strtok_r(copy, standard_white_space, &saved_ptr);
+  // no command found
+  if (!command) {
     return;
   }
-  execvp(trimmed, NULL);
+
+  // first arg is filename
+  argv[argc++] = command;
+
+  // collect other args
+  char *cur_arg;
+  while (cur_arg = strtok_r(NULL, standard_white_space, &saved_ptr)) {
+    argv[argc++] = cur_arg;
+  }
+  argv[argc] = NULL;
+  execvp(command, argv);
 }
 
 void builtin_sh_run() {
