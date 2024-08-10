@@ -1,11 +1,14 @@
 HAS_NAVY = 1
 RAMDISK_FILE = $(abspath build/ramdisk.img)
 
-get_elf_path = /home/dfpmts/Documents/ysyx-workbench/navy-apps/apps/$(1)/build/$(1)-riscv32
+get_app_elf_path = /home/dfpmts/Documents/ysyx-workbench/navy-apps/apps/$(1)/build/$(1)-riscv32
+get_test_elf_path = /home/dfpmts/Documents/ysyx-workbench/navy-apps/tests/$(1)/build/$(1)-riscv32
 
-ELFS = nterm pal
+APPS = nterm
+TESTS = hello
 
-ELFS := $(foreach elf,$(ELFS),$(call get_elf_path,$(elf)))
+ELFS += $(foreach app,$(APPS),$(call get_app_elf_path,$(app)))
+ELFS += $(foreach test,$(TESTS),$(call get_test_elf_path,$(test)))
 
 NAME = nanos-lite
 SRCS = $(shell find -L ./src/ -name "*.c" -o -name "*.cpp" -o -name "*.S")
