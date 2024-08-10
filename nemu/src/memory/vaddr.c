@@ -16,14 +16,26 @@
 #include <isa.h>
 #include <memory/paddr.h>
 
+// since there is no unaligned access, vaddr is enough
+// always translate
+
 word_t vaddr_ifetch(vaddr_t addr, int len) {
-  return paddr_read(addr, len);
+  paddr_t paddr = isa_mmu_check(addr, len, MEM_TYPE_IFETCH)
+                      ? isa_mmu_translate(addr, len, MEM_TYPE_IFETCH)
+                      : addr;
+  return paddr_read(paddr, len);
 }
 
 word_t vaddr_read(vaddr_t addr, int len) {
-  return paddr_read(addr, len);
+  paddr_t paddr = isa_mmu_check(addr, len, MEM_TYPE_READ)
+                      ? isa_mmu_translate(addr, len, MEM_TYPE_READ)
+                      : addr;
+  return paddr_read(paddr, len);
 }
 
 void vaddr_write(vaddr_t addr, int len, word_t data) {
-  paddr_write(addr, len, data);
+  paddr_t paddr = isa_mmu_check(addr, len, MEM_TYPE_WRITE)
+                      ? isa_mmu_translate(addr, len, MEM_TYPE_WRITE)
+                      : addr;
+  paddr_write(paddr, len, data);
 }

@@ -17,6 +17,62 @@
 #include <memory/vaddr.h>
 #include <memory/paddr.h>
 
-paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
-  return MEM_RET_FAIL;
+// create a mask of length LEN
+#define MASK_LEN(LEN) ((1 << (LEN)) - 1)
+
+enum {
+  PTE_V,
+  PTE_R,
+  PTE_W,
+  PTE_X
+};
+
+// get the bit N of PTE
+#define BIT(PTE, N) (((PTE) >> (N)) & 1)
+
+paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {  
+  //          31:22  21:12     11:0
+  // vaddr = {VPN[1],VPN[0],page_offset}
+  word_t VPN_1 = BITS(vaddr, 31, 22);
+  word_t VPN_0 = BITS(vaddr, 21, 12);
+  word_t page_offset = BITS(vaddr, 11, 0);
+
+  // first level page table addr
+  // the PPN is actually 22 bits, but we only take low 20 bit for now
+  word_t flpt = BITS(cpu.satp, 19, 0) << PAGE_SHIFT;
+
+  // use VPN[1] to address in to flpt to get slpt
+  word_t slpt = BITS(paddr_read(flpt | (VPN_1 << 2), 4), 29, 10) << PAGE_SHIFT;
+
+  // use VPN[0] to address in to slpt to get PTE
+  word_t PTE = paddr_read(slpt | (VPN_0 << 2), 4);
+
+  // again, only take low 20 bits of PPN
+  word_t PPN = BITS(PTE, 29, 10);
+  word_t paddr = (PPN << PAGE_SHIFT) | page_offset;
+
+  // check protection bits
+  bool V = BIT(PTE, PTE_V);
+  bool R = BIT(PTE, PTE_R);
+  bool W = BIT(PTE, PTE_W);
+  bool X = BIT(PTE, PTE_X);
+
+  Assert(V, "vaddr: 0x%x -> paddr: 0x%x is not Valid", vaddr, paddr);
+
+  switch (type) {
+  case MEM_TYPE_READ:
+    Assert(R, "vaddr: 0x%x -> paddr: 0x%x is not Readable", vaddr, paddr);
+    break;
+  case MEM_TYPE_WRITE:
+    Assert(W, "vaddr: 0x%x -> paddr: 0x%x is not Writeable", vaddr, paddr);
+    break;
+  case MEM_TYPE_IFETCH:
+    Assert(X, "vaddr: 0x%x -> paddr: 0x%x is not eXecutable", vaddr, paddr);
+    break;
+
+  default:
+    break;
+  }
+
+  return paddr;
 }

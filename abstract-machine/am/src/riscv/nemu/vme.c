@@ -28,6 +28,7 @@ bool vme_init(void* (*pgalloc_f)(int), void (*pgfree_f)(void*)) {
   pgalloc_usr = pgalloc_f;
   pgfree_usr = pgfree_f;
 
+  // note that the pages that pgalloc_f returns have already been clear to 0
   kas.ptr = pgalloc_f(PGSIZE);
 
   int i;
@@ -66,7 +67,38 @@ void __am_switch(Context *c) {
   }
 }
 
+#define BITMASK(bits) ((1ul << (bits)) - 1)
+#define BITS(x, hi, lo) (((x) >> (lo)) & BITMASK((hi) - (lo) + 1)) // similar to x[hi:lo] in verilog
+
+#define BIT(PTE, N) (((PTE) >> (N)) & 1) // get the bit N of PTE
+#define PAGE_SHIFT 12
+
 void map(AddrSpace *as, void *va, void *pa, int prot) {
+  // extract VPN[1], VPN[0]
+  uintptr_t vaddr = (uintptr_t) va;
+  uintptr_t VPN_1 = BITS(vaddr, 31, 22);
+  uintptr_t VPN_0 = BITS(vaddr, 21, 12);
+  // extract PPN
+  uintptr_t paddr = (uintptr_t) pa;
+  uintptr_t PPN = BITS(paddr, 31, 12);
+
+  // addr of first level PTE
+  uintptr_t *flpte_p = (uintptr_t *)((uintptr_t)as->ptr | (VPN_1 << 2));
+
+  if (!(*flpte_p & PTE_V)) {
+    // allocate a page for second level PTE
+    uintptr_t slpt_addr = (uintptr_t)pgalloc_usr(PGSIZE);
+    uintptr_t slpt_PPN = BITS(slpt_addr, 31, 12);
+    // set Valid bit for this PTE
+    *flpte_p = (slpt_PPN << 10) | PTE_V;
+  }
+  uintptr_t flpte = *flpte_p;
+  uintptr_t *slpte_p = (uintptr_t *)((BITS(flpte, 29, 10) << PAGE_SHIFT) | (VPN_0 << 2));
+
+  assert(!BIT(*slpte_p, PTE_V));
+
+  // set PPN & Valid bit & RWX
+  *slpte_p = (PPN << 10) | PTE_R | PTE_W | PTE_X | PTE_V;
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
