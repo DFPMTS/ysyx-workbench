@@ -8,7 +8,6 @@ static Context* do_event(Event e, Context* c) {
   Context *ret_ctx = c;
   switch (e.event) {
     case EVENT_YIELD:
-      Log("EVENT_YIELD");
       ret_ctx = schedule(c);
       break;
     case EVENT_SYSCALL:

@@ -42,7 +42,7 @@ int gettimeofday(struct timeval *tv, void *tz) {
 
 void switch_boot_pcb();
 
-void context_uload(PCB *pcb, const char *filename, char *const argv[],
+int context_uload(PCB *pcb, const char *filename, char *const argv[],
                    char *const envp[]);
 
 void do_syscall(Context *c) {
@@ -106,11 +106,22 @@ void do_syscall(Context *c) {
       break;
 
     case SYS_execve:
+      /*
+      因此Nanos-lite在处理SYS_execve系统调用的时候就需要检查将要执行的程序是否存在,
+      如果不存在, 就需要返回一个错误码. 我们可以通过fs_open()来进行检查,
+      如果需要打开的文件不存在, 就返回一个错误的值, 此时SYS_execve返回-2.
+      另一方面, libos中的execve()还需要检查系统调用的返回值:
+      如果系统调用的返回值小于0, 则通常表示系统调用失败,
+      此时需要将系统调用返回值取负, 作为失败原因设置到一个全局的外部变量errno中,
+      然后返回-1.
+      */
       retval = 0;
       Trace("%s(\"%s\", %p, %p)", syscall_name, (char *)a[1], a[2], a[3], retval);
-      context_uload(current, (char *)a[1], (char *const *)a[2], (char *const *)a[3]);
-      switch_boot_pcb();
-      yield();
+      retval = context_uload(current, (char *)a[1], (char *const *)a[2], (char *const *)a[3]);
+      if (!retval) {
+        switch_boot_pcb();
+        yield();
+      }
       break;
 
     case SYS_gettimeofday:

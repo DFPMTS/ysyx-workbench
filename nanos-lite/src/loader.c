@@ -86,11 +86,22 @@ static void copy_ptr_str_to_stack(char *sp, char **write_ptr_p,
   *str_offset_p = str_offset;
 }
 
-void context_uload(PCB *pcb, const char *filename, char *const argv[],
+/* context_uload
+  return value: 0 if success
+               <0 if failed
+*/
+int context_uload(PCB *pcb, const char *filename, char *const argv[],
                    char *const envp[]) {
-  printf("call context_uload\n");
-  void *entry = (void *)loader(pcb, filename);
-  Context *c = ucontext(NULL, (Area){pcb, &pcb[0] + 1}, entry);
+  printf("call context_uload: %s\n", filename);
+
+  // try to open file
+  if(fs_open(filename) < 0){
+    return -2;
+  }
+  // note that the argv/envp array and str they point to 
+  // may be allocated on heap which may be overwrite,
+  // so copy them before loading
+
   // 32KB stack
   char *sp = (char *)new_page(8) + 8 * PGSIZE;
 
@@ -128,6 +139,12 @@ void context_uload(PCB *pcb, const char *filename, char *const argv[],
   // envp & envp's strings
   copy_ptr_str_to_stack(sp, &write_ptr, &str_offset, envc, envp);
 
+  // now we are safe to load new program
+  void *entry = (void *)loader(pcb, filename);
+  Context *c = ucontext(NULL, (Area){pcb, &pcb[0] + 1}, entry);
+
   c->gpr[8] = (uintptr_t)sp;
   printf("ret context_uload\n");
+
+  return 0;
 }

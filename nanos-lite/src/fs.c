@@ -67,7 +67,7 @@ int fs_open(const char *pathname)
       return i;
     }
   }
-  panic("File not found: %s",pathname);
+  return -1;
 }
 
 static bool is_seekable(Finfo *file)

@@ -14,20 +14,28 @@ void switch_boot_pcb() {
 
 void hello_fun(void *arg) {
   int j = 1;
+  int k = 1;  
   while (1) {
-    Log("Hello World from Nanos-lite with arg '%s' for the %dth time!", (char *)arg, j);
-    j ++;
+    if (k == 10000){
+      Log("Hello World from Nanos-lite with arg '%s' for the %dth time!",
+          (char *)arg, j);
+      j++;
+      k = 1;
+    }else{
+      k++;
+    }
     yield();
   }
 }
 
 void context_kload(PCB *pcb, void *entry, void *arg);
-void context_uload(PCB *pcb, const char *filename, char *const argv[],
+int context_uload(PCB *pcb, const char *filename, char *const argv[],
                    char *const envp[]);
 
 void init_proc() {
   switch_boot_pcb();
   context_kload(&pcb[0], hello_fun, "Goodbye");
+  // context_kload(&pcb[1], hello_fun, "World");
   context_uload(&pcb[1], "/bin/nterm", (char *[]){"/bin/nterm", NULL},
                 (char *[]){NULL});
   // context_uload(&pcb[1], "/bin/pal", (char *[]){NULL},
