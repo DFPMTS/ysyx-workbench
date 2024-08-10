@@ -21,6 +21,49 @@
 size_t ramdisk_read(void *buf, size_t offset, size_t len);
 size_t ramdisk_write(const void *buf, size_t offset, size_t len);
 
+static void load_segment(PCB *pcb, int fd, Elf32_Phdr *phdr_p) {
+  // round down p_offset & p_vaddr to page boundry
+  uintptr_t offset = phdr_p->p_offset & ~PGMASK;
+  uintptr_t vaddr =  phdr_p->p_vaddr & ~PGMASK;
+  // end of this segment
+  uintptr_t vaddr_mem_end = phdr_p->p_vaddr + phdr_p->p_memsz;
+  uintptr_t vaddr_file_end = phdr_p->p_vaddr + phdr_p->p_filesz;
+  // [vaddr_file_end, vaddr_mem_end) needs to be cleared
+  uintptr_t vaddr_bss_ptr = vaddr_file_end;  
+
+  // installing pages in unit of page
+  for (; vaddr < vaddr_mem_end; vaddr += PGSIZE, offset += PGSIZE) {
+    // allocate one page
+    uintptr_t paddr = (uintptr_t)new_page(1);
+    map(&pcb->as, (void *)vaddr, (void *)paddr, 0);
+    fs_lseek(fd, offset, SEEK_SET);
+
+    if (vaddr < vaddr_file_end) {
+      // calculate read file size
+      uintptr_t read_size = vaddr_file_end - vaddr;
+      read_size = read_size > PGSIZE ? PGSIZE : read_size;
+      // read into physical page
+      fs_read(fd, (void *)paddr, read_size);
+      printf("load:  [%p, %p) <- [%p, %p)\n", vaddr, vaddr + read_size, paddr,
+             paddr + read_size);
+    }
+
+    // clear bss section in this physical page
+    uintptr_t vaddr_page_end = vaddr + PGSIZE;
+    if(vaddr_page_end > vaddr_bss_ptr){
+      // convert vaddr_bss_ptr to paddr
+      uintptr_t paddr_bss_ptr = paddr | (vaddr_bss_ptr & PGMASK);
+      printf("clear: [%p, %p) <- [%p, %p)\n", vaddr_bss_ptr,vaddr_bss_ptr + vaddr_page_end - vaddr_bss_ptr, paddr_bss_ptr,paddr_bss_ptr + vaddr_page_end - vaddr_bss_ptr);
+      memset((void *)paddr_bss_ptr, 0, vaddr_page_end - vaddr_bss_ptr);
+      vaddr_bss_ptr = vaddr_page_end;
+    }
+
+    if(vaddr > pcb->max_brk){
+      pcb->max_brk = vaddr;
+    }
+  }
+}
+
 static uintptr_t loader(PCB *pcb, const char *filename) {
   int fd = fs_open(filename);
   assert(fd);
@@ -35,16 +78,16 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   // check machine 
   assert(ehdr.e_machine == EXPECT_EM);
 
+  // clear max_brk, then load_segment will calculate it
+  pcb->max_brk = 0;
+
   // program headers
   for (int phdr_i = 0; phdr_i < ehdr.e_phnum; ++phdr_i) {
     Elf32_Phdr phdr;
     fs_lseek(fd, ehdr.e_phoff + ehdr.e_phentsize * phdr_i, SEEK_SET);
     fs_read(fd, &phdr, ehdr.e_phentsize);
     if(phdr.p_type == PT_LOAD) {
-      fs_lseek(fd, phdr.p_offset, SEEK_SET);
-      fs_read(fd, (void *)(uintptr_t)phdr.p_vaddr, phdr.p_filesz);
-      memset((void *)(uintptr_t)(phdr.p_vaddr + phdr.p_filesz), 0,
-             phdr.p_memsz - phdr.p_filesz);
+      load_segment(pcb, fd, &phdr);      
     }
   }
   return (uintptr_t)(ehdr.e_entry);
@@ -98,12 +141,25 @@ int context_uload(PCB *pcb, const char *filename, char *const argv[],
   if(fs_open(filename) < 0){
     return -2;
   }
+  
+  // user space
+  protect(&pcb->as);
+
   // note that the argv/envp array and str they point to 
   // may be allocated on heap which may be overwrite,
   // so copy them before loading
 
-  // 32KB stack
-  char *sp = (char *)new_page(8) + 8 * PGSIZE;
+  // install a 32KB stack
+  #define STACK_NR_PAGES 8
+  char *stack_bottom_paddr = new_page(STACK_NR_PAGES);
+  char *stack_bottom_vaddr = (void *)(0x80000000 - STACK_NR_PAGES * PGSIZE);
+  for (int i = 0; i < STACK_NR_PAGES; ++i) {
+    map(&pcb->as, stack_bottom_vaddr + i * PGSIZE,
+        stack_bottom_paddr + i * PGSIZE, 0);
+  }
+
+  // note that we are manipulating paddr stack (sp) directly
+  char *sp = stack_bottom_paddr + STACK_NR_PAGES * PGSIZE;
 
   /* Calculate sp offset */
   int argc = 0;
@@ -141,9 +197,11 @@ int context_uload(PCB *pcb, const char *filename, char *const argv[],
 
   // now we are safe to load new program
   void *entry = (void *)loader(pcb, filename);
-  Context *c = ucontext(NULL, (Area){pcb, &pcb[0] + 1}, entry);
+  Context *c = ucontext(&pcb->as, (Area){pcb, &pcb[0] + 1}, entry);
 
-  c->gpr[8] = (uintptr_t)sp;
+  // we use s0 to save user stack sp, and it should be vaddr of sp
+  c->gpr[8] = (uintptr_t)sp - (uintptr_t)stack_bottom_paddr +
+              (uintptr_t)stack_bottom_vaddr;
   printf("ret context_uload\n");
 
   return 0;

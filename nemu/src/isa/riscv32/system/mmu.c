@@ -33,6 +33,7 @@ enum {
 paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {  
   //          31:22  21:12     11:0
   // vaddr = {VPN[1],VPN[0],page_offset}
+  // printf("vaddr: 0x%x\n",vaddr);
   word_t VPN_1 = BITS(vaddr, 31, 22);
   word_t VPN_0 = BITS(vaddr, 21, 12);
   word_t page_offset = BITS(vaddr, 11, 0);

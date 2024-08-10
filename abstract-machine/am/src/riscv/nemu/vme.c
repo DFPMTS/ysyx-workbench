@@ -102,5 +102,7 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
-  return kcontext(kstack, entry, NULL);
+  Context *c = kcontext(kstack, entry, NULL);
+  c->pdir = as->ptr;
+  return c;
 }
