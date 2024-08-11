@@ -9,6 +9,9 @@ static word_t marchid = 23060238;
 
 word_t *get_csr(word_t csr_addr) {
   switch (csr_addr) {
+  case 0x140:
+    return &cpu.sscratch;
+    break;
   case 0x180:
     return &cpu.satp;
     break;

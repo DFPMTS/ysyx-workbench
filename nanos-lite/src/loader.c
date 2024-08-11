@@ -44,8 +44,8 @@ static void load_segment(PCB *pcb, int fd, Elf32_Phdr *phdr_p) {
       read_size = read_size > PGSIZE ? PGSIZE : read_size;
       // read into physical page
       fs_read(fd, (void *)paddr, read_size);
-      printf("load:  [%p, %p) <- [%p, %p)\n", vaddr, vaddr + read_size, paddr,
-             paddr + read_size);
+      // printf("load:  [%p, %p) <- [%p, %p)\n", vaddr, vaddr + read_size, paddr,
+      //        paddr + read_size);
     }
 
     // clear bss section in this physical page
@@ -53,7 +53,7 @@ static void load_segment(PCB *pcb, int fd, Elf32_Phdr *phdr_p) {
     if(vaddr_page_end > vaddr_bss_ptr){
       // convert vaddr_bss_ptr to paddr
       uintptr_t paddr_bss_ptr = paddr | (vaddr_bss_ptr & PGMASK);
-      printf("clear: [%p, %p) <- [%p, %p)\n", vaddr_bss_ptr,vaddr_bss_ptr + vaddr_page_end - vaddr_bss_ptr, paddr_bss_ptr,paddr_bss_ptr + vaddr_page_end - vaddr_bss_ptr);
+      // printf("clear: [%p, %p) <- [%p, %p)\n", vaddr_bss_ptr,vaddr_bss_ptr + vaddr_page_end - vaddr_bss_ptr, paddr_bss_ptr,paddr_bss_ptr + vaddr_page_end - vaddr_bss_ptr);
       memset((void *)paddr_bss_ptr, 0, vaddr_page_end - vaddr_bss_ptr);
       vaddr_bss_ptr = vaddr_page_end;
     }
@@ -135,7 +135,7 @@ static void copy_ptr_str_to_stack(char *sp, char **write_ptr_p,
 */
 int context_uload(PCB *pcb, const char *filename, char *const argv[],
                    char *const envp[]) {
-  printf("call context_uload: %s\n", filename);
+  // printf("call context_uload: %s\n", filename);
 
   // try to open file
   if(fs_open(filename) < 0){
@@ -176,10 +176,22 @@ int context_uload(PCB *pcb, const char *filename, char *const argv[],
     ++envc;
   }
 
+  // printf("uload\n");
+  // printf("argc: %d\n", argc);
+  // printf("argv: %p\n", argv);
+  // for (int i = 0; i < argc; ++i) {
+  //   printf("argv[%d]: %p - %s\n", i, argv[i], argv[i]);
+  // }
+  // for (int i = 0; envp[i]; ++i) {
+  //   printf("envp[%d]: %s\n", i, envp[i]);
+  // }
+
   // string area offset (to sp)
   // the pointers are NULL-terminated, so +1 is needed for argc & envc
   // also need a sizeof(int) space for argc
   int str_offset = ((envc + 1) + (argc + 1)) * sizeof(char *) + sizeof(int);
+  // align to sizeof(uinptr_t)
+  str_offset += (uintptr_t)sp % sizeof(uintptr_t);
   sp -= str_offset;
 
   /* Begin filling stack */
@@ -199,10 +211,10 @@ int context_uload(PCB *pcb, const char *filename, char *const argv[],
   void *entry = (void *)loader(pcb, filename);
   Context *c = ucontext(&pcb->as, (Area){pcb, &pcb[0] + 1}, entry);
 
-  // we use s0 to save user stack sp, and it should be vaddr of sp
-  c->gpr[8] = (uintptr_t)sp - (uintptr_t)stack_bottom_paddr +
-              (uintptr_t)stack_bottom_vaddr;
-  printf("ret context_uload\n");
+  // we use sscratch to save user stack sp, and it should be vaddr of sp  
+  c->sscratch = (uintptr_t)sp - (uintptr_t)stack_bottom_paddr +
+                (uintptr_t)stack_bottom_vaddr;
+  // printf("ret context_uload: sscratch 0x%x\n",c->sscratch);
 
   return 0;
 }

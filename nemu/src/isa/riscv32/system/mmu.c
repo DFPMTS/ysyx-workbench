@@ -43,11 +43,17 @@ paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type) {
   word_t flpt = BITS(cpu.satp, 19, 0) << PAGE_SHIFT;
 
   // use VPN[1] to address in to flpt to get slpt
-  word_t slpt = BITS(paddr_read(flpt | (VPN_1 << 2), 4), 29, 10) << PAGE_SHIFT;
+  word_t flpte = paddr_read(flpt | (VPN_1 << 2), 4);
+  Assert(BIT(flpte, PTE_V), "Invalid First Level PTE for vaddr: 0x%x\n", vaddr);
+  word_t slpt = BITS(flpte, 29, 10) << PAGE_SHIFT;
 
   // use VPN[0] to address in to slpt to get PTE
   word_t PTE = paddr_read(slpt | (VPN_0 << 2), 4);
-
+  // printf("NEMU: vaddr: 0x%x pdir: 0x%x flpte_p: 0x%x flpte: 0x%x slpte_p: 0x%x "
+  //        "slpte: 0x%x\n",
+  //        vaddr, flpt, (flpt | (VPN_1 << 2)), flpte, (slpt | (VPN_0 << 2)),
+  //        PTE);
+  
   // again, only take low 20 bits of PPN
   word_t PPN = BITS(PTE, 29, 10);
   word_t paddr = (PPN << PAGE_SHIFT) | page_offset;

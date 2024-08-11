@@ -45,6 +45,7 @@ int mm_brk(uintptr_t brk) {
     for (uintptr_t vaddr = current->max_brk + PGSIZE; vaddr <= request_page_addr;
          vaddr += PGSIZE, paddr += PGSIZE) {
       map(&current->as, (void *)vaddr, (void *)paddr, 0);
+      // printf("map: vaddr 0x%x <- paddr 0x%x\n", vaddr, paddr);
     }
     current->max_brk = request_page_addr;
   }

@@ -4,14 +4,11 @@
 
 int main(int argc, char *argv[], char *envp[]);
 extern char **environ;
-void call_main(uintptr_t *args) {
-  printf("args: %p\n",args);
-  char *empty[] =  {NULL };
-  environ = empty;
+void call_main(uintptr_t *args) { 
   int argc = *(int *)args;
-  char *argv = args + 1;
-  char *envp = args + 1 + argc;
-
+  char **argv = (char **)(args + 1);
+  char **envp = (char **)(args + 1 + argc + 1);
+  environ = envp;
   exit(main(argc, argv, envp));
   assert(0);
 }

@@ -30,7 +30,7 @@ bool vme_init(void* (*pgalloc_f)(int), void (*pgfree_f)(void*)) {
 
   // note that the pages that pgalloc_f returns have already been clear to 0
   kas.ptr = pgalloc_f(PGSIZE);
-
+  printf("kas.ptr: 0x%x\n", kas.ptr);
   int i;
   for (i = 0; i < LENGTH(segments); i ++) {
     void *va = segments[i].start;
@@ -58,12 +58,14 @@ void unprotect(AddrSpace *as) {
 }
 
 void __am_get_cur_as(Context *c) {
+  // printf("satp 0x%x saved to context 0x%x\n", get_satp(), c);
   c->pdir = (vme_enable ? (void *)get_satp() : NULL);
 }
 
 void __am_switch(Context *c) {
   if (vme_enable && c->pdir != NULL) {
-    set_satp(c->pdir);
+    // printf("satp switch to 0x%x\n",c->pdir);
+    set_satp(c->pdir);    
   }
 }
 
@@ -95,10 +97,14 @@ void map(AddrSpace *as, void *va, void *pa, int prot) {
   uintptr_t flpte = *flpte_p;
   uintptr_t *slpte_p = (uintptr_t *)((BITS(flpte, 29, 10) << PAGE_SHIFT) | (VPN_0 << 2));
 
-  assert(!BIT(*slpte_p, PTE_V));
+  assert(!(*slpte_p & PTE_V));
 
   // set PPN & Valid bit & RWX
   *slpte_p = (PPN << 10) | PTE_R | PTE_W | PTE_X | PTE_V;
+
+  if (vaddr == 0x40332000) {
+    // printf("map vaddr: 0x%x pdir: 0x%x flpte_p: %p flpte: 0x%x slpte_p: %p slpte: 0x%x\n",vaddr,as->ptr,flpte_p,flpte,slpte_p,*slpte_p);
+  }
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {

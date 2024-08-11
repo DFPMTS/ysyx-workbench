@@ -5,9 +5,16 @@
 static Context* (*user_handler)(Event, Context*) = NULL;
 void __am_get_cur_as(Context *c);
 void __am_switch(Context *c);
+
+__attribute_maybe_unused__ static void print_context(Context *c)
+{
+  printf("am_irq Context:\n");
+  printf("sp:       0x%x\n",c->gpr[2]);
+  printf("sscratch: 0x%x\n",c->sscratch);
+  printf("\n");
+}
+
 Context* __am_irq_handle(Context *c) {
-  if (c->pdir)
-    __am_get_cur_as(c);
   if (user_handler) {
     Event ev = {0};
     ev.event = EVENT_ERROR;
@@ -27,8 +34,6 @@ Context* __am_irq_handle(Context *c) {
     c = user_handler(ev, c);
     assert(c != NULL);
   }
-  if (c->pdir)
-    __am_switch(c);
   return c;
 }
 
@@ -64,6 +69,7 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   c->mstatus = 0x1800;
   c->gpr[2] = (uintptr_t)kstack.end;
   c->gpr[10] = (uintptr_t)arg;
+  c->sscratch = 0;
 
   // kernel space
   c->pdir = NULL;

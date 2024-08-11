@@ -59,7 +59,7 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_exit:
       Trace("%s(%d)",syscall_name, a[1]);
-      halt(c->GPR2);
+      // halt(c->GPR2);
       context_uload(current, "/bin/nterm", (char *[]){"/bin/nterm", NULL},
                     (char *[]){NULL});
       switch_boot_pcb();

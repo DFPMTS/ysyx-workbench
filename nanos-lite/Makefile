@@ -5,10 +5,10 @@ get_app_elf_path = /home/dfpmts/Documents/ysyx-workbench/navy-apps/apps/$(1)/bui
 get_test_elf_path = /home/dfpmts/Documents/ysyx-workbench/navy-apps/tests/$(1)/build/$(1)-riscv32
 
 APPS = nterm
-TESTS = hello
+TESTS = 
 
 ELFS += $(foreach app,$(APPS),$(call get_app_elf_path,$(app)))
-ELFS += $(foreach test,$(TESTS),$(call get_test_elf_path,$(test)))
+# ELFS += $(foreach test,$(TESTS),$(call get_test_elf_path,$(test)))
 
 NAME = nanos-lite
 SRCS = $(shell find -L ./src/ -name "*.c" -o -name "*.cpp" -o -name "*.S")

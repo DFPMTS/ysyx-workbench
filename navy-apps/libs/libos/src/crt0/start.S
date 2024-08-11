@@ -29,8 +29,7 @@ _start:
   jal call_main
 
 #elif defined(__riscv)
-  mv a0, s0
-  mv sp, s0
+  mv a0, sp
   jal call_main
 
 #elif defined(__ISA_LOONGARCH32R__)
