@@ -32,9 +32,15 @@ void init_alarm();
 void init_mrom();
 void init_sram();
 void init_flash();
+void init_uart();
+void init_clint();
+void init_mrom();
+void init_sram();
+void init_flash();
 
 void send_key(uint8_t, bool);
 void vga_update_screen();
+void send_key_uart(char keycode);
 
 void device_update() {
   static uint64_t last = 0;
@@ -60,6 +66,9 @@ void device_update() {
         uint8_t k = event.key.keysym.scancode;
         bool is_keydown = (event.key.type == SDL_KEYDOWN);
         send_key(k, is_keydown);
+        if (is_keydown) {
+          send_key_uart(event.key.keysym.sym);
+        }
         break;
       }
 #endif
@@ -90,6 +99,8 @@ void init_device() {
   IFDEF(CONFIG_HAS_MROM, init_mrom());
   IFDEF(CONFIG_HAS_SRAM, init_sram());
   IFDEF(CONFIG_HAS_FLASH, init_flash());
+  IFDEF(CONFIG_HAS_UART,init_uart());
+  IFDEF(CONFIG_HAS_CLINT, init_clint());
 
   IFNDEF(CONFIG_TARGET_AM, init_alarm());
 }

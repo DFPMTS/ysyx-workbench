@@ -30,11 +30,41 @@ static uint8_t *uart_base = NULL;
 #define UART_LS 5
 #define UART_LS_DR_FLAG (1 << 0)
 #define UART_LS_TFE_FLAG (1 << 5)
+#define UART_LS_TE_FLAG (1 << 6)
 
 #define UART_DL_ACCESS (uart_base[UART_LC] & UART_LC_DL_FLAG)
 
 static void uart_putc(char ch) {
   MUXDEF(CONFIG_TARGET_AM, putch(ch), putc(ch, stderr));
+}
+
+#define KEY_QUEUE_LEN 1024
+static char key_queue[KEY_QUEUE_LEN] = {};
+static int key_f = 0, key_r = 0;
+
+static void uart_key_enqueue(uint32_t keycode) {  
+  key_queue[key_r] = keycode;
+  key_r = (key_r + 1) % KEY_QUEUE_LEN;
+  Assert(key_r != key_f, "UART key queue overflow!");
+}
+
+static char uart_key_dequeue() {
+  char key = '\0';
+  if (key_f != key_r) {
+    key = key_queue[key_f];
+    key_f = (key_f + 1) % KEY_QUEUE_LEN;
+  }
+  return key;
+}
+
+static bool uart_key_ready() {
+  return key_f != key_r;
+}
+
+void send_key_uart(char keycode) {
+  if (nemu_state.state == NEMU_RUNNING && keycode != '\0') {    
+    uart_key_enqueue(keycode);
+  }
 }
 
 static void uart_io_handler(uint32_t offset, int len, bool is_write) {
@@ -46,22 +76,25 @@ static void uart_io_handler(uint32_t offset, int len, bool is_write) {
       if (is_write) {
         if (!UART_DL_ACCESS)
           uart_putc(uart_base[UART_TX]);
-      } else
-        panic("do not support read");
+      } else {
+        uart_base[UART_RX] = uart_key_dequeue();
+      }        
       break;
     case UART_DL2: 
+      uart_base[offset] = 0;
       break;
     case UART_LC:
       // nothing to do here 
       break;
     case UART_LS:
-      uart_base[UART_LS] = UART_LS_TFE_FLAG;
+      uart_base[UART_LS] = UART_LS_TFE_FLAG | UART_LS_TE_FLAG | uart_key_ready();
       break;
-    default: panic("do not support offset = %d", offset);
+    default: {uart_base[offset] = 0;/*printf("do not support offset = %d\n", offset);*/}
   }
 }
 
 void init_uart() {
-  uart_base = new_space(6);
-  add_mmio_map("uart", CONFIG_UART_ADDR, uart_base, 8, uart_io_handler);
+  uart_base = new_space(7);
+  memset(uart_base, 0, 7);
+  add_mmio_map("uart", CONFIG_UART_ADDR, uart_base, 7, uart_io_handler);
 }

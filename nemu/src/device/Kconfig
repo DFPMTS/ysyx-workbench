@@ -217,4 +217,14 @@ config UART_ADDR
   default 0x10000000
 endif # HAS_UART
 
+menuconfig HAS_CLINT
+  bool "Enable CLINT"
+  default n
+
+if HAS_CLINT
+config CLINT_ADDR
+  hex "Physical address of the CLINT"
+  default 0x11000000
+endif # HAS_CLINT
+
 endif # DEVICE

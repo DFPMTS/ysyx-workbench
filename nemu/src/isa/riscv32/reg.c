@@ -23,10 +23,23 @@ const char *regs[] = {
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
+static void print_csr(const char*name, word_t val)
+{
+  printf("%s\t", name);
+  for (int i = sizeof(word_t); i; --i) {
+    for (int j = i * 8 - 1; j >= (i - 1) * 8; --j) {
+      printf("%d", (val >> j) & 1);
+    }
+    printf(" ");
+  }
+  printf("\n");
+}
+
 void isa_reg_display() {
   for (int i = 0; i < MUXDEF(CONFIG_RVE, 16, 32); ++i) {
     printf("%s\t%08X\t%d\n",reg_name(i),gpr(i),gpr(i));
   }
+  print_csr("mstatus", cpu.mstatus.val);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
