@@ -4,6 +4,7 @@
 #include "mem.hpp"
 #include "monitor.hpp"
 #include "status.hpp"
+#include <cstdint>
 
 void nvboard_update();
 void nvboard_quit();
@@ -31,11 +32,25 @@ void printPerfCounters() {
 
   std::cout << "-----------------------------------" << std::endl;
 }
+class SimulationSpeed {
+private:
+  // Record the start time
+  std::chrono::time_point<std::chrono::system_clock> start;
+
+public:
+  void initTimer() { start = std::chrono::system_clock::now(); }
+  void printSimulationSpeed(uint64_t cycles) {
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::cout << "Simulation Speed:  " << cycles / elapsed_seconds.count()
+              << " cycles/s" << std::endl;
+  }
+};
 
 int main(int argc, char *argv[]) {
   Verilated::commandArgs(argc, argv);
   init_monitor(argc, argv);
-
+  SimulationSpeed sim_speed;
   bool commit = false;
   bool booted = false;
 #ifdef NVBOARD
@@ -49,7 +64,7 @@ int main(int argc, char *argv[]) {
   // }
   // return 0;
   // begin_wave = true;
-
+  sim_speed.initTimer();
   while (running) {
     cpu_step();
     ++totalCycles;
@@ -63,7 +78,7 @@ int main(int argc, char *argv[]) {
 #endif
       commit = false;
     }
-    if (VALID) {
+    if (isCommit()) {
       commit = true;
       trace(PC, INST);
       if (PC == 0xa0000000) {
@@ -96,5 +111,6 @@ int main(int argc, char *argv[]) {
   nvboard_quit();
 #endif
   printPerfCounters();
+  sim_speed.printSimulationSpeed(totalCycles);
   return retval;
 }

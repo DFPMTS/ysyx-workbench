@@ -8,3 +8,5 @@ uint64_t getEventCount(int eventId);
 uint64_t getEventCount(const std::string &eventName);
 
 void clearAllEventCount();
+
+bool isCommit();

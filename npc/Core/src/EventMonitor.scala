@@ -39,3 +39,25 @@ class EventMonitorHelper extends HasBlackBoxInline {
   """.stripMargin
   )
 }
+
+class CommitHelper extends HasBlackBoxInline {
+  val io = IO(new Bundle {
+    val commit = Input(Bool())
+  })
+  setInline("CommitHelper.v",
+  """
+  |module CommitHelper (
+  |    input commit 
+  |);
+  |    // synopsys translate_off
+  |    import "DPI-C" function void setCommit(
+  |        input int commit,
+  |    );
+  |    always @(*) begin
+  |        setCommit({31'b0,commit});
+  |    end
+  |    // synopsys translate_on
+  |endmodule
+  """.stripMargin
+  )
+}

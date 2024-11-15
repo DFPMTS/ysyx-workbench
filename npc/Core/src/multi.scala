@@ -35,7 +35,10 @@ class multi extends Module {
   // MEM
   mem.io.in <> exu.io.out
   mem.io.master <> arbiter.io.LSUMaster
-  mem.io.wb <> idu.io.wb
+  mem.io.wb <> idu.io.wb  
+
+  val commitHelper = Module(new CommitHelper);
+  commitHelper.io.commit := mem.io.valid
 
   if (Config.debug) {
     val valid  = RegNext(mem.io.valid)

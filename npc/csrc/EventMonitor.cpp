@@ -85,3 +85,11 @@ void clearAllEventCount() {
     eventCount[i] = 0;
   }
 }
+
+static bool commit = false;
+
+extern "C" {
+void setCommit(uint32_t isCommit) { commit = isCommit; }
+}
+
+bool isCommit() { return commit; }
