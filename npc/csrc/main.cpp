@@ -4,6 +4,7 @@
 #include "mem.hpp"
 #include "monitor.hpp"
 #include "status.hpp"
+#include <chrono>
 #include <cstdint>
 
 void nvboard_update();
