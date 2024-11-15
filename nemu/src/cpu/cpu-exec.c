@@ -13,10 +13,13 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "utils.h"
 #include <cpu/cpu.h>
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
+#include <signal.h>
+#include "common.h"
 
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
@@ -24,7 +27,7 @@
  * You can modify this value as you want.
  */
 #define MAX_INST_TO_PRINT 10
-#define NR_IRINGBUF 20
+#define NR_IRINGBUF 100
 
 CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
@@ -58,7 +61,14 @@ static void exec_once(Decode *s, vaddr_t pc) {
   cpu.pc = s->dnpc;
 }
 
+static bool need_stop = false;
+static void SIGINT_handler(int sig)
+{
+  need_stop = true;
+}
+
 static void execute(uint64_t n) {
+  signal(SIGINT, SIGINT_handler);
   Decode s;
   for (;n > 0; n --) {
     exec_once(&s, cpu.pc);
@@ -66,16 +76,22 @@ static void execute(uint64_t n) {
     trace_and_difftest(&s, cpu.pc);
     if (nemu_state.state != NEMU_RUNNING) break;
     IFDEF(CONFIG_DEVICE, device_update());
+    if(need_stop) {
+      set_nemu_state(NEMU_ABORT, cpu.pc, -1);
+      break;
+    }
   }
 }
 
-static void statistic() {
+void statistic() {
+  isa_reg_display();
+  iringbuf_display();
   IFNDEF(CONFIG_TARGET_AM, setlocale(LC_NUMERIC, ""));
 #define NUMBERIC_FMT MUXDEF(CONFIG_TARGET_AM, "%", "%'") PRIu64
   Log("host time spent = " NUMBERIC_FMT " us", g_timer);
   Log("total guest instructions = " NUMBERIC_FMT, g_nr_guest_inst);
   if (g_timer > 0) Log("simulation frequency = " NUMBERIC_FMT " inst/s", g_nr_guest_inst * 1000000 / g_timer);
-  else Log("Finish running in less than 1 us and can not calculate the simulation frequency");
+  else Log("Finish running in less than 1 us and can not calculate the simulation frequency");  
 }
 
 void assert_fail_msg() {
@@ -105,6 +121,7 @@ void cpu_exec(uint64_t n) {
     case NEMU_RUNNING: nemu_state.state = NEMU_STOP; break;
 
     case NEMU_END: case NEMU_ABORT:
+      Log("Priv: %d\n",cpu.priv);
       Log("nemu: %s at pc = " FMT_WORD,
           (nemu_state.state == NEMU_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :
            (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :
@@ -152,15 +169,16 @@ void ftrace_log(Decode *s, int rd, int rs1, word_t offset) {
       [call]
       jal  x1,      offset
       jalr x1, rs1, offset
+      jalr x0, x6,  offset
       [ret]
       jalr x0, x1,  0
   */
 #ifdef CONFIG_FTRACE
   static int level = 0;
   static char dst_addr[128];
-
-  bool call = (rd == 1) ? true : false;
-  bool ret = (rd == 0 && rs1 == 1 && offset == 0) ? true : false;
+  
+  bool call = (rd == 1) || (rd == 0 && rs1 == 6);
+  bool ret = (rd == 0 && rs1 == 1 && offset == 0);
 
   // ignore non call/ret jal/jalr
   if (!call && !ret)

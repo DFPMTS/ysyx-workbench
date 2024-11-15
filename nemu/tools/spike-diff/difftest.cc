@@ -43,6 +43,10 @@ struct diff_context_t {
   word_t mcause;
   word_t mepc;
   word_t priv;
+
+  word_t stval;
+  word_t sepc;
+  word_t scause;
 };
 
 static sim_t* s = NULL;
@@ -68,6 +72,9 @@ void sim_t::diff_get_regs(void* diff_context) {
   ctx->mcause = state->mcause->read();
   ctx->mepc = state->mepc->read();  
   ctx->priv = state->prv;
+  ctx->stval = state->stval->read();
+  ctx->sepc = state->sepc->read();
+  ctx->scause = state->scause->read();
 }
 
 void sim_t::diff_set_regs(void* diff_context) {
@@ -80,6 +87,9 @@ void sim_t::diff_set_regs(void* diff_context) {
   state->mcause->write(ctx->mcause);
   state->mepc->write(ctx->mepc);
   state->prv = ctx->priv;
+  state->stval->write(ctx->stval);
+  state->sepc->write(ctx->sepc);
+  state->scause->write(ctx->scause);
 }
 
 void sim_t::diff_memcpy(reg_t dest, void* src, size_t n) {
@@ -113,7 +123,7 @@ __EXPORT void difftest_exec(uint64_t n) {
 
 __EXPORT void difftest_init(int port) {
   difftest_htif_args.push_back("");
-  const char *isa = "RV" MUXDEF(CONFIG_RV64, "64", "32") MUXDEF(CONFIG_RVE, "E", "I") "MAFDC";
+  const char *isa = "RV" MUXDEF(CONFIG_RV64, "64", "32") MUXDEF(CONFIG_RVE, "E", "I") "MAC";
   cfg_t cfg(/*default_initrd_bounds=*/std::make_pair((reg_t)0, (reg_t)0),
             /*default_bootargs=*/nullptr,
             /*default_isa=*/isa,
@@ -121,7 +131,7 @@ __EXPORT void difftest_init(int port) {
             /*default_varch=*/DEFAULT_VARCH,
             /*default_misaligned=*/false,
             /*default_endianness*/endianness_little,
-            /*default_pmpregions=*/16,
+            /*default_pmpregions=*/0,
             /*default_mem_layout=*/std::vector<mem_cfg_t>(),
             /*default_hartids=*/std::vector<size_t>(1),
             /*default_real_time_clint=*/false,

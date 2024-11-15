@@ -18,6 +18,7 @@
 #include "../local-include/reg.h"
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
+  // return true;
   bool succ = true;
   for (int i = 0; i < RISCV_GPR_NUM; ++i) {
     succ &= difftest_check_reg(reg_name(i), pc, ref_r->gpr[i], gpr(i));
@@ -27,6 +28,10 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
   succ &= difftest_check_reg("mcause", pc, ref_r->mcause, cpu.mcause);
   succ &= difftest_check_reg("mepc", pc, ref_r->mepc, cpu.mepc);
   succ &= difftest_check_reg("priv", pc, ref_r->priv, cpu.priv);
+  succ &= difftest_check_reg("stval", pc, ref_r->stval, cpu.stval);
+  succ &= difftest_check_reg("sepc", pc, ref_r->sepc, cpu.sepc);
+  succ &= difftest_check_reg("scause", pc, ref_r->scause, cpu.scause);
+
   return succ;
 }
 

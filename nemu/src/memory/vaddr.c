@@ -13,29 +13,59 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "debug.h"
 #include <isa.h>
 #include <memory/paddr.h>
 
 // since there is no unaligned access, vaddr is enough
 // always translate
 
+static word_t vaddr_op(vaddr_t addr, int len, word_t data, int mem_type) {
+  paddr_t paddr = addr;
+  bool translate_succ = true;
+  if(isa_mmu_check(addr, len, mem_type)){
+    if (isa_mmu_translate(addr, len, mem_type, &paddr)){
+      // translate failed, exception generated
+      translate_succ = false;
+    }
+  }
+
+  // early return if exception
+  if (!translate_succ) {
+    return 0;
+  }
+
+  switch (mem_type)
+  {
+  case MEM_TYPE_READ:
+    return paddr_read(paddr, len);
+    break;
+
+  case MEM_TYPE_IFETCH:
+    return paddr_read(paddr, len);
+    break;
+
+  case MEM_TYPE_WRITE:
+    paddr_write(paddr, len, data);
+    return 0; // just dummy value here
+    break;
+  
+  default:
+    panic("Unknown MEM_TYPE: %d", mem_type);
+    break;
+  }
+  panic("should not reach here");
+  return 0;
+}
+
 word_t vaddr_ifetch(vaddr_t addr, int len) {
-  paddr_t paddr = isa_mmu_check(addr, len, MEM_TYPE_IFETCH)
-                      ? isa_mmu_translate(addr, len, MEM_TYPE_IFETCH)
-                      : addr;
-  return paddr_read(paddr, len);
+  return vaddr_op(addr, len, 0, MEM_TYPE_IFETCH);
 }
 
 word_t vaddr_read(vaddr_t addr, int len) {
-  paddr_t paddr = isa_mmu_check(addr, len, MEM_TYPE_READ)
-                      ? isa_mmu_translate(addr, len, MEM_TYPE_READ)
-                      : addr;
-  return paddr_read(paddr, len);
+  return vaddr_op(addr, len, 0, MEM_TYPE_READ);
 }
 
 void vaddr_write(vaddr_t addr, int len, word_t data) {
-  paddr_t paddr = isa_mmu_check(addr, len, MEM_TYPE_WRITE)
-                      ? isa_mmu_translate(addr, len, MEM_TYPE_WRITE)
-                      : addr;
-  paddr_write(paddr, len, data);
+  vaddr_op(addr, len, data, MEM_TYPE_WRITE);
 }

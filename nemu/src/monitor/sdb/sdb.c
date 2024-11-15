@@ -121,7 +121,7 @@ static int cmd_si(char *args) {
     cpu_exec(1);
   } else {
     // read argument
-    int num_steps = atoi(args);
+    long long num_steps = atoll(args);
 
     if (num_steps <= 0) {
       // num_steps <= 0?

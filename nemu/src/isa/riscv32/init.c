@@ -131,6 +131,11 @@ static void restart() {
   /* Set mstatus to 0x1800 */
   cpu.mstatus.val = 0x0000;
 
+  cpu.misa =
+      (1 << 30) | (1 << 0) | (1 << 2) | (1 << 3) | (1 << 5) | (1 << 8) | (1 << 12) | (1 << 18) | (1 << 20);
+
+  cpu.mhartid = 0;
+
   /* The zero register is always 0. */
   cpu.gpr[0] = 0;
 
@@ -141,8 +146,8 @@ static void restart() {
   uintptr_t dtb_ptr = (uintptr_t)(CONFIG_MSIZE - sizeof(default64mbdtb) - 16);
   dtb_ptr &= ~0xf;
 
-  memcpy(guest_to_host(RESET_VECTOR) + dtb_ptr, default64mbdtb, sizeof(default64mbdtb));
-  cpu.gpr[11] = RESET_VECTOR + dtb_ptr;
+  // memcpy(guest_to_host(RESET_VECTOR) + dtb_ptr, default64mbdtb, sizeof(default64mbdtb));
+  cpu.gpr[11] = 0x87F00000; // opensbi FDT
 
   // set current priv to M
   cpu.priv = PRIV_M;

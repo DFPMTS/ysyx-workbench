@@ -13,27 +13,71 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "isa-def.h"
 #include <isa.h>
+
+bool trap_is_intr(word_t NO) { return NO & (1u << 31); }
+word_t trap_exception_code(word_t NO) { return NO & ~(1u << 31); }
+
+#define BIT(X, I) (((X) >> (I)) & 1)
 
 word_t isa_raise_intr(word_t NO, vaddr_t epc) {
   /* TODO: Trigger an interrupt/exception with ``NO''.
    * Then return the address of the interrupt/exception vector.
    */  
   assert(NO);  
-  
-  // always trap to M for now
-  cpu.mstatus.MPIE = cpu.mstatus.MIE;
-  cpu.mstatus.MIE = 0;
+  // Log("NO: 0x%x epc: 0x%x mtvec: 0x%x",NO, epc, cpu.mtvec);
+  //// always trap to M for now
+  // check delegation
+  bool delegate = false;
+  // never delegate to lower priv
+  if(cpu.priv < PRIV_M){
+    // clear NO highest bit
+    word_t exception_code = trap_exception_code(NO);
+    bool is_intr = trap_is_intr(NO);
+    // Log("is_intr: %d  exception_code: %d", is_intr, exception_code);
+    if (is_intr) {
+      delegate = BIT(cpu.mideleg, exception_code);
+    } else {
+      delegate = BIT(cpu.medeleg, exception_code);
+    }
+  }
 
-  cpu.mstatus.MPP = cpu.priv;
+  word_t next_pc = 0;
 
-  cpu.mepc = epc;
-  cpu.mcause = NO;  
-  cpu.priv = PRIV_M;
+  if (delegate) {
+    // Log("delegate");
+    // trap to S
+    cpu.mstatus.SPIE = cpu.mstatus.SIE;
+    cpu.mstatus.SIE = 0;
+
+    cpu.mstatus.SPP = cpu.priv;
+
+    cpu.sepc = epc;
+    cpu.scause = NO;
+    cpu.stval = cpu.xtval;
+    cpu.priv = PRIV_S;
+
+    next_pc = cpu.stvec;
+  } else {
+    // trap to M
+    cpu.mstatus.MPIE = cpu.mstatus.MIE;
+    cpu.mstatus.MIE = 0;
+
+    cpu.mstatus.MPP = cpu.priv;
+
+    cpu.mepc = epc;
+    cpu.mcause = NO;
+    cpu.mtval = cpu.xtval;
+    cpu.priv = PRIV_M;
+
+    next_pc = cpu.mtvec;
+  }
+
   // clear trap
   cpu.trap = INTR_EMPTY;
 
-  return cpu.mtvec;
+  return next_pc;
 }
 
 uint64_t read_mtime();
@@ -48,10 +92,27 @@ word_t isa_query_intr() {
     cpu.mip.MTI = 0;
   }
   
-  if(cpu.mstatus.MIE){
-    if(((Mipe)(cpu.mie.val & cpu.mip.val)).MTI) {
+  // trap to M
+  if(cpu.priv < PRIV_M || cpu.mstatus.MIE){
+    if (((Mipe)(cpu.mie.val & cpu.mip.val)).MTI && !BIT(cpu.mideleg, 7)) {
       // machine timer interrupt
       return INTR_MTI;
+    }
+    if (((Mipe)(cpu.mie.val & cpu.mip.val)).STI && !BIT(cpu.mideleg, 5)) {
+      // supervisor timer interrupt
+      return INTR_STI;
+    }
+  }
+
+  // trap to S
+  if(cpu.priv < PRIV_S || (cpu.priv == PRIV_S && cpu.mstatus.SIE)){    
+    if (((Mipe)(cpu.mie.val & cpu.mip.val)).MTI && BIT(cpu.mideleg, 7)) {
+      // machine timer interrupt
+      return INTR_MTI;
+    }
+    if (((Mipe)(cpu.mie.val & cpu.mip.val)).STI && BIT(cpu.mideleg, 5)) {
+      // supervisor timer interrupt
+      return INTR_STI;
     }
   }
 
@@ -59,6 +120,11 @@ word_t isa_query_intr() {
 }
 
 word_t isa_mret() {
+  // * An MRET or SRET instruction that changes the privilege mode
+  // * to a mode less privileged than M also sets MPRV=0.
+  if (cpu.mstatus.MPP < PRIV_M) {
+    cpu.mstatus.MPRV = 0;
+  }
   cpu.priv = cpu.mstatus.MPP;
   cpu.mstatus.MIE = cpu.mstatus.MPIE;
   cpu.mstatus.MPIE = 1;
@@ -66,7 +132,21 @@ word_t isa_mret() {
   return cpu.mepc;
 }
 
-void isa_set_trap(word_t NO, word_t xtval) {
+word_t isa_sret() {
+  // * An MRET or SRET instruction that changes the privilege mode
+  // * to a mode less privileged than M also sets MPRV=0.
+  if (cpu.mstatus.SPP < PRIV_M) {
+    cpu.mstatus.MPRV = 0;
+  }
+  cpu.priv = cpu.mstatus.SPP;
+  cpu.mstatus.SIE = cpu.mstatus.SPIE;
+  cpu.mstatus.SPIE = 1;
+  cpu.mstatus.SPP = PRIV_U;
+  return cpu.sepc;
+}
+
+
+void isa_set_trap(EXCEPTION_NO NO, word_t xtval) {
   cpu.trap = NO;
-  cpu.mtval = xtval;
+  cpu.xtval = xtval;
 }

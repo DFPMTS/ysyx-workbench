@@ -44,16 +44,20 @@ enum { MEM_RET_OK, MEM_RET_FAIL, MEM_RET_CROSS_PAGE };
 #ifndef isa_mmu_check
 int isa_mmu_check(vaddr_t vaddr, int len, int type);
 #endif
-paddr_t isa_mmu_translate(vaddr_t vaddr, int len, int type);
+int isa_mmu_translate(vaddr_t vaddr, int len, int type, paddr_t *paddr);
 
 // interrupt/exception
 vaddr_t isa_raise_intr(word_t NO, vaddr_t epc);
 #define INTR_EMPTY ((word_t)-1)
 #define INTR_MTI (0x80000007)
+#define INTR_STI (0x80000005)
 word_t isa_query_intr();
 word_t isa_mret();
+word_t isa_sret();
 void isa_set_trap(word_t NO, word_t xtval);
 #define HAS_TRAP (cpu.trap != INTR_EMPTY)
+
+extern uint32_t current_inst;
 
 // difftest
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);

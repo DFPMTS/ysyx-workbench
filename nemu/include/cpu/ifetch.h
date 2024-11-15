@@ -16,11 +16,33 @@
 #ifndef __CPU_IFETCH_H__
 
 #include <memory/vaddr.h>
+#include <isa.h>
 
 static inline uint32_t inst_fetch(vaddr_t *pc, int len) {
-  uint32_t inst = vaddr_ifetch(*pc, len);
-  (*pc) += len;
-  return inst;
+  // RVC enables an 32-bit inst to cross a page boundry
+  // in this situation, split this into two access when paging is on
+  // note that sv** page table supports superpage, 
+  // but we just consider 4KB pages for convenience
+
+  bool need_split = isa_mmu_check(*pc, len, MEM_TYPE_IFETCH) && ((*pc + 2) & PAGE_MASK) == 0;
+
+  if (need_split) {
+    // fetch low 2 bytes
+    uint32_t inst = vaddr_ifetch(*pc, 2);
+    (*pc) += 2;
+    if(HAS_TRAP || isRVC(inst)) {
+      // early return if exception or a RVC inst fetched
+      return inst;
+    }
+    // fetch high 2 bytes
+    inst = inst | (vaddr_ifetch(*pc, 2) << 16);
+    (*pc) += 2;
+    return inst;
+  } else {
+    uint32_t inst = vaddr_ifetch(*pc, len);
+    (*pc) += len;
+    return inst;
+  }
 }
 
 #endif

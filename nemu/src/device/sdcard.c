@@ -128,7 +128,8 @@ void init_sdcard() {
 
   Assert(C_SIZE < (1 << 12), "shoule be fit in 12 bits");
 
-  const char *img = CONFIG_SDCARD_IMG_PATH;
+  const char *img = "/home/dfpmts/Documents/learning-linux/test-debian/debian_rv32_rootfs.ext2";
+  // const char *img = "/home/dfpmts/Documents/learning-linux/buildroot/output/images/rootfs.ext2";
   fp = fopen(img, "r+");
   if (fp == NULL) Log("Can not find sdcard image: %s", img);
 }

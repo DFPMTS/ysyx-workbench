@@ -40,6 +40,12 @@ void isa_reg_display() {
     printf("%s\t%08X\t%d\n",reg_name(i),gpr(i),gpr(i));
   }
   print_csr("mstatus", cpu.mstatus.val);
+  printf("mtvec\t%x\n", cpu.mtvec);
+  printf("mtval\t%x\n", cpu.mtval);
+  printf("mepc\t%x\n", cpu.mepc);
+  printf("stvec\t%x\n", cpu.stvec);  
+  printf("stval\t%x\n", cpu.stval);
+  printf("sepc\t%x\n", cpu.sepc);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {

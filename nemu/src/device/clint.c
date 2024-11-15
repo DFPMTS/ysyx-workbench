@@ -15,17 +15,20 @@
 
 #include <device/map.h>
 #include <device/alarm.h>
+#include <stdint.h>
+#include <sys/types.h>
 #include <utils.h>
 
 static uint32_t *mtime_port_base = NULL;
 static uint32_t *mtimecmp_port_base = NULL;
+static uint32_t *msip_port_base = NULL;
 
 static void mtime_io_handler(uint32_t offset, int len, bool is_write) {
   assert(offset == 0 || offset == 4);  
   if(!is_write){
-    uint64_t us = get_time();    
-    if (offset == 0) mtime_port_base[0] = (uint32_t)us;
-    if (offset == 4) mtime_port_base[1] = us >> 32;
+    // uint64_t us = get_time();    
+    // if (offset == 0) mtime_port_base[0] = (uint32_t)us;
+    // if (offset == 4) mtime_port_base[1] = us >> 32;
     // printf("read mtime offset=%d, %lu\n",offset, *(uint64_t*)mtime_port_base);
   }
 }
@@ -35,19 +38,28 @@ static void mtimecmp_io_handler(uint32_t offset, int len, bool is_write) {
   // printf("mtimecmp: %lu\n",*(uint64_t*)mtimecmp_port_base);
 }
 
+static void msip_io_handler(uint32_t offset, int len, bool is_write) {
+  // high 31 bits hardwired to zero
+  if(is_write) {
+    msip_port_base[0] &= 1;
+  }
+}
+
 #define CYCLE (*(uint64_t*)mtime_port_base)
 
 uint64_t read_mtime()  {
-  // return CYCLE;
-  return get_time();
+  return CYCLE;
+  // return get_time();
 }
 
 word_t read_time()  {
-  return get_time();
+  return CYCLE;
+  // return get_time();
 }
 
 word_t read_timeh()  {
-  return get_time() >> (sizeof(word_t) * 8);
+  return CYCLE >> (sizeof(word_t) * 8);
+  // return get_time() >> (sizeof(word_t) * 8);
 }
 
 void cycle_mtime()
@@ -66,4 +78,8 @@ void init_clint() {
 
   mtimecmp_port_base = (uint32_t *)new_space(8);
   add_mmio_map("mtimecmp", CONFIG_CLINT_ADDR + 0x4000, mtimecmp_port_base, 8, mtimecmp_io_handler);
+
+  msip_port_base = (uint32_t *)new_space(4);
+  msip_port_base[0] = 0;
+  add_mmio_map("msip", CONFIG_CLINT_ADDR + 0x0000, msip_port_base, 4, msip_io_handler);
 }

@@ -39,7 +39,10 @@ static func_sym *head = NULL;
 
 static void func_sym_push(Elf32_Sym *sym) {
   func_sym *entry = malloc(sizeof(func_sym));
-  entry->name = get_symbol_name(sym);
+  char *name_in_buf = get_symbol_name(sym);
+  char *name_copy = malloc(strlen(name_in_buf) + 1);
+  strcpy(name_copy,name_in_buf);
+  entry->name = name_copy;
   entry->offset = sym->st_value;
   entry->size = sym->st_size;
   entry->next = head;
