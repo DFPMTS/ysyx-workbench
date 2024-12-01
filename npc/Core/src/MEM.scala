@@ -29,8 +29,8 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
   val io = IO(new Bundle {
     val in      = Flipped(Decoupled(new EXU_Message))
     val wb      = new WBSignal
-    val inDnpc  = Input(new dnpcSignal)
-    val outDnpc = new dnpcSignal
+    val inDnpc  = Input(new RedirectSignal)
+    val outDnpc = new RedirectSignal
     val valid   = Output(Bool())
     val master  = new AXI4(32, 32)
   })
@@ -171,7 +171,7 @@ class MEM extends Module with HasDecodeConstants with HasPerfCounters {
 
 //   val memOut  = Wire(UInt(32.W))
 //   val dataOut = WireDefault(dataBuffer)
-//   val dnpcOut = Wire(new dnpcSignal)
+//   val dnpcOut = Wire(new RedirectSignal)
 
 //   // -------------------------- MEM --------------------------
 //   val memLen  = ctrlBuffer.fuOp(2, 1)

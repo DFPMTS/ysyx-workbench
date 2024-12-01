@@ -16,7 +16,7 @@ class multi extends Module {
 
   val arbiter = Module(new AXI_Arbiter)
 
-  val EXtoIF = Wire(new dnpcSignal)
+  val EXtoIF = Wire(new RedirectSignal)
 
   // IF
   ifu.io.in := EXtoIF
