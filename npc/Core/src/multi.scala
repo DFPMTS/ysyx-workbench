@@ -19,7 +19,7 @@ class multi extends Module {
   val EXtoIF = Wire(new RedirectSignal)
 
   // IF
-  ifu.io.in := EXtoIF
+  ifu.io.redirect := EXtoIF
   ifu.io.master <> arbiter.io.IFUMaster
 
   // DE
