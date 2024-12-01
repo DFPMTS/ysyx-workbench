@@ -2,33 +2,37 @@ import chisel3._
 import chisel3.util._
 import chisel3.SpecifiedDirection.Flip
 
+class IFUIO extends Bundle {
+  val flushICache = Input(Bool())
+  val redirect = Input(new RedirectSignal)
+  val out = Decoupled(new InstSignal)
+  val master = new AXI4(32, 32)
+}
+
 class IFU extends Module with HasPerfCounters {
-  val io = IO(new Bundle {
-    val flushICache = Input(Bool())
-    val in          = Flipped(new dnpcSignal)
-    val out         = Decoupled(new IFU_Message)
-    val master      = new AXI4(32, 32)
-  })
+  val io = IO(new IFUIO)
+
+  val icache      = Module(new ICache)
+
   val pc          = RegInit(UInt(32.W), Config.resetPC)
   val flushBuffer = RegInit(false.B)
-  val icache      = Module(new ICache)
   val validBuffer = RegInit(true.B)
   val arValidNext = Wire(Bool())
   val arValid     = RegInit(true.B)
 
   flushBuffer := Mux(
-    io.in.valid && !arValid && !icache.io.out.valid,
+    io.redirect.valid && !arValid && !icache.io.out.valid,
     true.B,
     Mux(icache.io.out.fire, false.B, flushBuffer)
   )
-  val flush    = flushBuffer || io.in.valid
-  val flushNow = io.in.valid && (arValid || icache.io.out.valid)
+  val flush    = flushBuffer || io.redirect.valid
+  val flushNow = io.redirect.valid && (arValid || icache.io.out.valid)
   val flushFin = flushNow || (flushBuffer && icache.io.out.fire)
   val insert   = Wire(Bool())
   // val dnpcBuffer  = RegEnable(io.in.pc, insert)
   // pc := Mux(insert && io.valid, Mux(io.in.valid, io.in.pc, pc + 4.U), pc)
-  val flushPCBuffer = RegEnable(io.in.pc, io.in.valid)
-  val flushPC       = Mux(io.in.valid, io.in.pc, flushPCBuffer)
+  val flushPCBuffer = RegEnable(io.redirect.pc, io.redirect.valid)
+  val flushPC       = Mux(io.redirect.valid, io.redirect.pc, flushPCBuffer)
   pc := Mux(flushFin, flushPC, Mux(io.out.fire, pc + 4.U, pc))
 
   insert := (~validBuffer || io.out.fire) || flushFin

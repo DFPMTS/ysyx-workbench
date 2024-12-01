@@ -4,7 +4,7 @@ import scala.reflect.internal.Mode
 
 class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   val io = IO(new Bundle {
-    val in       = Flipped(Decoupled(new IFU_Message))
+    val in       = Flipped(Decoupled(new InstSignal))
     val EXBypass = Input(new WBSignal)
     val wb       = Input(new WBSignal)
     val out      = Decoupled(new IDU_Message)

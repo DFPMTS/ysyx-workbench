@@ -62,7 +62,7 @@ class PC_Message extends Bundle {
   val pc = UInt(32.W)
 }
 
-class IFU_Message extends Bundle {
+class InstSignal extends Bundle {
   val pc           = UInt(32.W)
   val inst         = UInt(32.W)
   val access_fault = Bool()
@@ -93,7 +93,7 @@ class DataSignal extends Bundle {
   val out    = UInt(32.W)
 }
 
-class dnpcSignal extends Bundle {
+class RedirectSignal extends Bundle {
   val valid = Bool()
   val pc    = UInt(32.W)
 }
