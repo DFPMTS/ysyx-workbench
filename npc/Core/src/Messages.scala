@@ -1,6 +1,7 @@
 import chisel3._
 import chisel3.util._
 import chisel3.experimental.dataview._
+import scribe.output.Color.Red
 
 object Config {
   val XLEN         = 32
@@ -115,18 +116,18 @@ class IDU_Message extends Bundle {
 class EXU_Message extends Bundle {
   val ctrl = new ControlSignal
   val data = new DataSignal
-  val dnpc = new dnpcSignal
+  val dnpc = new RedirectSignal
 }
 
 class MEM_Message extends Bundle {
   val ctrl = new ControlSignal
   val data = new DataSignal
-  val dnpc = new dnpcSignal
+  val dnpc = new RedirectSignal
 }
 
 class WBU_Message extends Bundle {
   val wb   = new WBSignal
-  val dnpc = new dnpcSignal
+  val dnpc = new RedirectSignal
 }
 
 class AXI_Lite extends Bundle {
