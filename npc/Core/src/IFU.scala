@@ -7,6 +7,7 @@ class IFUIO extends Bundle {
   val flushICache = Input(Bool())
   // * Redirect PC
   val redirect = Input(new RedirectSignal)
+  // * Output, inst + pc
   val out = Decoupled(new InstSignal)
   val master = new AXI4(32, 32)
 }
