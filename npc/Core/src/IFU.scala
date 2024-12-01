@@ -9,6 +9,7 @@ class IFUIO extends Bundle {
   val redirect = Input(new RedirectSignal)
   // * Output, inst + pc
   val out = Decoupled(new InstSignal)
+  // * AXI master interface
   val master = new AXI4(32, 32)
 }
 
