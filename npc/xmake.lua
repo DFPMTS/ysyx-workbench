@@ -4,16 +4,12 @@ target("Vtop")
 
   add_cxxflags("-fPIE")
   on_config(function (target) 
-    -- LLVM
     local llvm_cxxflags = os.iorun("llvm-config --cxxflags")
     local llvm_ldflags = os.iorun("llvm-config --libs")
-    target:add("cxxflags",llvm_cxxflags,"-fPIE", "-std=c++20")
+    target:add("cxxflags",llvm_cxxflags,"-fPIE")
     target:add("ldflags",llvm_ldflags)
-    
-    -- SDL 
     local sdl2_cxxflags = os.iorun("sdl2-config --cflags")
     local sdl2_ldflags = os.iorun("sdl2-config --libs") .. "-lSDL2_image -lSDL2_ttf"
-
     target:add("cxxflags",sdl2_cxxflags)
     target:add("ldflags",sdl2_ldflags)
   end)
