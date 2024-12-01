@@ -3,6 +3,7 @@ import chisel3.util._
 import chisel3.SpecifiedDirection.Flip
 
 class IFUIO extends Bundle {
+  // * Invalidate Whole ICache
   val flushICache = Input(Bool())
   val redirect = Input(new RedirectSignal)
   val out = Decoupled(new InstSignal)
