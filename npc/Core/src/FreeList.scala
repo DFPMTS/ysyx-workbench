@@ -6,6 +6,7 @@ class FreeListIO extends CoreBundle {
   // * Allocate new PReg
   val IN_renameReqValid = Flipped(Vec(ISSUE_WIDTH, Bool()))
   val OUT_renamePReg = Vec(ISSUE_WIDTH, UInt(PREG_IDX_W))
+  val OUT_renameStall = Bool()
 
   // * Free PReg (Commit)
   val IN_commitValid = Flipped(Vec(COMMIT_WIDTH, Bool()))
@@ -20,28 +21,55 @@ class FreeListIO extends CoreBundle {
 class FreeList extends CoreModule {
   val io = IO(new FreeListIO)
   val freeList = RegInit(VecInit((1 until NUM_PREG).map(_.U(PREG_IDX_W))))
-  val headPtr = RegInit(RingBufferPtr(NUM_PREG - 1, 0.U, 0.U))
-  val tailPtr = RegInit(RingBufferPtr(NUM_PREG - 1, 0.U, 0.U))
 
-  // * Allocate new PReg
-  val headPtrNext = WireDefault(headPtr)
-  for (i <- 0 until ISSUE_WIDTH) {
-    when (io.IN_renameReqValid(i)) {
-      io.OUT_renamePReg(i) := freeList(headPtrNext.index)
-      headPtrNext := headPtrNext + 1.U
-    } .otherwise {
-      io.OUT_renamePReg(i) := ZERO
-    }
-  }
+  val headPtr = RegInit(RingBufferPtr(size = NUM_PREG - 1, flag = 0.U, index = 0.U))
+  val headPtrNext = WireInit(headPtr)
   headPtr := headPtrNext
 
-  // * Free PReg (Commit)
-  val tailPtrNext = WireDefault(tailPtr)
-  for (i <- 0 until COMMIT_WIDTH) {
-    when (io.IN_commitValid(i)) {
-      freeList(tailPtrNext.index) := io.IN_commitPReg(i)
-      tailPtrNext := tailPtrNext + 1.U
+  val tailPtr = RegInit(RingBufferPtr(size = NUM_PREG - 1, flag = 1.U, index = 0.U))
+  
+  
+  // * Allocate new PReg
+  for (i <- 0 until ISSUE_WIDTH) {    
+    when(io.IN_renameReqValid(i)) {
+      val offset = if (i == 0) 0.U else PopCount(io.IN_renameReqValid.take(i - 1))
+      val allocateIndex = (headPtr + offset).index
+      io.OUT_renamePReg(i) := freeList(allocateIndex)
     }
   }
-  tailPtr := tailPtrNext
+  // * Stall when not enough free PReg
+  io.OUT_renameStall := headPtr.distanceTo(tailPtr) < ISSUE_WIDTH.U
+  when(!io.OUT_renameStall) {
+    headPtrNext := headPtr + PopCount(io.IN_renameReqValid)
+  }  
+  
+
+  // * Free PReg (Commit)
+  // ** find the latest commit of the same rd
+  val isCommitLatest = Wire(Vec(COMMIT_WIDTH, Bool()))
+  for (i <- 0 until COMMIT_WIDTH) {    
+    isCommitLatest(i) := true.B
+    for (j <- i + 1 until COMMIT_WIDTH) {
+      when(io.IN_commitRd(i) === io.IN_commitRd(j)) {
+        isCommitLatest(i) := false.B
+      }
+    }
+  }
+  // ** free PReg
+  // ** the latest commit of the same rd will free the PrevPReg
+  // ** the other commits will free the PReg (since their own PReg is killed by the latest)
+  for(i <- 0 until COMMIT_WIDTH) {
+    when(io.IN_commitValid(i)) {
+      val commitPReg = io.IN_commitPReg(i)
+      val commitPrevPReg = io.IN_commitPrevPReg(i)
+      val offset = if (i == 0) 0.U else PopCount(io.IN_renameReqValid.take(i - 1))
+      val commitIndex = (tailPtr + offset).index
+      when (isCommitLatest(i)) {
+        freeList(commitIndex) := commitPrevPReg
+      } .otherwise {        
+        freeList(commitIndex) := commitPReg
+      }      
+    }
+  }
+  tailPtr := tailPtr + PopCount(io.IN_commitValid)
 }

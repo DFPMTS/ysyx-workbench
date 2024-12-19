@@ -39,6 +39,24 @@ class RingBufferPtr(size: Int) extends CoreBundle {
     val nextPtr = this + (size.U - value)
     nextPtr
   }
+
+  def isFull(that: RingBufferPtr): Bool = {
+    (this.flag =/= that.flag) && (this.index === that.index)
+  }
+
+  def isEmpty(that: RingBufferPtr): Bool = {
+    this === that
+  }
+
+  def distanceTo(that: RingBufferPtr): UInt = {    
+    val distance = Wire(UInt((size.U.getWidth).W))
+    when (this.flag === that.flag) {
+      distance := that.index - this.index
+    } .otherwise {
+      distance := size.U - this.index + that.index
+    }
+    distance
+  }  
 }
 
 object RingBufferPtr {
