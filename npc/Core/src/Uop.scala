@@ -128,6 +128,5 @@ class WritebackUop extends CoreBundle {
 
 class CommitUop extends CoreBundle {
   val rd = UInt(5.W)
-  val data = UInt(XLEN.W)  
-  val robIndex = UInt(ROB_IDX_W)  
+  val prd = UInt(PREG_IDX_W)
 }

@@ -70,25 +70,35 @@ int main() {
   int T = 0;
   reset();
   std::queue<uint32_t> pregs;
-  while (T++ < 100) {
+  uint32_t x10_map = 0;
+  while (T++ < 300) {
     top->io_IN_renameReqValid_0 = 1;
     top->io_IN_renameReqValid_1 = 1;
-    if (T % 10 == 0 && !pregs.empty()) {
+    if (pregs.size() >= 2) {
       top->io_IN_commitValid_0 = 1;
-      top->io_IN_commitPReg_0 = 0;
-      top->io_IN_commitPrevPReg_0 = pregs.front();
+      top->io_IN_commitPReg_0 = pregs.front();
+      top->io_IN_commitPrevPReg_0 = x10_map;
       top->io_IN_commitRd_0 = 10;
       pregs.pop();
+
+      top->io_IN_commitValid_1 = 1;
+      top->io_IN_commitPReg_1 = pregs.front();
+      top->io_IN_commitPrevPReg_1 = x10_map;
+      top->io_IN_commitRd_1 = 10;
+      pregs.pop();
+
+      x10_map = top->io_IN_commitPReg_1;
     } else {
       top->io_IN_commitValid_0 = 0;
+      top->io_IN_commitValid_1 = 0;
     }
 
     top->eval();
     if (!top->io_OUT_renameStall) {
       pregs.push(top->io_OUT_renamePReg_0);
-      std::cout << "PReg 0: " << (uint32_t)top->io_OUT_renamePReg_0 << " -- ";
-      std::cout << "PReg 1: " << (uint32_t)top->io_OUT_renamePReg_1
-                << std::endl;
+      pregs.push(top->io_OUT_renamePReg_1);
+      std::cout << "[0]: " << (uint32_t)top->io_OUT_renamePReg_0 << " -- ";
+      std::cout << "[1]: " << (uint32_t)top->io_OUT_renamePReg_1 << std::endl;
     }
     step();
   }
