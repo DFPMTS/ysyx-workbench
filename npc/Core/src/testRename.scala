@@ -16,6 +16,7 @@ class testRename extends CoreModule {
 
   IDU.io.IN_inst.bits.inst := io.inst
   IDU.io.IN_inst.bits.pc := 0.U
+  IDU.io.IN_inst.bits.access_fault := false.B
   IDU.io.IN_inst.valid := io.valid
 
   IDU.io.IN_flush := false.B
@@ -32,6 +33,9 @@ class testRename extends CoreModule {
     x.bits := 0.U.asTypeOf(new CommitUop)
   })
 
+  rename.io.OUT_renameUop.foreach(x => {
+    x.ready := true.B
+  })
   io.renameUop(0).bits := rename.io.OUT_renameUop(0).bits 
   io.renameUop(0).valid := rename.io.OUT_renameUop(0).valid
 }
