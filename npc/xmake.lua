@@ -49,6 +49,17 @@ target("FreeList_tb")
   add_files("vsrc/FreeList.sv")  
   add_includedirs("$(buildir)")
 
+target("testRename_tb")  
+  add_rules("verilator.binary")
+  set_toolchains("@verilator")
+
+  add_values("verilator.flags", "--trace-fst")
+
+  add_files("testbench/testRename_tb.cpp")
+  add_files("vsrc/*.sv")  
+  add_includedirs("$(buildir)")
+
+
 target("chisel")  
   set_kind("phony")
   on_build(function (target) 

@@ -18,7 +18,7 @@ class Rename extends CoreModule {
   val io = IO(new RenameIO)
 
   // * Main signals: renameUop
-  val uop = Reg(Vec(ISSUE_WIDTH, new RenameUop))
+  val uopReg = Reg(Vec(ISSUE_WIDTH, new RenameUop))
   val uopNext = Wire(Vec(ISSUE_WIDTH, new RenameUop()))
   val uopValid = RegInit(VecInit(Seq.fill(ISSUE_WIDTH)(false.B)))
 
@@ -100,7 +100,7 @@ class Rename extends CoreModule {
 
   // ** update uop
   for (i <- 0 until ISSUE_WIDTH) {
-    uop(i) := Mux(inFire(i), uopNext(i), uop(i))
+    uopReg(i) := Mux(inFire(i), uopNext(i), uopReg(i))
   }
 
   // ** update uopValid  
@@ -124,6 +124,6 @@ class Rename extends CoreModule {
   // ** Rename -> Issue
   for (i <- 0 until ISSUE_WIDTH) {
     io.OUT_renameUop(i).valid := uopValid(i)
-    io.OUT_renameUop(i).bits := uop(i)    
+    io.OUT_renameUop(i).bits := uopReg(i)    
   }
 }

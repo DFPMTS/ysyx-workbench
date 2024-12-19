@@ -8,7 +8,7 @@ trait HasCoreParameters {
   def IDLEN = 4  
 
   // * Issue Width
-  def ISSUE_WIDTH = 2
+  def ISSUE_WIDTH = 1
   def MACHINE_WIDTH = 4
   def COMMIT_WIDTH = 2
 
