@@ -9,7 +9,7 @@ class testRenameIO extends CoreBundle {
 }
 
 class testRename extends CoreModule {
-  val io = new testRenameIO
+  val io = IO(new testRenameIO)
 
   val IDU = Module(new IDU)
   val rename = Module(new Rename)

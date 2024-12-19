@@ -11,6 +11,10 @@ class IDUIO extends Bundle {
 class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   val io = IO(new IDUIO)
 
+  // * Submodules
+  val immgenModule = Module(new ImmGen)
+  val decodeModule = Module(new Decode)
+
   // * Main Signals
   val uopValid = RegInit(false.B)
   val uopReg = Reg(new DecodeUop)
@@ -24,14 +28,12 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   val rs1 = inst(19, 15)
   val rs2 = inst(24, 20)
   
-  // *** Immediate Generation
-  val immgenModule = Module(new ImmGen)
+  // *** Immediate Generation  
   immgenModule.io.inst      := io.IN_inst.bits.inst
   immgenModule.io.inst_type := decodeSignal.instType
   val imm = immgenModule.io.imm
 
-  // *** Control Signals Generation
-  val decodeModule = Module(new Decode)
+  // *** Control Signals Generation  
   decodeModule.io.inst := io.IN_inst.bits.inst
   val decodeSignal     = decodeModule.io.signals
 
