@@ -51,6 +51,8 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   uopNext.predTarget := pc + 4.U
   uopNext.pc        := pc
   uopNext.imm       := imm
+  uopNext.compressed := false.B
+  
   // * Control
   // ** Input
   val inValid = io.IN_inst.valid  
