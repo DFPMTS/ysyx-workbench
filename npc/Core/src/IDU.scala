@@ -18,7 +18,7 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
 
   // * Dataflow
   // ** Input
-  val inst = io.IN_inst.bits.inst
+  val inst = WireInit(io.IN_inst.bits.inst)
   val pc = io.IN_inst.bits.pc
   val rd = inst(11, 7)
   val rs1 = inst(19, 15)
