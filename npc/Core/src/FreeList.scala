@@ -31,7 +31,7 @@ class FreeList extends CoreModule {
   
   // * Allocate new PReg
   for (i <- 0 until ISSUE_WIDTH) {
-    val offset = if (i == 0) 0.U else PopCount(io.IN_renameReqValid.take(i))
+    val offset = PopCount(io.IN_renameReqValid.take(i))
     val allocateIndex = (headPtr + offset).index
     io.OUT_renamePReg(i) := freeList(allocateIndex)
   }
@@ -60,7 +60,7 @@ class FreeList extends CoreModule {
     when(io.IN_commitValid(i)) {
       val commitPReg = io.IN_commitPReg(i)
       val commitPrevPReg = io.IN_commitPrevPReg(i)
-      val offset = if (i == 0) 0.U else PopCount(io.IN_renameReqValid.take(i - 1))
+      val offset = PopCount(io.IN_renameReqValid.take(i))
       val commitIndex = (tailPtr + offset).index
       when (isCommitLatest(i)) {
         when (commitPrevPReg =/= 0.U) {
