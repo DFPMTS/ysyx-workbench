@@ -72,6 +72,7 @@ int main() {
   std::queue<uint32_t> pregs;
   while (T++ < 100) {
     top->io_IN_renameReqValid_0 = 1;
+    top->io_IN_renameReqValid_1 = 1;
     if (T % 10 == 0 && !pregs.empty()) {
       top->io_IN_commitValid_0 = 1;
       top->io_IN_commitPReg_0 = 0;
@@ -85,7 +86,8 @@ int main() {
     top->eval();
     if (!top->io_OUT_renameStall) {
       pregs.push(top->io_OUT_renamePReg_0);
-      std::cout << "Got PReg: " << (uint32_t)top->io_OUT_renamePReg_0
+      std::cout << "PReg 0: " << (uint32_t)top->io_OUT_renamePReg_0 << " -- ";
+      std::cout << "PReg 1: " << (uint32_t)top->io_OUT_renamePReg_1
                 << std::endl;
     }
     step();

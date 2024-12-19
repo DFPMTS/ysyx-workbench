@@ -31,7 +31,7 @@ class FreeList extends CoreModule {
   
   // * Allocate new PReg
   for (i <- 0 until ISSUE_WIDTH) {
-    val offset = if (i == 0) 0.U else PopCount(io.IN_renameReqValid.take(i - 1))
+    val offset = if (i == 0) 0.U else PopCount(io.IN_renameReqValid.take(i))
     val allocateIndex = (headPtr + offset).index
     io.OUT_renamePReg(i) := freeList(allocateIndex)
   }
