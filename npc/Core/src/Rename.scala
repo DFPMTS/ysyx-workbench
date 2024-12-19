@@ -108,6 +108,8 @@ class Rename extends CoreModule {
     uopValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
   }.elsewhen(inReady) {
     uopValid := inValid
+  }.otherwise {
+    uopValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
   }
 
   // ** Flush submodules
