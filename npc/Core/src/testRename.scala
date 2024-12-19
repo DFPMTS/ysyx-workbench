@@ -23,14 +23,14 @@ class testRename extends CoreModule {
   rename.io.IN_decodeUop(0) <> IDU.io.OUT_decodeUop
 
   rename.io.IN_flush := false.B
-  // rename.io.IN_writebackUop.foreach(x => {
-  //   x.valid := false.B
-  //   x.bits := 0.U.asTypeOf(new WritebackUop)
-  // })
-  // rename.io.IN_commitUop.foreach(x => {
-  //   x.valid := false.B
-  //   x.bits := 0.U.asTypeOf(new CommitUop)
-  // })
+  rename.io.IN_writebackUop.foreach(x => {
+    x.valid := false.B
+    x.bits := 0.U.asTypeOf(new WritebackUop)
+  })
+  rename.io.IN_commitUop.foreach(x => {
+    x.valid := false.B
+    x.bits := 0.U.asTypeOf(new CommitUop)
+  })
 
   io.renameUop(0).bits := rename.io.OUT_renameUop(0).bits 
   io.renameUop(0).valid := rename.io.OUT_renameUop(0).valid
