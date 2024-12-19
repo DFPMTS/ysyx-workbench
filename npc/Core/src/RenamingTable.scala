@@ -19,7 +19,7 @@ class RenamingTableIO extends CoreBundle {
   
   // * Commit
   val IN_commitValid = Flipped(Vec(COMMIT_WIDTH, Bool()))
-  val IN_commitAReg = Flipped(Vec(COMMIT_WIDTH, UInt(PREG_IDX_W)))
+  val IN_commitAReg = Flipped(Vec(COMMIT_WIDTH, UInt(5.W)))
   val IN_commitPReg = Flipped(Vec(COMMIT_WIDTH, UInt(PREG_IDX_W)))
   // ** Previous Architectural Mapping
   val OUT_commitPrevPReg = Vec(COMMIT_WIDTH, UInt(PREG_IDX_W))
