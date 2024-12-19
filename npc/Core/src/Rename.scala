@@ -110,6 +110,10 @@ class Rename extends CoreModule {
     uopValid := inValid
   }
 
+  // ** Flush submodules
+  renamingTable.io.IN_flush := io.IN_flush
+  freeList.io.IN_flush := io.IN_flush
+
   // * Output
 
   // ** Decode <- Rename
