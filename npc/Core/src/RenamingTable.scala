@@ -73,10 +73,10 @@ class RenamingTable extends CoreModule {
 
   // * Commit
   for (i <- 0 until COMMIT_WIDTH) {
+    io.OUT_commitPrevPReg(i) := archTable(io.IN_commitAReg(i))
     when (io.IN_commitValid(i)) {
-      archTable(io.IN_commitAReg(i)) := io.IN_commitPReg(i)
-      io.OUT_commitPrevPReg(i) := archTable(io.IN_commitAReg(i))
-    }
+      archTable(io.IN_commitAReg(i)) := io.IN_commitPReg(i)      
+    }    
   }
 
   // * Flush
