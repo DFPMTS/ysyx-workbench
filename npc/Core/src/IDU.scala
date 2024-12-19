@@ -27,15 +27,15 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   val rd = inst(11, 7)
   val rs1 = inst(19, 15)
   val rs2 = inst(24, 20)
-  
+    
+  // *** Control Signals Generation  
+  decodeModule.io.inst := io.IN_inst.bits.inst
+  val decodeSignal     = decodeModule.io.signals
+
   // *** Immediate Generation  
   immgenModule.io.inst      := io.IN_inst.bits.inst
   immgenModule.io.inst_type := decodeSignal.instType
   val imm = immgenModule.io.imm
-
-  // *** Control Signals Generation  
-  decodeModule.io.inst := io.IN_inst.bits.inst
-  val decodeSignal     = decodeModule.io.signals
 
   // *** Filling uopNext
   uopNext.rd        := Mux(decodeSignal.regWe, rd, ZERO)
