@@ -11,12 +11,6 @@ class RingBufferPtr(size: Int) extends CoreBundle {
   val flag = UInt()  
   // ** real index
   val index = UInt(WIDTH_INDEX.W)
-  
-  def this(size: Int, flag: UInt, index: UInt) = {
-    this(size)
-    this.flag := flag
-    this.index := index
-  }
 
   def +(value: UInt): RingBufferPtr = {
     val nextPtr = Wire(new RingBufferPtr(size))
@@ -44,5 +38,14 @@ class RingBufferPtr(size: Int) extends CoreBundle {
   def -(value: UInt): RingBufferPtr = {
     val nextPtr = this + (size.U - value)
     nextPtr
+  }
+}
+
+object RingBufferPtr {
+  def apply(size: Int, flag: UInt, index: UInt): RingBufferPtr = {
+    val ptr = Wire(new RingBufferPtr(size))
+    ptr.flag := flag
+    ptr.index := index
+    ptr
   }
 }

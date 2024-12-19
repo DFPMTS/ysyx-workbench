@@ -20,8 +20,8 @@ class FreeListIO extends CoreBundle {
 class FreeList extends CoreModule {
   val io = IO(new FreeListIO)
   val freeList = RegInit(VecInit((1 until NUM_PREG).map(_.U(PREG_IDX_W))))
-  val headPtr = RegInit(new RingBufferPtr(NUM_PREG - 1, 0.U, 0.U))
-  val tailPtr = RegInit(new RingBufferPtr(NUM_PREG - 1, 0.U, 0.U))
+  val headPtr = RegInit(RingBufferPtr(NUM_PREG - 1, 0.U, 0.U))
+  val tailPtr = RegInit(RingBufferPtr(NUM_PREG - 1, 0.U, 0.U))
 
   // * Allocate new PReg
   for (i <- 0 until ISSUE_WIDTH) {
