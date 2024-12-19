@@ -19,8 +19,8 @@ class Rename extends CoreModule {
 
   val uop = Reg(Vec(ISSUE_WIDTH, new RenameUop))
   val uopNext = Wire(Vec(ISSUE_WIDTH, new RenameUop()))
-  val uopValid = RegInit(Vec(ISSUE_WIDTH, Bool()))
-  
+  val uopValid = RegInit(VecInit(Seq.fill(ISSUE_WIDTH)(false.B)))
+
   // * Submodules
   val renamingTable = new RenamingTable
   val freeList = new FreeList
