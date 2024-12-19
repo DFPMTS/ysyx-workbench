@@ -63,9 +63,13 @@ class FreeList extends CoreModule {
       val offset = if (i == 0) 0.U else PopCount(io.IN_renameReqValid.take(i - 1))
       val commitIndex = (tailPtr + offset).index
       when (isCommitLatest(i)) {
-        freeList(commitIndex) := commitPrevPReg
+        when (commitPrevPReg =/= 0.U) {
+          freeList(commitIndex) := commitPrevPReg
+        }
       } .otherwise {        
-        freeList(commitIndex) := commitPReg
+        when (commitPReg =/= 0.U) {
+          freeList(commitIndex) := commitPReg
+        }        
       }      
     }
   }
