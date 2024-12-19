@@ -25,11 +25,11 @@ class testRename extends CoreModule {
   rename.io.IN_flush := false.B
   rename.io.IN_writebackUop.foreach(x => {
     x.valid := false.B
-    x.bits := 0.U.asTypeOf(new WritebackUop)
+    x.bits := WireInit(0.U.asTypeOf(new WritebackUop))
   })
   rename.io.IN_commitUop.foreach(x => {
     x.valid := false.B
-    x.bits := 0.U.asTypeOf(new CommitUop)
+    x.bits := WireInit(0.U.asTypeOf(new CommitUop))
   })
 
   io.renameUop(0).bits := rename.io.OUT_renameUop(0).bits
