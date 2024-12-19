@@ -16,12 +16,12 @@ object Core extends ScalaModule with ScalafmtModule { m =>
     "-Xcheckinit"
   )
   override def ivyDeps = Agg(
-    if (useChisel5) ivy"org.chipsalliance::chisel:6.0.0"
+    if (useChisel5) ivy"org.chipsalliance::chisel:6.1.0"
     else
       ivy"edu.berkeley.cs::chisel3:3.6.0"
   )
   override def scalacPluginIvyDeps = Agg(
-    if (useChisel5) ivy"org.chipsalliance:::chisel-plugin:6.0.0"
+    if (useChisel5) ivy"org.chipsalliance:::chisel-plugin:6.1.0"
     else
       ivy"edu.berkeley.cs:::chisel3-plugin:3.6.0"
   )
