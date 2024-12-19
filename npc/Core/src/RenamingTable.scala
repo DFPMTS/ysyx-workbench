@@ -5,7 +5,7 @@ import utils._
 class RenamingTableIO extends CoreBundle {
   // * Rename
   // ** Read (rs1 rs2)
-  val IN_renameReadAReg = Flipped(Vec(ISSUE_WIDTH, Vec(2, Flipped((UInt(5.W))))))
+  val IN_renameReadAReg = Flipped(Vec(ISSUE_WIDTH, Vec(2, UInt(5.W))))
   val OUT_renameReadPReg = Vec(ISSUE_WIDTH, Vec(2, UInt(PREG_IDX_W)))
   val OUT_renameReadReady = Vec(ISSUE_WIDTH, Vec(2, Bool()))
   // ** Write (rd)
@@ -14,8 +14,8 @@ class RenamingTableIO extends CoreBundle {
   val IN_renameWritePReg = Flipped(Vec(ISSUE_WIDTH, UInt(PREG_IDX_W)))
 
   // * Writeback
-  val IN_writebackValid = Vec(MACHINE_WIDTH, Bool())
-  val IN_writebackPReg = Vec(MACHINE_WIDTH, UInt(PREG_IDX_W))  
+  val IN_writebackValid = Flipped(Vec(MACHINE_WIDTH, Bool()))
+  val IN_writebackPReg = Flipped(Vec(MACHINE_WIDTH, UInt(PREG_IDX_W)))
   
   // * Commit
   val IN_commitValid = Flipped(Vec(COMMIT_WIDTH, Bool()))
