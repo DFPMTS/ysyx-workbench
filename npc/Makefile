@@ -108,6 +108,11 @@ FreeList_tb:
 	xmake build FreeList_tb
 	xmake run FreeList_tb
 
+testRename_tb:
+	xmake build chisel
+	xmake build testRename_tb
+	xmake run testRename_tb
+
 sta:
 	make -C ../../yosys-sta sta DESIGN=multi SDC_FILE=$(abspath npc.sdc) RTL_FILES="$(shell find $(abspath ./vsrc) -regex ".*\.\(sv\|v\)")" CLK_FREQ_MHZ=5000
 

@@ -32,9 +32,9 @@ class RenamingTable extends CoreModule {
 
   // * Tables
   // ** Architectural Renaming Table
-  val archTable = RegInit(VecInit(Seq.fill(NUM_PREG)(0.U(PREG_IDX_W))))
+  val archTable = RegInit(VecInit(Seq.fill(32)(0.U(PREG_IDX_W))))
   // ** Speculative Renaming File
-  val specTable = RegInit(VecInit(Seq.fill(NUM_PREG)(0.U(PREG_IDX_W))))
+  val specTable = RegInit(VecInit(Seq.fill(32)(0.U(PREG_IDX_W))))
   // ** Ready Table
   val readyTable = RegInit(VecInit(Seq.fill(NUM_PREG)(true.B)))
 
