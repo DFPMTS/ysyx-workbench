@@ -95,6 +95,7 @@ class Rename extends CoreModule {
   val inValid = io.IN_decodeUop.map(_.valid)
   val outReady = io.OUT_renameUop(0).ready
   val inFire = io.IN_decodeUop.map(_.fire)
+  val outFire = io.OUT_renameUop(0).fire
   val inReady = (!uopValid.reduce(_ || _) || outReady) && !renameStall
 
 
@@ -108,7 +109,7 @@ class Rename extends CoreModule {
     uopValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
   }.elsewhen(inReady) {
     uopValid := inValid
-  }.otherwise {
+  }.elsewhen(outFire) {
     uopValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
   }
 
