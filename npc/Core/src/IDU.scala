@@ -34,7 +34,7 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
 
   // *** Immediate Generation  
   immgenModule.io.inst      := io.IN_inst.bits.inst
-  immgenModule.io.inst_type := decodeSignal.instType
+  immgenModule.io.inst_type := decodeSignal.immType
   val imm = immgenModule.io.imm
 
   // *** Filling uopNext
@@ -46,7 +46,7 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   uopNext.src2Type  := decodeSignal.src2Type  
 
   uopNext.fuType    := decodeSignal.fuType
-  uopNext.opcode    := decodeSignal.fuOp
+  uopNext.opcode    := decodeSignal.opcode
   
   uopNext.predTarget := pc + 4.U
   uopNext.pc        := pc
