@@ -2,6 +2,13 @@ import chisel3._
 import chisel3.util._
 import utils._
 
+object SrcType extends HasDecodeConfig {
+  val ZERO = 0.U(2.W)
+  val REG  = 1.U(2.W)
+  val IMM  = 2.U(2.W)
+  val PC   = 3.U(2.W)
+}
+
 object FuType extends HasDecodeConfig {
   val ALU = 0.U(FuTypeWidth.W)
   val BRU = 1.U(FuTypeWidth.W)

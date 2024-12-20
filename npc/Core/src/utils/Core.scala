@@ -2,13 +2,14 @@ package utils
 
 import chisel3._
 import chisel3.util._
-import _empty_.HasDecodeConfig
-import _empty_.HasDecodeConfig
 
 trait HasDecodeConfig {
   def FuTypeWidth = 4
   def OpcodeWidth = 4
   def ImmTypeWidth = 4
+
+  def Y = 1.U(1.W)
+  def N = 0.U(1.W)
 }
 
 trait HasCoreParameters {

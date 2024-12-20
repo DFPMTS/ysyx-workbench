@@ -4,6 +4,7 @@ import chisel3.util.experimental._
 import chisel3.util.experimental.decode.TruthTable
 import chisel3.util.experimental.decode.decoder
 import scala.language.implicitConversions
+import utils._
 
 class DecodeSignal extends Bundle with HasDecodeConfig{
   val invalid  = Bool()
@@ -15,7 +16,7 @@ class DecodeSignal extends Bundle with HasDecodeConfig{
   val immType = UInt(ImmTypeWidth.W)
 }
 
-class Decode extends Module {
+class Decode extends CoreModule {
   val io = IO(new Bundle {
     val inst    = Input(UInt(32.W))
     val signals = Output(new DecodeSignal)
@@ -66,51 +67,51 @@ class Decode extends Module {
   def mret       = BitPat("b0011000 00010 00000 000 00000 11100 11")
 
 
-  val defaultCtrl: List[BitPat] = List(Y, N, ZERO, ZERO, ALUOp.ADD, ALU, ImmType.X, OP_X)
+  val defaultCtrl: List[BitPat] = List(Y, N, BitPat.dontCare(2), BitPat.dontCare(2), BitPat.dontCare(FuTypeWidth), BitPat.dontCare(OpcodeWidth), ImmType.X)
   val lut: List[(BitPat, List[BitPat])] = List(
-lui        -> List(N, Y, ZERO, IMM,  FuType.ALU, ALUOp.ADD,       ImmType.U),
-auipc      -> List(N, Y, PC,   IMM,  FuType.ALU, ALUOp.ADD,       ImmType.U),
-jal        -> List(N, Y, PC,   IMM,  FuType.BRU, BRUOp.JAL,       ImmType.J),
-jalr       -> List(N, Y, REG,  IMM,  FuType.BRU, BRUOp.JALR,      ImmType.I),
-beq        -> List(N, N, REG,  REG,  FuType.BRU, BRUOp.BEQ,       ImmType.B),
-bne        -> List(N, N, REG,  REG,  FuType.BRU, BRUOp.BNE,       ImmType.B),
-blt        -> List(N, N, REG,  REG,  FuType.BRU, BRUOp.BLT,       ImmType.B),
-bge        -> List(N, N, REG,  REG,  FuType.BRU, BRUOp.BGE,       ImmType.B),
-bltu       -> List(N, N, REG,  REG,  FuType.BRU, BRUOp.BLTU,      ImmType.B),
-bgeu       -> List(N, N, REG,  REG,  FuType.BRU, BRUOp.BGEU,      ImmType.B),
-lb         -> List(N, Y, REG,  IMM,  FuType.AGU, LSUOp.LB,        ImmType.I),
-lh         -> List(N, Y, REG,  IMM,  FuType.AGU, LSUOp.LH,        ImmType.I),
-lw         -> List(N, Y, REG,  IMM,  FuType.AGU, LSUOp.LW,        ImmType.I),
-lbu        -> List(N, Y, REG,  IMM,  FuType.AGU, LSUOp.LBU,       ImmType.I),
-lhu        -> List(N, Y, REG,  IMM,  FuType.AGU, LSUOp.LHU,       ImmType.I),
-sb         -> List(N, N, REG,  IMM,  FuType.AGU, LSUOp.SB,        ImmType.S),
-sh         -> List(N, N, REG,  IMM,  FuType.AGU, LSUOp.SH,        ImmType.S),
-sw         -> List(N, N, REG,  IMM,  FuType.AGU, LSUOp.SW,        ImmType.S),
-addi       -> List(N, Y, REG,  IMM,  FuType.ALU, ALUOp.ADD,       ImmType.I),
-slti       -> List(N, Y, REG,  IMM,  FuType.ALU, ALUOp.LT,        ImmType.I),
-sltiu      -> List(N, Y, REG,  IMM,  FuType.ALU, ALUOp.LTU,       ImmType.I),
-xori       -> List(N, Y, REG,  IMM,  FuType.ALU, ALUOp.XOR,       ImmType.I),
-ori        -> List(N, Y, REG,  IMM,  FuType.ALU, ALUOp.OR,        ImmType.I),
-andi       -> List(N, Y, REG,  IMM,  FuType.ALU, ALUOp.AND,       ImmType.I),
-slli       -> List(N, Y, REG,  IMM,  FuType.ALU, ALUOp.LEFT,      ImmType.I),
-srli       -> List(N, Y, REG,  IMM,  FuType.ALU, ALUOp.RIGHT,     ImmType.I),
-srai       -> List(N, Y, REG,  IMM,  FuType.ALU, ALUOp.ARITH,     ImmType.I),
-add        -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.ADD,       ImmType.X),
-sub        -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.SUB,       ImmType.X),
-sll        -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.LEFT,      ImmType.X),
-slt        -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.LT,        ImmType.X),
-sltu       -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.LTU,       ImmType.X),
-xor        -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.XOR,       ImmType.X),
-srl        -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.RIGHT,     ImmType.X),
-sra        -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.ARITH,     ImmType.X),
-or         -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.OR,        ImmType.X),
-and        -> List(N, Y, REG,  REG,  FuType.ALU, ALUOp.AND,       ImmType.X),
+lui        -> List(N, Y, SrcType.ZERO, SrcType.IMM,  FuType.ALU, ALUOp.ADD,       ImmType.U),
+auipc      -> List(N, Y, SrcType.PC,   SrcType.IMM,  FuType.ALU, ALUOp.ADD,       ImmType.U),
+jal        -> List(N, Y, SrcType.PC,   SrcType.IMM,  FuType.BRU, BRUOp.JAL,       ImmType.J),
+jalr       -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.BRU, BRUOp.JALR,      ImmType.I),
+beq        -> List(N, N, SrcType.REG,  SrcType.REG,  FuType.BRU, BRUOp.BEQ,       ImmType.B),
+bne        -> List(N, N, SrcType.REG,  SrcType.REG,  FuType.BRU, BRUOp.BNE,       ImmType.B),
+blt        -> List(N, N, SrcType.REG,  SrcType.REG,  FuType.BRU, BRUOp.BLT,       ImmType.B),
+bge        -> List(N, N, SrcType.REG,  SrcType.REG,  FuType.BRU, BRUOp.BGE,       ImmType.B),
+bltu       -> List(N, N, SrcType.REG,  SrcType.REG,  FuType.BRU, BRUOp.BLTU,      ImmType.B),
+bgeu       -> List(N, N, SrcType.REG,  SrcType.REG,  FuType.BRU, BRUOp.BGEU,      ImmType.B),
+lb         -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.AGU, LSUOp.LB,        ImmType.I),
+lh         -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.AGU, LSUOp.LH,        ImmType.I),
+lw         -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.AGU, LSUOp.LW,        ImmType.I),
+lbu        -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.AGU, LSUOp.LBU,       ImmType.I),
+lhu        -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.AGU, LSUOp.LHU,       ImmType.I),
+sb         -> List(N, N, SrcType.REG,  SrcType.IMM,  FuType.AGU, LSUOp.SB,        ImmType.S),
+sh         -> List(N, N, SrcType.REG,  SrcType.IMM,  FuType.AGU, LSUOp.SH,        ImmType.S),
+sw         -> List(N, N, SrcType.REG,  SrcType.IMM,  FuType.AGU, LSUOp.SW,        ImmType.S),
+addi       -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.ALU, ALUOp.ADD,       ImmType.I),
+slti       -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.ALU, ALUOp.LT,        ImmType.I),
+sltiu      -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.ALU, ALUOp.LTU,       ImmType.I),
+xori       -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.ALU, ALUOp.XOR,       ImmType.I),
+ori        -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.ALU, ALUOp.OR,        ImmType.I),
+andi       -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.ALU, ALUOp.AND,       ImmType.I),
+slli       -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.ALU, ALUOp.LEFT,      ImmType.I),
+srli       -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.ALU, ALUOp.RIGHT,     ImmType.I),
+srai       -> List(N, Y, SrcType.REG,  SrcType.IMM,  FuType.ALU, ALUOp.ARITH,     ImmType.I),
+add        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.ADD,       ImmType.X),
+sub        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.SUB,       ImmType.X),
+sll        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.LEFT,      ImmType.X),
+slt        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.LT,        ImmType.X),
+sltu       -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.LTU,       ImmType.X),
+xor        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.XOR,       ImmType.X),
+srl        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.RIGHT,     ImmType.X),
+sra        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.ARITH,     ImmType.X),
+or         -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.OR,        ImmType.X),
+and        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU, ALUOp.AND,       ImmType.X),
 // fence_i    -> List(N, N, ZERO, IMM,  FuType.CSR, CSROp.FENCE_I,   ImmType.X),
-ecall      -> List(N, N, ZERO, ZERO, FuType.CSR, CSROp.ECALL,     ImmType.X),
-ebreak     -> List(N, N, ZERO, ZERO, FuType.CSR, CSROp.EBREAK,    ImmType.X),
-csrrw      -> List(N, Y, REG,  ZERO, FuType.CSR, CSROp.CSRRW,     ImmType.I),
-csrrs      -> List(N, Y, REG,  ZERO, FuType.CSR, CSROp.CSRRS,     ImmType.I),
-mret       -> List(N, N, ZERO, ZERO, FuType.CSR, CSROp.MRET,      ImmType.X),
+ecall      -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.CSR, CSROp.ECALL,     ImmType.X),
+ebreak     -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.CSR, CSROp.EBREAK,    ImmType.X),
+csrrw      -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR, CSROp.CSRRW,     ImmType.I),
+csrrs      -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR, CSROp.CSRRS,     ImmType.I),
+mret       -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.CSR, CSROp.MRET,      ImmType.X),
 
   )
   def listToBitPat(l: List[BitPat]) = {
