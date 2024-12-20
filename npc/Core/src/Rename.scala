@@ -74,7 +74,7 @@ class Rename extends CoreModule {
     uopNext(i).prs2 := renamingTable.io.OUT_renameReadPReg(i)(1)
 
     uopNext(i).src1Ready := renamingTable.io.OUT_renameReadReady(i)(0)
-    uopNext(i).src2Ready := renamingTable.io.OUT_renameReadReady(i)(0)
+    uopNext(i).src2Ready := renamingTable.io.OUT_renameReadReady(i)(1)
 
     uopNext(i).fuType := io.IN_decodeUop(i).bits.fuType
     uopNext(i).opcode := io.IN_decodeUop(i).bits.opcode

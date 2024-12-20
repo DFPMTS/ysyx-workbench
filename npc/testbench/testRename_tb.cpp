@@ -81,10 +81,14 @@ int main() {
 
     step();
     if (top->io_renameUop_0_valid) {
-      std::cout << "[rd]: " << (uint32_t)top->io_renameUop_0_bits_prd << " -- ";
+      std::cout << "[rd]: " << (uint32_t)top->io_renameUop_0_bits_prd << " \t ";
       std::cout << "[rs1]: " << (uint32_t)top->io_renameUop_0_bits_prs1
-                << " -- ";
+                << (top->io_renameUop_0_bits_src1Ready ? " (ready)"
+                                                       : " (not ready)")
+                << " \t ";
       std::cout << "[rs2]: " << (uint32_t)top->io_renameUop_0_bits_prs2
+                << (top->io_renameUop_0_bits_src2Ready ? " (ready)"
+                                                       : " (not ready)")
                 << std::endl;
     }
 
