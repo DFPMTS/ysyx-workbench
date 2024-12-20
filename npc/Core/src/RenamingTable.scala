@@ -66,7 +66,7 @@ class RenamingTable extends CoreModule {
 
   // * Writeback
   for (i <- 0 until MACHINE_WIDTH) {  
-    when (io.IN_writebackValid(i)) {
+    when (io.IN_writebackValid(i) && io.IN_writebackPReg(i) =/= 0.U) {
       readyTable(io.IN_writebackPReg(i)) := true.B
     }    
   }
@@ -74,7 +74,7 @@ class RenamingTable extends CoreModule {
   // * Commit
   for (i <- 0 until COMMIT_WIDTH) {
     io.OUT_commitPrevPReg(i) := archTable(io.IN_commitAReg(i))
-    when (io.IN_commitValid(i)) {
+    when (io.IN_commitValid(i) && io.IN_commitAReg(i) =/= 0.U) {
       archTable(io.IN_commitAReg(i)) := io.IN_commitPReg(i)      
     }    
   }

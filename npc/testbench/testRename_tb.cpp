@@ -71,8 +71,12 @@ int main() {
   reset();
   std::queue<uint32_t> pregs;
   uint32_t x10_map = 0;
-  while (T++ < 300) {
-    top->io_inst = 0x005282B3;
+
+  std::vector<uint32_t> insts = {0x002182B3, 0x00220333, 0x00138233,
+                                 0xFFF08313};
+
+  while (T < 300) {
+    top->io_inst = insts[T % insts.size()];
     top->io_valid = 1;
 
     step();
@@ -83,6 +87,8 @@ int main() {
       std::cout << "[rs2]: " << (uint32_t)top->io_renameUop_0_bits_prs2
                 << std::endl;
     }
+
+    ++T;
   }
   fst->close();
   delete top;
