@@ -72,8 +72,8 @@ int main() {
   std::queue<uint32_t> pregs;
   uint32_t x10_map = 0;
 
-  std::vector<uint32_t> insts = {0x002182B3, 0x00220333, 0x00138233,
-                                 0xFFF08313};
+  std::vector<uint32_t> insts = {0x002182B3, 0x00220333, 0x00538233,
+                                 0xFFF30313};
 
   while (T < 300) {
     top->io_inst = insts[T % insts.size()];
