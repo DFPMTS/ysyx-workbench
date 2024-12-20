@@ -2,6 +2,14 @@ package utils
 
 import chisel3._
 import chisel3.util._
+import _empty_.HasDecodeConfig
+import _empty_.HasDecodeConfig
+
+trait HasDecodeConfig {
+  def FuTypeWidth = 4
+  def OpcodeWidth = 4
+  def ImmTypeWidth = 4
+}
 
 trait HasCoreParameters {
   def XLEN = 32
@@ -36,7 +44,6 @@ trait HasCoreParameters {
   def ZERO = 0.U
 }
 
+trait CoreModule extends Module with HasCoreParameters with HasDecodeConfig
 
-trait CoreModule extends Module with HasCoreParameters
-
-trait CoreBundle extends Bundle with HasCoreParameters
+trait CoreBundle extends Bundle with HasCoreParameters with HasDecodeConfig
