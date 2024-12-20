@@ -16,7 +16,7 @@ class WBU extends Module with HasDecodeConstants {
   val io = IO(new Bundle {
     val in          = Flipped(Decoupled(new MEM_Message))
     val wb          = new WBSignal
-    val dnpc        = new dnpcSignal
+    val dnpc        = new RedirectSignal
     val valid       = Output(Bool())
     val flushICache = Output(Bool())
   })

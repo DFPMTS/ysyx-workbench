@@ -29,7 +29,8 @@ object Elaborate_npc extends App {
       "locationInfoStyle=wrapInAtSquareBracket"
     ).reduce(_ + "," + _)
   )
-  circt.stage.ChiselStage.emitSystemVerilogFile(new npc_top, Array("-td", "./vsrc", "--split-verilog"), firtoolOptions)
+  println("firtool version", chisel3.BuildInfo.firtoolVersion, chisel3.BuildInfo.version, chisel3.BuildInfo.scalaVersion )
+  circt.stage.ChiselStage.emitSystemVerilogFile(new testRename, Array("-td", "./vsrc", "--split-verilog"), firtoolOptions)
 }
 
 object Elaborate_soc extends App {

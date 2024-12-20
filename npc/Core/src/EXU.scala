@@ -19,7 +19,7 @@ class EXU extends Module with HasDecodeConstants {
     val in   = Flipped(Decoupled(new IDU_Message))
     val out  = Decoupled(new EXU_Message)
     val wb   = new WBSignal
-    val dnpc = new dnpcSignal
+    val dnpc = new RedirectSignal
   })
   val insert      = Wire(Bool())
   val ctrlBuffer  = RegEnable(io.in.bits.ctrl, insert)
@@ -35,7 +35,7 @@ class EXU extends Module with HasDecodeConstants {
   val ctrlOut = WireInit(ctrlBuffer)
   val dataOut = WireInit(dataBuffer)
   val wbOut   = Wire(new WBSignal)
-  val dnpcOut = Wire(new dnpcSignal)
+  val dnpcOut = Wire(new RedirectSignal)
 
   // -------------------- Function Units ---------------------
 
