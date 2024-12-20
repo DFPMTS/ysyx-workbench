@@ -33,9 +33,9 @@ class testRename extends CoreModule {
     x.bits := 0.U.asTypeOf(new CommitUop)
   })
 
-  // rename.io.OUT_renameUop.foreach(x => {
-  //   x.ready := true.B
-  // })
+  rename.io.OUT_renameUop.foreach(x => {
+    x.ready := true.B
+  })
   io.renameUop(0).bits := rename.io.OUT_renameUop(0).bits 
   io.renameUop(0).valid := rename.io.OUT_renameUop(0).valid
 }
