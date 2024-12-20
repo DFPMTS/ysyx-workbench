@@ -1,7 +1,6 @@
 import chisel3._
 import chisel3.util._
 import chisel3.experimental.dataview._
-import scribe.output.Color.Red
 
 object Config {
   val XLEN         = 32
