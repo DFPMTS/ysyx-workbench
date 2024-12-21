@@ -68,10 +68,6 @@ class Rename extends CoreModule {
     renamingTable.io.IN_commitPReg(i) := io.IN_commitUop(i).bits.prd
   }
 
-  // ** Allocate robIndex now
-  val robPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))
-  robPtr := robPtr + PopCount(io.IN_decodeUop.map(_.fire))
-
   // ** uopNext generation
   for (i <- 0 until ISSUE_WIDTH) {
     uopNext(i).rd := io.IN_decodeUop(i).bits.rd
@@ -91,7 +87,7 @@ class Rename extends CoreModule {
     uopNext(i).predTarget := io.IN_decodeUop(i).bits.predTarget
     uopNext(i).compressed := io.IN_decodeUop(i).bits.compressed
 
-    uopNext(i).robPtr := robPtr + i.U
+    uopNext(i).robPtr := 0.U
     uopNext(i).ldqIndex := 0.U
     uopNext(i).stqIndex := 0.U
 

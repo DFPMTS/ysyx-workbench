@@ -56,7 +56,7 @@ class RingBufferPtr(size: Int) extends CoreBundle {
       distance := size.U - this.index + that.index
     }
     distance
-  }  
+  }
 }
 
 object RingBufferPtr {

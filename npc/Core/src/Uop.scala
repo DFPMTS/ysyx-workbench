@@ -156,6 +156,32 @@ class RenameUop extends CoreBundle {
   val stqIndex = UInt(STQ_IDX_W)
 
   val imm =  UInt(32.W)  
+  val pc = UInt(XLEN.W)
+  
+  val fuType = UInt(FuTypeWidth.W)
+  val opcode = UInt(OpcodeWidth.W)
+
+  val predTarget = UInt(XLEN.W)
+  val compressed = Bool()
+
+  val flag = UInt(FLAG_W)
+}
+
+class IssueUop extends CoreBundle {
+  val  rd = UInt(5.W)
+  val prd = UInt(PREG_IDX_W)
+
+  val prs1 = UInt(PREG_IDX_W)
+  val prs2 = UInt(PREG_IDX_W)
+
+  val src1Ready = Bool()
+  val src2Ready = Bool()
+
+  val robPtr = RingBufferPtr(ROB_SIZE)
+  val ldqIndex = UInt(LDQ_IDX_W)
+  val stqIndex = UInt(STQ_IDX_W)
+
+  val imm =  UInt(32.W)  
   val pc = UInt(XLEN.W)  
   
   val fuType = UInt(FuTypeWidth.W)
@@ -170,7 +196,7 @@ class RenameUop extends CoreBundle {
 class WritebackUop extends CoreBundle {
   val prd = UInt(PREG_IDX_W)
   val data = UInt(XLEN.W)  
-  val robIndex = UInt(ROB_IDX_W)  
+  val robPtr = RingBufferPtr(ROB_SIZE)
   val flag = UInt(FLAG_W)
 }
 
