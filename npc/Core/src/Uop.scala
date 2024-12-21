@@ -151,7 +151,7 @@ class RenameUop extends CoreBundle {
   val src1Ready = Bool()
   val src2Ready = Bool()
 
-  val robIndex = RingBufferPtr(ROB_SIZE)
+  val robPtr = RingBufferPtr(ROB_SIZE)
   val ldqIndex = UInt(LDQ_IDX_W)
   val stqIndex = UInt(STQ_IDX_W)
 
