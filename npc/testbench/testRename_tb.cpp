@@ -90,8 +90,9 @@ int main() {
                 << (top->io_renameUop_0_bits_src2Ready ? " (ready)"
                                                        : " (not ready)")
                 << " \t ";
-      std::cout << "[robPtr]: " << (uint32_t)top->io_renameUop_0_bits_robIdx
-                << " \t ";
+      std::cout << "[robPtr]: "
+                << (uint32_t)top->io_renameUop_0_bits_robPtr_flag << " "
+                << (uint32_t)top->io_renameUop_0_bits_robPtr_index << std::endl;
     }
 
     ++T;

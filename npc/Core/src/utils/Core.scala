@@ -27,7 +27,7 @@ trait HasCoreParameters {
   def PREG_IDX_W = log2Up(NUM_PREG).W
 
   // * ROB 
-  def ROB_SIZE = 64
+  def ROB_SIZE = 33
   def ROB_IDX_W = log2Up(ROB_SIZE).W
 
   // * Load Queue
