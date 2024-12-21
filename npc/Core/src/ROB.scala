@@ -7,6 +7,7 @@ class ROBIO extends CoreBundle {
   val IN_writebackUop = Flipped(Vec(MACHINE_WIDTH, Valid(new WritebackUop)))
   val OUT_commitUop = Vec(COMMIT_WIDTH, Valid(new CommitUop))  
   val OUT_robTailPtr = Output(RingBufferPtr(ROB_SIZE))
+  val IN_renameRobHeadPtr = Input(RingBufferPtr(ROB_SIZE))
 }
 
 class ROBEntry extends CoreBundle {
@@ -22,13 +23,12 @@ class ROB extends CoreModule {
   val rob = Reg(Vec(ROB_SIZE, new ROBEntry))
 
   // ** head/tail
-  val headPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))
-  headPtr := headPtr + PopCount(io.IN_renameUop.map(_.fire))  
-
-  val tailPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 1.U, index = 0.U))
+  val robHeadPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))
+  robHeadPtr := io.IN_renameRobHeadPtr
+  val robTailPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 1.U, index = 0.U))
 
   // ** Control
-  val enqStall = headPtr.distanceTo(tailPtr) < ISSUE_WIDTH.U
+  val enqStall = io.IN_renameRobHeadPtr.isAheadOf(robTailPtr)
   for (i <- 0 until ISSUE_WIDTH) {
     io.IN_renameUop(i).ready := !enqStall
   }
@@ -40,7 +40,7 @@ class ROB extends CoreModule {
     enqEntry.prd := io.IN_renameUop(i).bits.prd
     enqEntry.flag := io.IN_renameUop(i).bits.flag
 
-    val enqPtr = headPtr + i.U
+    val enqPtr = robTailPtr + i.U
     when (io.IN_renameUop(i).fire) {
       rob(enqPtr.index) := enqEntry
     }
@@ -48,9 +48,9 @@ class ROB extends CoreModule {
 
   // ** dequeue (Commit)
   for (i <- 0 until COMMIT_WIDTH) {
-    val deqPtr = tailPtr + i.U
+    val deqPtr = robTailPtr + i.U
     val deqEntry = rob(deqPtr.index)
-    val deqValid = headPtr.distanceTo(deqPtr) <= ROB_SIZE.U && deqEntry.executed
+    val deqValid = robHeadPtr.distanceTo(deqPtr) < ROB_SIZE.U && deqEntry.executed
 
     io.OUT_commitUop(i).valid := deqValid
     io.OUT_commitUop(i).bits.rd := deqEntry.rd
