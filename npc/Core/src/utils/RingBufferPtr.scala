@@ -8,7 +8,7 @@ class RingBufferPtr(size: Int) extends CoreBundle {
   // ** extra flag bit, used for distinguishing between full and empty
   // ** everytime we wrap around, we flip this bit
   val WIDTH_INDEX = log2Up(size)
-  val flag = UInt()  
+  val flag = UInt(1.W)  
   // ** real index
   val index = UInt(WIDTH_INDEX.W)
 
