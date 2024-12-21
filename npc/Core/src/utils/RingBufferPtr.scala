@@ -60,10 +60,14 @@ class RingBufferPtr(size: Int) extends CoreBundle {
 }
 
 object RingBufferPtr {
-  def apply(size: Int, flag: UInt, index: UInt): RingBufferPtr = {
+  def apply(size: Int, flag: UInt, index: UInt) = {
     val ptr = Wire(new RingBufferPtr(size))
     ptr.flag := flag
     ptr.index := index
+    ptr
+  }
+  def apply(size: Int) = {
+    val ptr = new RingBufferPtr(size)
     ptr
   }
 }

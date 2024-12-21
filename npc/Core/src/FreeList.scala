@@ -22,6 +22,7 @@ class FreeList extends CoreModule {
   val io = IO(new FreeListIO)
   val freeList = RegInit(VecInit((1 until NUM_PREG).map(_.U(PREG_IDX_W))))
 
+  // * Request consumes PRegs, so headPtr is after tailPtr
   val headPtr = RegInit(RingBufferPtr(size = NUM_PREG - 1, flag = 0.U, index = 0.U))
   val headPtrNext = WireInit(headPtr)
   headPtr := headPtrNext

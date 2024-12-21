@@ -1,6 +1,7 @@
 import chisel3._
 import chisel3.util._
 import utils._
+import os.makeDir.all
 
 class RenameIO extends CoreBundle {
   // * rename
@@ -27,13 +28,15 @@ class Rename extends CoreModule {
   val freeList = Module(new FreeList)
 
   // * Dataflow
+  // ** Allocate robIndex/ldqIndex/stqIndex now
+  val robPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))  
 
   // ** Decode -> FreeList
-  val needPReg = io.IN_decodeUop.map(decodeUop => decodeUop.valid && decodeUop.bits.rd =/= 0.U)
+  val allocatePReg = io.IN_decodeUop.map(decodeUop => decodeUop.fire && decodeUop.bits.rd =/= 0.U)
   val renameStall = freeList.io.OUT_renameStall
   for (i <- 0 until ISSUE_WIDTH) {
     // * Allocate PReg
-    freeList.io.IN_renameReqValid(i) := needPReg(i)
+    freeList.io.IN_renameReqValid(i) := allocatePReg(i)
   }  
 
   // ** FreeList <- Commit
@@ -49,7 +52,7 @@ class Rename extends CoreModule {
     // * Read
     renamingTable.io.IN_renameReadAReg(i) := VecInit(io.IN_decodeUop(i).bits.rs1, io.IN_decodeUop(i).bits.rs2)
     // * Write
-    renamingTable.io.IN_renameWriteValid(i) := !renameStall && needPReg(i)
+    renamingTable.io.IN_renameWriteValid(i) := allocatePReg(i)
     renamingTable.io.IN_renameWriteAReg(i) := io.IN_decodeUop(i).bits.rd
     renamingTable.io.IN_renameWritePReg(i) := freeList.io.OUT_renamePReg(i)
   }
@@ -69,7 +72,8 @@ class Rename extends CoreModule {
 
   // ** uopNext generation
   for (i <- 0 until ISSUE_WIDTH) {
-    uopNext(i).prd := Mux(needPReg(i), freeList.io.OUT_renamePReg(i), 0.U)
+    uopNext(i).rd := io.IN_decodeUop(i).bits.rd
+    uopNext(i).prd := Mux(allocatePReg(i), freeList.io.OUT_renamePReg(i), 0.U)
     uopNext(i).prs1 := renamingTable.io.OUT_renameReadPReg(i)(0)
     uopNext(i).prs2 := renamingTable.io.OUT_renameReadPReg(i)(1)
 
@@ -85,10 +89,9 @@ class Rename extends CoreModule {
     uopNext(i).predTarget := io.IN_decodeUop(i).bits.predTarget
     uopNext(i).compressed := io.IN_decodeUop(i).bits.compressed
 
-    uopNext(i).robIndex := 0.U
+    uopNext(i).robPtr := robPtr + i.U
     uopNext(i).ldqIndex := 0.U
     uopNext(i).stqIndex := 0.U
-
   }
 
   // * Control

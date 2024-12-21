@@ -142,6 +142,7 @@ class DecodeUop extends CoreBundle{
 }
 
 class RenameUop extends CoreBundle {
+  val  rd = UInt(5.W)
   val prd = UInt(PREG_IDX_W)
 
   val prs1 = UInt(PREG_IDX_W)
@@ -150,7 +151,7 @@ class RenameUop extends CoreBundle {
   val src1Ready = Bool()
   val src2Ready = Bool()
 
-  val robIndex = UInt(ROB_IDX_W)
+  val robIndex = RingBufferPtr(ROB_SIZE)
   val ldqIndex = UInt(LDQ_IDX_W)
   val stqIndex = UInt(STQ_IDX_W)
 
@@ -162,6 +163,8 @@ class RenameUop extends CoreBundle {
 
   val predTarget = UInt(XLEN.W)
   val compressed = Bool()
+
+  val flag = UInt(FLAG_W)
 }
 
 class WritebackUop extends CoreBundle {
