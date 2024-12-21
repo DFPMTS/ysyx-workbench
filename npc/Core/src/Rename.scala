@@ -92,6 +92,8 @@ class Rename extends CoreModule {
     uopNext(i).robPtr := robPtr + i.U
     uopNext(i).ldqIndex := 0.U
     uopNext(i).stqIndex := 0.U
+
+    uopNext(i).flag := 0.U
   }
 
   // * Control
