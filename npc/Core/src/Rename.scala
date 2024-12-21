@@ -87,10 +87,6 @@ class Rename extends CoreModule {
     uopNext(i).predTarget := io.IN_decodeUop(i).bits.predTarget
     uopNext(i).compressed := io.IN_decodeUop(i).bits.compressed
 
-    uopNext(i).robPtr := RingBufferPtr(ROB_SIZE, 0.U, 0.U)
-    uopNext(i).ldqIndex := 0.U
-    uopNext(i).stqIndex := 0.U
-
     uopNext(i).flag := 0.U
   }
 
