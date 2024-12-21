@@ -20,7 +20,7 @@ class Rename extends CoreModule {
 
   // * Main signals: renameUop
   val uopReg = Reg(Vec(ISSUE_WIDTH, new RenameUop))
-  val uopNext = Wire(Vec(ISSUE_WIDTH, new RenameUop()))
+  val uopNext = Wire(Vec(ISSUE_WIDTH, new RenameUop))
   val uopValid = RegInit(VecInit(Seq.fill(ISSUE_WIDTH)(false.B)))
 
   // * Submodules
@@ -28,8 +28,6 @@ class Rename extends CoreModule {
   val freeList = Module(new FreeList)
 
   // * Dataflow
-  // ** Allocate robIndex/ldqIndex/stqIndex now
-  val robPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))  
 
   // ** Decode -> FreeList
   val allocatePReg = io.IN_decodeUop.map(decodeUop => decodeUop.fire && decodeUop.bits.rd =/= 0.U)
@@ -69,6 +67,10 @@ class Rename extends CoreModule {
     renamingTable.io.IN_commitAReg(i) := io.IN_commitUop(i).bits.rd
     renamingTable.io.IN_commitPReg(i) := io.IN_commitUop(i).bits.prd
   }
+
+  // ** Allocate robIndex now
+  val robPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))
+  robPtr := robPtr + PopCount(io.IN_decodeUop.map(_.fire))
 
   // ** uopNext generation
   for (i <- 0 until ISSUE_WIDTH) {
