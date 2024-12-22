@@ -15,6 +15,9 @@ class ROBEntry extends CoreBundle {
   val prd  = UInt(PREG_IDX_W)
   val flag = UInt(FLAG_W)
   val executed = Bool()
+
+  // * temporary
+  val target = UInt(XLEN.W)
 }
 
 class ROB extends CoreModule {

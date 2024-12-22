@@ -45,8 +45,9 @@ object ALUOp extends HasDecodeConfig {
 
 object BRUOp extends HasDecodeConfig {
   def AUIPC  = "b0000".U(OpcodeWidth.W)
-  def JALR   = "b0001".U(OpcodeWidth.W)
-  def JAL    = "b0010".U(OpcodeWidth.W)
+
+  def JALR   = "b1000".U(OpcodeWidth.W)
+  def JAL    = "b1001".U(OpcodeWidth.W)
 
   def BEQ = "b1010".U(OpcodeWidth.W)
   def BNE = "b1011".U(OpcodeWidth.W)
@@ -122,6 +123,10 @@ object CImmType extends HasDecodeConfig {
   def X = BitPat.dontCare(ImmTypeWidth)
 }
 
+class Flag extends CoreBundle {
+  val NOTHING = 0.U(FLAG_W)
+  val MISPREDICT = 1.U(FLAG_W)
+}
 
 class DecodeUop extends CoreBundle{  
   val rd = UInt(5.W)
@@ -148,6 +153,9 @@ class RenameUop extends CoreBundle {
   val prs1 = UInt(PREG_IDX_W)
   val prs2 = UInt(PREG_IDX_W)
 
+  val src1Type = UInt(2.W)
+  val src2Type = UInt(2.W)
+
   val src1Ready = Bool()
   val src2Ready = Bool()
 
@@ -167,11 +175,40 @@ class RenameUop extends CoreBundle {
   val flag = UInt(FLAG_W)
 }
 
+class ReadRegUop extends CoreBundle {
+  val rd   = UInt(5.W)
+  val prd  = UInt(PREG_IDX_W)
+
+  val prs1 = UInt(PREG_IDX_W)
+  val prs2 = UInt(PREG_IDX_W)
+
+  val src1 = UInt(XLEN.W)
+  val src2 = UInt(XLEN.W)
+
+  val robPtr = RingBufferPtr(ROB_SIZE)
+  val ldqIndex = UInt(LDQ_IDX_W)
+  val stqIndex = UInt(STQ_IDX_W)
+
+  val imm = UInt(32.W)
+  val pc = UInt(XLEN.W)
+
+  val fuType = UInt(FuTypeWidth.W)
+  val opcode = UInt(OpcodeWidth.W)
+
+  val predTarget = UInt(XLEN.W)
+  val compressed = Bool()
+
+  val flag = UInt(FLAG_W)
+}
+
 class WritebackUop extends CoreBundle {
   val prd = UInt(PREG_IDX_W)
   val data = UInt(XLEN.W)  
   val robPtr = RingBufferPtr(ROB_SIZE)
   val flag = UInt(FLAG_W)
+
+  // * temporary
+  val target = UInt(XLEN.W)
 }
 
 class CommitUop extends CoreBundle {

@@ -105,7 +105,19 @@ class Rename extends CoreModule {
   val outFire = io.OUT_renameUop(0).fire
   val inReady = (!uopValid.reduce(_ || _) || outReady) && !renameStall
 
-
+  // ** maintain current uop
+  for (i <- 0 until MACHINE_WIDTH) {
+    when (io.IN_writebackUop(i).valid && io.IN_writebackUop(i).bits.prd =/= ZERO) {
+      for (j <- 0 until ISSUE_WIDTH) {
+        when (uopReg(j).prs1 === io.IN_writebackUop(i).bits.prd) {
+          uopReg(j).src1Ready := true.B
+        }
+        when (uopReg(j).prs2 === io.IN_writebackUop(i).bits.prd) {
+          uopReg(j).src2Ready := true.B
+        }
+      }
+    }
+  }
   // ** update uop
   for (i <- 0 until ISSUE_WIDTH) {
     uopReg(i) := Mux(inFire(i), uopNext(i), uopReg(i))
