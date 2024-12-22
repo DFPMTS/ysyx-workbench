@@ -52,15 +52,15 @@ class EXU extends Module with HasDecodeConstants {
   val csrPCValid = Wire(Bool())
 
   // -------------------------- ALU --------------------------
-  val alu = Module(new ALU)
-  alu.io.aluFunc := ctrlBuffer.aluFunc
-  // alu.io.op1     := MuxLookup(ctrlBuffer.src1Type, 0.U)(Seq(REG -> dataBuffer.src1, PC -> dataBuffer.pc, ZERO -> 0.U))
-  // alu.io.op2     := MuxLookup(ctrlBuffer.src2Type, 0.U)(Seq(REG -> dataBuffer.src2, IMM -> dataBuffer.imm, ZERO -> 0.U))
-  alu.io.op1    := dataBuffer.src1
-  alu.io.op2    := dataBuffer.src2
-  aluOut        := alu.io.out
-  aluCmpOut     := alu.io.cmpOut
-  aluJumpTarget := alu.io.jumpTarget
+  // val alu = Module(new ALU)
+  // alu.io.aluFunc := ctrlBuffer.aluFunc
+  // // alu.io.op1     := MuxLookup(ctrlBuffer.src1Type, 0.U)(Seq(REG -> dataBuffer.src1, PC -> dataBuffer.pc, ZERO -> 0.U))
+  // // alu.io.op2     := MuxLookup(ctrlBuffer.src2Type, 0.U)(Seq(REG -> dataBuffer.src2, IMM -> dataBuffer.imm, ZERO -> 0.U))
+  // alu.io.op1    := dataBuffer.src1
+  // alu.io.op2    := dataBuffer.src2
+  // aluOut        := alu.io.out
+  // aluCmpOut     := alu.io.cmpOut
+  // aluJumpTarget := alu.io.jumpTarget
 
   // -------------------------- BRU --------------------------
   val isBRU  = ctrlBuffer.fuType === BRU
