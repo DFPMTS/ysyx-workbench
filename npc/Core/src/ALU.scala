@@ -109,7 +109,7 @@ class ALU extends Module with HasALUFuncs {
   val branchJump = pc + imm
   val nextInstPC = pc + 4.U  
   val branchTarget = Mux(cmpOut, branchJump, nextInstPC)
-  jumpTarget := Mux(isJump, branchTarget, out)
+  jumpTarget := Mux(isJump, out, branchTarget)
 
   val bruUop = Wire(new WritebackUop)
   bruUop.target := jumpTarget
