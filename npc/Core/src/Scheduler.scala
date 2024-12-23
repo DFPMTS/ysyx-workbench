@@ -24,8 +24,7 @@ class Scheduler extends CoreModule {
   val validIndex = PriorityEncoder(io.IN_issueQueueValid)
   val hasValid = io.IN_issueQueueValid.reduce(_ || _)
 
-  // io.OUT_issueQueueReady(validIndex) := io.OUT_renameUop(0).ready
-  io.OUT_issueQueueReady(validIndex) := true.B
+  io.OUT_issueQueueReady(validIndex) := io.OUT_renameUop(0).ready
   io.OUT_renameUop(0).valid := io.IN_issueQueueValid(validIndex)
   io.OUT_renameUop(0).bits := io.IN_renameUop(validIndex)
 }
