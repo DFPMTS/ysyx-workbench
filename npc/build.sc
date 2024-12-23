@@ -28,9 +28,7 @@ object Core extends ScalaModule with ScalafmtModule { m =>
   object test extends ScalaTests with Utest {
     override def ivyDeps = m.ivyDeps() ++ Agg(
       ivy"com.lihaoyi::utest:0.8.1",
-      if (useChisel5) ivy"edu.berkeley.cs::chiseltest:6.0.0"
-      else
-        ivy"edu.berkeley.cs::chiseltest:0.6.0"
+      ivy"edu.berkeley.cs::chiseltest:6.0.0"      
     )
   }
   def repositoriesTask = T.task {
