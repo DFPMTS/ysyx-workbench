@@ -49,7 +49,6 @@ public:
 };
 
 int main(int argc, char *argv[]) {
-
   Verilated::commandArgs(argc, argv);
   init_monitor(argc, argv);
   SimulationSpeed sim_speed;
@@ -69,32 +68,32 @@ int main(int argc, char *argv[]) {
   sim_speed.initTimer();
   while (running) {
     cpu_step();
-    ++totalCycles;
-#ifdef NVBOARD
-    nvboard_update();
-#endif
-    if (commit) {
-      // check the comments of PC / INST
-#ifdef DIFFTEST
-      difftest();
-#endif
-      commit = false;
-    }
-    if (isCommit()) {
-      commit = true;
-      trace(PC, INST);
-      if (PC == 0xa0000000) {
-        begin_wave = true;
-        printPerfCounters();
-        clearAllEventCount();
-        totalCycles = 0;
-        booted = true;
-      }
-    }
-    if (totalCycles % 10000000 == 0) {
-      std::cerr << "Total cycles: " << totalCycles << std::endl;
-      printPerfCounters();
-    }
+    //     ++totalCycles;
+    // #ifdef NVBOARD
+    //     nvboard_update();
+    // #endif
+    //     if (commit) {
+    //       // check the comments of PC / INST
+    // #ifdef DIFFTEST
+    //       difftest();
+    // #endif
+    //       commit = false;
+    //     }
+    //     if (isCommit()) {
+    //       commit = true;
+    //       trace(PC, INST);
+    //       if (PC == 0xa0000000) {
+    //         begin_wave = true;
+    //         printPerfCounters();
+    //         clearAllEventCount();
+    //         totalCycles = 0;
+    //         booted = true;
+    //       }
+    //     }
+    //     if (totalCycles % 10000000 == 0) {
+    //       std::cerr << "Total cycles: " << totalCycles << std::endl;
+    //       printPerfCounters();
+    //     }
   }
   ++totalCycles;
   // a0

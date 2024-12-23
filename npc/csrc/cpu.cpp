@@ -19,7 +19,7 @@ void check_gpr_bound(int id) { assert(id >= 0 && id < 16); }
 void isa_reg_display(difftest_context_t *ctx) {
 
   static char buf[128];
-  disassemble(buf, 128, PC, (uint8_t *)&INST, 4);
+  // disassemble(buf, 128, PC, (uint8_t *)&INST, 4);
 
   printf("------------------------\n");
   printf("|PC:    %08X       |\n", ctx->pc);
@@ -38,25 +38,25 @@ const char *reg_name(int id) {
 
 void init_regs() {
 #define MAP_REG(i) gprs[i] = &REG(i);
-  MAP_REG(0);
-  MAP_REG(1);
-  MAP_REG(2);
-  MAP_REG(3);
+  // MAP_REG(0);
+  // MAP_REG(1);
+  // MAP_REG(2);
+  // MAP_REG(3);
 
-  MAP_REG(4);
-  MAP_REG(5);
-  MAP_REG(6);
-  MAP_REG(7);
+  // MAP_REG(4);
+  // MAP_REG(5);
+  // MAP_REG(6);
+  // MAP_REG(7);
 
-  MAP_REG(8);
-  MAP_REG(9);
-  MAP_REG(10);
-  MAP_REG(11);
+  // MAP_REG(8);
+  // MAP_REG(9);
+  // MAP_REG(10);
+  // MAP_REG(11);
 
-  MAP_REG(12);
-  MAP_REG(13);
-  MAP_REG(14);
-  MAP_REG(15);
+  // MAP_REG(12);
+  // MAP_REG(13);
+  // MAP_REG(14);
+  // MAP_REG(15);
 }
 
 uint32_t gpr(int id) {
@@ -68,7 +68,7 @@ void get_context(difftest_context_t *dut) {
   for (int i = 0; i < 16; ++i) {
     dut->gpr[i] = gpr(i);
   }
-  dut->pc = PC;
+  // dut->pc = PC;
 }
 
 void cpu_step() {
