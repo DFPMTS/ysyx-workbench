@@ -128,7 +128,7 @@ class ALU extends Module with HasALUFuncs {
 
   // ** Output
   io.OUT_writebackUop.valid := uopValid
-  io.OUT_writebackUop := uop
+  io.OUT_writebackUop.bits := uop
 }
 
 // class testALU extends Module {
