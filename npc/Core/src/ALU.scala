@@ -112,6 +112,7 @@ class ALU extends Module with HasALUFuncs {
   jumpTarget := Mux(isJump, branchTarget, out)
 
   val bruUop = Wire(new WritebackUop)
+  bruUop.target := jumpTarget
   bruUop.data := Mux(isJump, nextInstPC, out)
   bruUop.prd := io.IN_readRegUop.bits.prd
   bruUop.robPtr := io.IN_readRegUop.bits.robPtr
