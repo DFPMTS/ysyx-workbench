@@ -123,7 +123,7 @@ object CImmType extends HasDecodeConfig {
   def X = BitPat.dontCare(ImmTypeWidth)
 }
 
-class Flag extends CoreBundle {
+object Flags extends CoreBundle {
   val NOTHING = 0.U(FLAG_W)
   val MISPREDICT = 1.U(FLAG_W)
 }

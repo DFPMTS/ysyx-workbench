@@ -6,12 +6,18 @@ import os.makeDir.all
 class RenameIO extends CoreBundle {
   // * rename
   val IN_decodeUop = Flipped(Vec(ISSUE_WIDTH, Decoupled(new DecodeUop)))
-  val OUT_renameUop = Vec(ISSUE_WIDTH, Decoupled(new RenameUop))
+  val OUT_renameUop = Vec(ISSUE_WIDTH, new RenameUop)
+  
+  val OUT_robValid = Vec(ISSUE_WIDTH, Output(Bool()))
+  val IN_robReady = Flipped(Bool())
+
+  val OUT_issueQueueValid = Vec(MACHINE_WIDTH, Output(Bool()))  
+  val IN_issueQueueReady = Flipped(Vec(MACHINE_WIDTH, Bool()))
   // * writeback
   val IN_writebackUop = Flipped(Vec(MACHINE_WIDTH, Valid(new WritebackUop)))
   // * commit
   val IN_commitUop = Flipped(Vec(COMMIT_WIDTH, Valid(new CommitUop)))
-
+  val OUT_robHeadPtr = Output(RingBufferPtr(ROB_SIZE))
   val IN_flush     = Input(Bool())
 }
 
@@ -21,7 +27,8 @@ class Rename extends CoreModule {
   // * Main signals: renameUop
   val uopReg = Reg(Vec(ISSUE_WIDTH, new RenameUop))
   val uopNext = Wire(Vec(ISSUE_WIDTH, new RenameUop))
-  val uopValid = RegInit(VecInit(Seq.fill(ISSUE_WIDTH)(false.B)))
+  val uopRobValid = RegInit(VecInit(Seq.fill(ISSUE_WIDTH)(false.B)))
+  val uopIssueQueueValid = RegInit(VecInit(Seq.fill(ISSUE_WIDTH)(false.B)))
 
   // * Submodules
   val renamingTable = Module(new RenamingTable)
@@ -71,7 +78,8 @@ class Rename extends CoreModule {
   // ** robPtr allocation
   val robHeadPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))
   robHeadPtr := robHeadPtr + PopCount(io.IN_decodeUop.map(_.fire))  
-
+  io.OUT_robHeadPtr := robHeadPtr
+  
   // ** uopNext generation
   for (i <- 0 until ISSUE_WIDTH) {
     uopNext(i).rd := io.IN_decodeUop(i).bits.rd
@@ -103,10 +111,13 @@ class Rename extends CoreModule {
 
   // * Control
   val inValid = io.IN_decodeUop.map(_.valid)
-  val outReady = io.OUT_renameUop(0).ready
   val inFire = io.IN_decodeUop.map(_.fire)
-  val outFire = io.OUT_renameUop(0).fire
-  val inReady = (!uopValid.reduce(_ || _) || outReady) && !renameStall
+  val outRobReady = io.IN_robReady  
+  val outIssueQueueReady = io.IN_issueQueueReady
+  val inReady = (0 until ISSUE_WIDTH).map(i => {
+      (!uopRobValid(i) || outRobReady) && (uopIssueQueueValid(i) || outIssueQueueReady(i))
+    }
+  ).reduce(_ && _)
 
   // ** maintain current uop
   for (i <- 0 until MACHINE_WIDTH) {
@@ -128,11 +139,20 @@ class Rename extends CoreModule {
 
   // ** update uopValid  
   when (io.IN_flush) {
-    uopValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
+    uopRobValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
+    uopIssueQueueValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
   }.elsewhen(inReady) {
-    uopValid := inValid
-  }.elsewhen(outFire) {
-    uopValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
+    uopRobValid := inValid
+    uopIssueQueueValid := inValid    
+  }.otherwise {
+    when(io.IN_robReady) {
+      uopRobValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
+    }
+    for (i <- 0 until ISSUE_WIDTH) {
+      when(io.IN_issueQueueReady(i)) {
+        uopIssueQueueValid(i) := false.B
+      }
+    }    
   }
 
   // ** Flush submodules
@@ -148,7 +168,7 @@ class Rename extends CoreModule {
 
   // ** Rename -> Issue
   for (i <- 0 until ISSUE_WIDTH) {
-    io.OUT_renameUop(i).valid := uopValid(i)
-    io.OUT_renameUop(i).bits := uopReg(i)    
+    io.OUT_robValid(i) := uopRobValid(i)
+    io.OUT_issueQueueValid(i) := uopIssueQueueValid(i)
   }
 }

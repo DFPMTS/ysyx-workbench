@@ -3,11 +3,13 @@ import chisel3.util._
 import utils._
 
 class ROBIO extends CoreBundle {
-  val IN_renameUop = Flipped(Vec(ISSUE_WIDTH, Decoupled(new RenameUop)))
+  val IN_renameUop = Flipped(Vec(ISSUE_WIDTH, Valid(new RenameUop)))
+  val OUT_renameUopReady = Bool()
   val IN_writebackUop = Flipped(Vec(MACHINE_WIDTH, Valid(new WritebackUop)))
   val OUT_commitUop = Vec(COMMIT_WIDTH, Valid(new CommitUop))  
   val OUT_robTailPtr = Output(RingBufferPtr(ROB_SIZE))
   val IN_renameRobHeadPtr = Input(RingBufferPtr(ROB_SIZE))
+  val OUT_redirect = Output(new RedirectSignal)
 }
 
 class ROBEntry extends CoreBundle {
@@ -33,7 +35,7 @@ class ROB extends CoreModule {
   // ** Control
   val enqStall = io.IN_renameRobHeadPtr.isAheadOf(robTailPtr)
   for (i <- 0 until ISSUE_WIDTH) {
-    io.IN_renameUop(i).ready := !enqStall
+    io.OUT_renameUopReady := !enqStall
   }
 
   // ** enqueue
@@ -55,9 +57,13 @@ class ROB extends CoreModule {
     val deqEntry = rob(deqPtr.index)
     val deqValid = robHeadPtr.distanceTo(deqPtr) < ROB_SIZE.U && deqEntry.executed
 
+    val redirect = deqEntry.flag === Flags.MISPREDICT
+    io.OUT_redirect.valid := deqValid && redirect
+    io.OUT_redirect.pc := deqEntry.target
+    
     io.OUT_commitUop(i).valid := deqValid
     io.OUT_commitUop(i).bits.rd := deqEntry.rd
-    io.OUT_commitUop(i).bits.prd := deqEntry.prd    
+    io.OUT_commitUop(i).bits.prd := deqEntry.prd        
   }
 
   // ** writeback
@@ -66,6 +72,7 @@ class ROB extends CoreModule {
     val wbEntry = rob(wbPtr.index)
     when (io.IN_writebackUop(i).valid) {
       wbEntry.executed := true.B
+      wbEntry.target := io.IN_writebackUop(i).bits.target
     }
   }
 }
