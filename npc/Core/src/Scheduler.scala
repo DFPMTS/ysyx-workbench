@@ -5,7 +5,7 @@ import utils._
 class SchedulerIO extends CoreBundle {
   val IN_renameUop = Flipped(Vec(ISSUE_WIDTH, new RenameUop))  
   val IN_issueQueueValid = Flipped(Vec(MACHINE_WIDTH, Bool()))
-  val OUT_issueQueueReady = Vec(MACHINE_WIDTH, Bool())
+  val OUT_issueQueueReady = Output(Vec(MACHINE_WIDTH, Bool()))
   val OUT_renameUop = Vec(MACHINE_WIDTH, Decoupled(new RenameUop))
 }
 
