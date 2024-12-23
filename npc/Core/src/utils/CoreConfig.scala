@@ -19,7 +19,7 @@ trait HasCoreParameters {
   // * Issue Width
   def ISSUE_WIDTH = 1
   def MACHINE_WIDTH = 4
-  def COMMIT_WIDTH = 2
+  def COMMIT_WIDTH = 1
 
 
   // * Physical Register
