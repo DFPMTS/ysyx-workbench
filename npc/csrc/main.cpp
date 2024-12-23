@@ -96,6 +96,7 @@ int main(int argc, char *argv[]) {
     //       printPerfCounters();
     //     }
   }
+  std::cerr << "Simulation End" << std::endl;
   ++totalCycles;
   // a0
   int retval = gpr(10);
