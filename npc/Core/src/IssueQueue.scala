@@ -16,7 +16,7 @@ class IssueQueue extends CoreModule {
   val uop = Reg(new RenameUop)
   val uopValid = RegInit(false.B)
 
-  val queue = RegInit(Vec(IQ_SIZE, new RenameUop))
+  val queue = Reg(Vec(IQ_SIZE, new RenameUop))
 
   val headIndex = RegInit(UInt(IQ_IDX_W + 1))
 
