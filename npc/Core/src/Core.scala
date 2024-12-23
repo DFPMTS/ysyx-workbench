@@ -43,10 +43,10 @@ class Core extends CoreModule {
 
   // * ROB
   rob.io.IN_renameRobHeadPtr := rename.io.OUT_robHeadPtr
-  rob.io.IN_renameUop.map(renameUop => {
-    renameUop.valid := rename.io.OUT_robValid
-    renameUop.bits  := rename.io.OUT_renameUop
-  })
+  for (i <- 0 until ISSUE_WIDTH) {
+    rob.io.IN_renameUop(i).valid := rename.io.OUT_robValid(i)
+    rob.io.IN_renameUop(i).bits := rename.io.OUT_renameUop(i)
+  }  
   rob.io.IN_writebackUop <> writebackUop
   rob.io.OUT_redirect <> redirect
 
