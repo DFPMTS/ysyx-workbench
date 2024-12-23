@@ -70,6 +70,7 @@ class ROB extends CoreModule {
     commitUop(i).prd := deqEntry.prd
     commitUop(i).rd := deqEntry.rd
   }
+  robTailPtr := robTailPtr + PopCount(commitValid)
 
   // ** writeback
   for (i <- 0 until MACHINE_WIDTH) {
