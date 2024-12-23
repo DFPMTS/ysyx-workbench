@@ -6,8 +6,8 @@ import SrcType.IMM
 class ReadRegIO extends CoreBundle {
   val IN_issueUop = Flipped(Vec(MACHINE_WIDTH, Decoupled(new RenameUop)))
   val OUT_readRegIndex = Vec(MACHINE_WIDTH, Vec(2, UInt(PREG_IDX_W)))
-  val IN_readRegVal = Vec(MACHINE_WIDTH, Vec(2, UInt(XLEN.W)))
-  val OUT_readRegUop = Flipped(Vec(MACHINE_WIDTH, Decoupled(new ReadRegUop)))
+  val IN_readRegVal = Flipped(Vec(MACHINE_WIDTH, Vec(2, UInt(XLEN.W))))
+  val OUT_readRegUop = Vec(MACHINE_WIDTH, Decoupled(new ReadRegUop))
 }
 
 class ReadReg extends CoreModule {
