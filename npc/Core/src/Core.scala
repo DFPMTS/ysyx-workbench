@@ -30,9 +30,11 @@ class Core extends CoreModule {
   // * IF
   ifu.io.redirect := redirect
   ifu.io.master.viewAs[AXI4ysyxSoC] <> io.master
+  ifu.io.flushICache := false.B
 
   // * DE
   idu.io.IN_inst <> ifu.io.out
+  idu.io.IN_flush := redirect.valid
 
   // * Rename
   rename.io.IN_decodeUop(0) <> idu.io.OUT_decodeUop
@@ -40,6 +42,7 @@ class Core extends CoreModule {
   rename.io.IN_writebackUop <> writebackUop
   rename.io.IN_issueQueueReady := scheduler.io.OUT_issueQueueReady
   rename.io.IN_robReady := rob.io.OUT_renameUopReady
+  rename.io.IN_flush := redirect.valid
 
   // * ROB
   rob.io.IN_renameRobHeadPtr := rename.io.OUT_robHeadPtr
@@ -63,6 +66,9 @@ class Core extends CoreModule {
   // * Read Register
   readReg.io.IN_issueUop <> iq.map(_.io.OUT_issueUop)
   readReg.io.IN_readRegVal := pReg.io.OUT_pRegVal  
+  for (i <- 0 until MACHINE_WIDTH) {
+    readReg.io.OUT_readRegUop(i).ready := false.B
+  }
 
   // * PReg
   pReg.io.IN_pRegIndex := readReg.io.OUT_readRegIndex
