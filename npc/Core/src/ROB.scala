@@ -86,6 +86,7 @@ class ROB extends CoreModule {
     when (io.IN_writebackUop(i).valid) {
       wbEntry.executed := true.B
       wbEntry.target := io.IN_writebackUop(i).bits.target
+      wbEntry.flag := io.IN_writebackUop(i).bits.flag
     }
   }
 
