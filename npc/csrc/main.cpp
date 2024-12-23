@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
   std::cerr << "Simulation End" << std::endl;
   ++totalCycles;
   // a0
-  int retval = gpr(10);
+  int retval = 0;
 
 #ifdef WAVE
   fst->close();
@@ -115,5 +115,5 @@ int main(int argc, char *argv[]) {
 #endif
   printPerfCounters();
   sim_speed.printSimulationSpeed(totalCycles);
-  return 0;
+  return retval;
 }
