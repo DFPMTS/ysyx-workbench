@@ -75,4 +75,6 @@ class ROB extends CoreModule {
       wbEntry.target := io.IN_writebackUop(i).bits.target
     }
   }
+
+  io.OUT_robTailPtr := robTailPtr
 }
