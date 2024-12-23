@@ -39,6 +39,7 @@ class ReadReg extends CoreModule {
       uopNext(i).stqIndex := issueUop.stqIndex
 
       uopNext(i).pc := issueUop.pc
+      uopNext(i).imm := issueUop.imm
 
       uopNext(i).fuType := issueUop.fuType
       uopNext(i).opcode := issueUop.opcode
