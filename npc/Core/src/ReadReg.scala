@@ -19,18 +19,20 @@ class ReadReg extends CoreModule {
     val uopValid = RegInit(VecInit(Seq.fill(MACHINE_WIDTH)(false.B)))
 
     for (i <- 0 until MACHINE_WIDTH) {
-      io.OUT_readRegIndex(i)(0) := uop(i).prs1
-      io.OUT_readRegIndex(i)(1) := uop(i).prs2
+      
     }
     
     for (i <- 0 until MACHINE_WIDTH) {
       val issueUop = io.IN_issueUop(i).bits
+
       uopNext(i).rd := issueUop.rd
       uopNext(i).prd := issueUop.prd
 
       uopNext(i).prs1 := issueUop.prs1
       uopNext(i).prs2 := issueUop.prs2
 
+      io.OUT_readRegIndex(i)(0) := issueUop.prs1
+      io.OUT_readRegIndex(i)(1) := issueUop.prs2
       uopNext(i).src1 := Mux(issueUop.src1Type === SrcType.PC, issueUop.pc, io.IN_readRegVal(i)(0))
       uopNext(i).src2 := Mux(issueUop.src2Type === SrcType.IMM, issueUop.imm, io.IN_readRegVal(i)(1))
 
