@@ -35,7 +35,7 @@ class Core extends CoreModule {
   idu.io.IN_inst <> ifu.io.out
 
   // * Rename
-  rename.io.IN_decodeUop <> idu.io.OUT_decodeUop
+  rename.io.IN_decodeUop(0) <> idu.io.OUT_decodeUop
   rename.io.IN_commitUop <> rob.io.OUT_commitUop
   rename.io.IN_writebackUop <> writebackUop
   rename.io.IN_issueQueueReady := scheduler.io.OUT_issueQueueReady
