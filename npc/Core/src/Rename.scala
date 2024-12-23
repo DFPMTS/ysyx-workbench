@@ -170,5 +170,6 @@ class Rename extends CoreModule {
   for (i <- 0 until ISSUE_WIDTH) {
     io.OUT_robValid(i) := uopRobValid(i)
     io.OUT_issueQueueValid(i) := uopIssueQueueValid(i)
+    io.OUT_renameUop(i) := uopReg(i)
   }
 }
