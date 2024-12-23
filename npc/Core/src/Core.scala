@@ -26,6 +26,7 @@ class Core extends CoreModule {
     writebackUop(i).valid := false.B
     writebackUop(i).bits := 0.U.asTypeOf(new WritebackUop)
   }
+  dontTouch(writebackUop)
 
   // * IF
   ifu.io.redirect := redirect
