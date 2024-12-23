@@ -46,7 +46,7 @@ class IssueQueue extends CoreModule {
                                       (queue(i).src2Ready || writebackReady(i)(1)))
   val hasReady = readyVec.reduce(_ || _)
   val deqIndex = PriorityEncoder(readyVec)
-
+ 
   val updateValid = io.OUT_issueUop.fire || !uopValid
 
   val doEnq = io.IN_renameUop.fire
