@@ -44,8 +44,8 @@ class Core extends CoreModule {
   // * ROB
   rob.io.IN_renameRobHeadPtr := rename.io.OUT_robHeadPtr
   rob.io.IN_renameUop.map(renameUop => {
-    renameUop.valid := rename.io.OUT_renameUop
-    renameUop.bits  := rename.io.OUT_robValid
+    renameUop.valid := rename.io.OUT_robValid
+    renameUop.bits  := rename.io.OUT_renameUop
   })
   rob.io.IN_writebackUop <> writebackUop
   rob.io.OUT_redirect <> redirect
