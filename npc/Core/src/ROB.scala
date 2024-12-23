@@ -72,10 +72,10 @@ class ROB extends CoreModule {
     commitUop(i).rd := deqEntry(i).rd
     commitUop(i).prd := deqEntry(i).prd
   }
-  
+
   // val redirect = deqEntry.flag === Flags.MISPREDICT
-  // io.OUT_redirect.valid := deqValid(i) && redirect
-  // io.OUT_redirect.pc := deqEntry.target
+  io.OUT_redirect.valid := false.B
+  io.OUT_redirect.pc := 0.U
 
 
   // ** writeback
