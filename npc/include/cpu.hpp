@@ -43,7 +43,7 @@ static uint32_t dummy = 0;
                                         : PC + 4)
 
 #ifdef NPC
-#define CPU top->rootp->npc_top__DOT__npc
+#define CPU top->rootp->npc_top__DOT__Core
 #else
 #define CPU top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu
 #endif
