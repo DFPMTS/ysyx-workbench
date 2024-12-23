@@ -15,16 +15,19 @@
 #define SERIAL_PORT (DEVICE_BASE + 0x00003f8)
 
 static uint32_t image[128] = {
+    0x00200113, // li x2, 2
+    0x00300193, // li x3, 3
+    0x00400213, // li x4, 4
+    0x00700393, // li x7, 7
     0x002182B3, // add x5, x3, x2
     0x00220333, // add x6, x4, x2
     0x00538233, // add x4, x7, x5
     0xFFF30313, // addi x6, x6, -1
-
-    // 0x00000297, // auipc t0,0
-    // 0x00028823, // sb  zero,16(t0)
-    // 0x0102c503, // lbu a0,16(t0)
-    // 0x00100073, // ebreak (used as nemu_trap)
-    // 0xdeadbeef, // some data
+                // 0x00000297, // auipc t0,0
+                // 0x00028823, // sb  zero,16(t0)
+                // 0x0102c503, // lbu a0,16(t0)
+                // 0x00100073, // ebreak (used as nemu_trap)
+                // 0xdeadbeef, // some data
 };
 
 bool access_device = false;
