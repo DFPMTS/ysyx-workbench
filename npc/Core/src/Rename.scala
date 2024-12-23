@@ -118,8 +118,6 @@ class Rename extends CoreModule {
       (!uopRobValid(i) || outRobReady) && (!uopIssueQueueValid(i) || outIssueQueueReady(i))
     }
   ).reduce(_ && _)
-  dontTouch(inReady)
-  dontTouch(outIssueQueueReady)
 
   // ** maintain current uop
   for (i <- 0 until MACHINE_WIDTH) {
