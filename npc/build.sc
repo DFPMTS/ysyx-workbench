@@ -8,7 +8,7 @@ import mill.bsp._
 
 object Core extends ScalaModule with ScalafmtModule { m =>
   val useChisel7            = true
-  override def scalaVersion = "2.13.15"
+  override def scalaVersion = "2.13.12"
   override def scalacOptions = Seq(
     "-language:reflectiveCalls",
     "-deprecation",
