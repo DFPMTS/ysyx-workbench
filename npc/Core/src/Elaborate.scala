@@ -24,9 +24,9 @@ object Elaborate_npc extends App {
     "--lowering-options=" + List(
       // make yosys happy
       // see https://github.com/llvm/circt/blob/main/docs/VerilogGeneration.md
-      "disallowLocalVariables",
+      // "disallowLocalVariables",
       // "disallowPackedArrays",
-      "locationInfoStyle=wrapInAtSquareBracket"
+      // "locationInfoStyle=wrapInAtSquareBracket"
     ).reduce(_ + "," + _)
   )
   println("firtool version", chisel3.BuildInfo.firtoolVersion, chisel3.BuildInfo.version, chisel3.BuildInfo.scalaVersion )
