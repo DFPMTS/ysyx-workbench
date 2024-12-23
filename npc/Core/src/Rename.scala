@@ -115,7 +115,7 @@ class Rename extends CoreModule {
   val outRobReady = io.IN_robReady  
   val outIssueQueueReady = io.IN_issueQueueReady
   val inReady = (0 until ISSUE_WIDTH).map(i => {
-      (!uopRobValid(i) || outRobReady) && (uopIssueQueueValid(i) || outIssueQueueReady(i))
+      (!uopRobValid(i) || outRobReady) && (!uopIssueQueueValid(i) || outIssueQueueReady(i))
     }
   ).reduce(_ && _)
 
