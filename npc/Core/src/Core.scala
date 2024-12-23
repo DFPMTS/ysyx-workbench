@@ -61,7 +61,7 @@ class Core extends CoreModule {
   }
 
   // * Read Register
-  readReg.io.IN_issueUop := iq.map(_.io.OUT_issueUop)
+  readReg.io.IN_issueUop <> iq.map(_.io.OUT_issueUop)
   readReg.io.IN_readRegVal := pReg.io.OUT_pRegVal  
 
   // * PReg
