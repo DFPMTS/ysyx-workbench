@@ -54,6 +54,9 @@ class ROB extends CoreModule {
   }
 
   // ** dequeue (Commit)
+  val commitUop = Reg(Vec(COMMIT_WIDTH, new CommitUop))
+  val commitValid = RegInit(VecInit(Seq.fill(COMMIT_WIDTH)(false.B)))
+
   for (i <- 0 until COMMIT_WIDTH) {
     val deqPtr = robTailPtr + i.U
     val deqEntry = rob(deqPtr.index)
@@ -62,10 +65,10 @@ class ROB extends CoreModule {
     val redirect = deqEntry.flag === Flags.MISPREDICT
     io.OUT_redirect.valid := deqValid && redirect
     io.OUT_redirect.pc := deqEntry.target
-    
-    io.OUT_commitUop(i).valid := deqValid
-    io.OUT_commitUop(i).bits.rd := deqEntry.rd
-    io.OUT_commitUop(i).bits.prd := deqEntry.prd        
+
+    commitValid(i) := deqValid
+    commitUop(i).prd := deqEntry.prd
+    commitUop(i).rd := deqEntry.rd
   }
 
   // ** writeback
@@ -79,4 +82,8 @@ class ROB extends CoreModule {
   }
 
   io.OUT_robTailPtr := robTailPtr
+  for (i <- 0 until COMMIT_WIDTH) {
+    io.OUT_commitUop(i).valid := commitValid(i)
+    io.OUT_commitUop(i).bits := commitUop(i)
+  }
 }

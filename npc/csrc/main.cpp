@@ -49,6 +49,7 @@ public:
 };
 
 int main(int argc, char *argv[]) {
+
   Verilated::commandArgs(argc, argv);
   init_monitor(argc, argv);
   SimulationSpeed sim_speed;
