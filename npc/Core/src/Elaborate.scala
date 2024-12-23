@@ -30,7 +30,7 @@ object Elaborate_npc extends App {
     ).reduce(_ + "," + _)
   )
   println("firtool version", chisel3.BuildInfo.firtoolVersion, chisel3.BuildInfo.version, chisel3.BuildInfo.scalaVersion )
-  circt.stage.ChiselStage.emitSystemVerilogFile(new Core, Array("-td", "./vsrc", "--split-verilog"), firtoolOptions)
+  circt.stage.ChiselStage.emitSystemVerilogFile(new npc_top, Array("-td", "./vsrc", "--split-verilog"), firtoolOptions)
 }
 
 object Elaborate_soc extends App {
