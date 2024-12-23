@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
   // return 0;
   // begin_wave = true;
   sim_speed.initTimer();
-  int runT = 10;
+  int runT = 100;
   while (runT--) {
     cpu_step();
     //     ++totalCycles;
