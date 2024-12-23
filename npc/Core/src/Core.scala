@@ -1,7 +1,7 @@
 import chisel3._
 import chisel3.util._
 import utils._
-import os.write
+import chisel3.experimental.dataview._
 
 class Core extends CoreModule {
   val io = IO(new Bundle {
