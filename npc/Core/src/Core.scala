@@ -29,7 +29,7 @@ class Core extends CoreModule {
 
   // * IF
   ifu.io.redirect := redirect
-  ifu.io.master <> io.master
+  ifu.io.master.viewAs[AXI4ysyxSoC] <> io.master
 
   // * DE
   idu.io.IN_inst <> ifu.io.out
