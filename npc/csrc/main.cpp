@@ -115,5 +115,5 @@ int main(int argc, char *argv[]) {
 #endif
   printPerfCounters();
   sim_speed.printSimulationSpeed(totalCycles);
-  return retval;
+  return 0;
 }
