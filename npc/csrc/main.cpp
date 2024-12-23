@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
   // begin_wave = true;
   sim_speed.initTimer();
   int runT = 100;
-  while (runT) {
+  while (runT--) {
     cpu_step();
     //     ++totalCycles;
     // #ifdef NVBOARD
