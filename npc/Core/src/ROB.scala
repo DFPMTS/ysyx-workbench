@@ -57,20 +57,26 @@ class ROB extends CoreModule {
   val commitUop = Reg(Vec(COMMIT_WIDTH, new CommitUop))
   val commitValid = RegInit(VecInit(Seq.fill(COMMIT_WIDTH)(false.B)))
 
+  val deqEntry = Wire(Vec(COMMIT_WIDTH, new ROBEntry))
+  val deqValid = Wire(Vec(COMMIT_WIDTH, Bool()))
+
   for (i <- 0 until COMMIT_WIDTH) {
     val deqPtr = robTailPtr + i.U
-    val deqEntry = rob(deqPtr.index)
-    val deqValid = robHeadPtr.distanceTo(deqPtr) < ROB_SIZE.U && deqEntry.executed
-
-    val redirect = deqEntry.flag === Flags.MISPREDICT
-    io.OUT_redirect.valid := deqValid && redirect
-    io.OUT_redirect.pc := deqEntry.target
-
-    commitValid(i) := deqValid
-    commitUop(i).prd := deqEntry.prd
-    commitUop(i).rd := deqEntry.rd
+    deqEntry(i) := rob(deqPtr.index)
+    deqValid(i) := robHeadPtr.distanceTo(deqPtr) < ROB_SIZE.U && deqEntry(i).executed
   }
-  robTailPtr := robTailPtr + PopCount(commitValid)
+  robTailPtr := robTailPtr + PopCount(deqValid)
+
+  commitValid := deqValid
+  for (i <- 0 until COMMIT_WIDTH) {   
+    commitUop(i).rd := deqEntry(i).rd
+    commitUop(i).prd := deqEntry(i).prd
+  }
+  
+  // val redirect = deqEntry.flag === Flags.MISPREDICT
+  // io.OUT_redirect.valid := deqValid(i) && redirect
+  // io.OUT_redirect.pc := deqEntry.target
+
 
   // ** writeback
   for (i <- 0 until MACHINE_WIDTH) {
