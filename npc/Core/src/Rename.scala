@@ -119,6 +119,7 @@ class Rename extends CoreModule {
     }
   ).reduce(_ && _)
   dontTouch(inReady)
+  dontTouch(outIssueQueueReady)
 
   // ** maintain current uop
   for (i <- 0 until MACHINE_WIDTH) {
