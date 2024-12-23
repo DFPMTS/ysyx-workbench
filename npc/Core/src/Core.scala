@@ -91,17 +91,17 @@ class Core extends CoreModule {
   // arbiter.io.winMaster.viewAs[AXI4ysyxSoC] <> io.master
 
   // // AXI4 slave
-  // io.slave.awready := false.B
-  // io.slave.arready := false.B
-  // io.slave.wready  := false.B
+  io.slave.awready := false.B
+  io.slave.arready := false.B
+  io.slave.wready  := false.B
 
-  // io.slave.bvalid := false.B
-  // io.slave.bresp  := 0.U
-  // io.slave.bid    := 0.U
+  io.slave.bvalid := false.B
+  io.slave.bresp  := 0.U
+  io.slave.bid    := 0.U
 
-  // io.slave.rdata  := 0.U
-  // io.slave.rvalid := false.B
-  // io.slave.rresp  := 0.U
-  // io.slave.rid    := 0.U
-  // io.slave.rlast  := true.B
+  io.slave.rdata  := 0.U
+  io.slave.rvalid := false.B
+  io.slave.rresp  := 0.U
+  io.slave.rid    := 0.U
+  io.slave.rlast  := true.B
 }
