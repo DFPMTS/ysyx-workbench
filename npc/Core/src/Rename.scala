@@ -143,7 +143,7 @@ class Rename extends CoreModule {
     uopIssueQueueValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
   }.elsewhen(inReady) {
     uopRobValid := inValid
-    uopIssueQueueValid := inValid    
+    uopIssueQueueValid := inValid
   }.otherwise {
     when(io.IN_robReady) {
       uopRobValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
