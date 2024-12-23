@@ -18,7 +18,7 @@ class IssueQueue extends CoreModule {
 
   val queue = Reg(Vec(IQ_SIZE, new RenameUop))
 
-  val headIndex = RegInit(UInt(IQ_IDX_W + 1))
+  val headIndex = RegInit(0.U(IQ_IDX_W + 1))
 
   // ** Writeback
   val writebackReady = Wire(Vec(IQ_SIZE, Vec(2, Bool())))
