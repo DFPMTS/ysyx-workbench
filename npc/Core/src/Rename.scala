@@ -11,8 +11,8 @@ class RenameIO extends CoreBundle {
   val OUT_robValid = Vec(ISSUE_WIDTH, Output(Bool()))
   val IN_robReady = Flipped(Bool())
 
-  val OUT_issueQueueValid = Vec(MACHINE_WIDTH, Output(Bool()))  
-  val IN_issueQueueReady = Flipped(Vec(MACHINE_WIDTH, Bool()))
+  val OUT_issueQueueValid = Vec(ISSUE_WIDTH, Output(Bool()))  
+  val IN_issueQueueReady = Flipped(Vec(ISSUE_WIDTH, Bool()))
   // * writeback
   val IN_writebackUop = Flipped(Vec(MACHINE_WIDTH, Valid(new WritebackUop)))
   // * commit
