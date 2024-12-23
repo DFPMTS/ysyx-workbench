@@ -43,9 +43,9 @@ class ALU extends Module with HasALUFuncs {
   val pc         = io.IN_readRegUop.bits.pc
   val fuType     = io.IN_readRegUop.bits.fuType
   val aluFunc    = io.IN_readRegUop.bits.opcode
-  val out        = UInt(32.W)
+  val out        = Wire(UInt(32.W))
   val cmpOut     = out(0)
-  val jumpTarget = UInt(32.W)
+  val jumpTarget = Wire(UInt(32.W))
 
   // [adder] add / sub
   val isSub    = ~(aluFunc === ALUOp.ADD || aluFunc === BRUOp.JAL || aluFunc === BRUOp.JALR) // for cmp
