@@ -53,6 +53,7 @@ class Core extends CoreModule {
   }  
   rob.io.IN_writebackUop <> writebackUop
   rob.io.OUT_redirect <> redirect
+  rob.io.IN_flush := redirect.valid
 
   // * Scheduler
   scheduler.io.IN_issueQueueValid := rename.io.OUT_issueQueueValid
@@ -62,6 +63,7 @@ class Core extends CoreModule {
   for (i <- 0 until MACHINE_WIDTH) {
     iq(i).io.IN_renameUop <> scheduler.io.OUT_renameUop(i)
     iq(i).io.IN_writebackUop := writebackUop
+    iq(i).io.IN
   }
 
   // * Read Register

@@ -105,6 +105,7 @@ class ALU extends Module with HasALUFuncs {
   val isJump = aluFunc === BRUOp.JAL || aluFunc === BRUOp.JALR
   val isBranch = aluFunc === BRUOp.BEQ || aluFunc === BRUOp.BNE || aluFunc === BRUOp.BLT || aluFunc === BRUOp.BGE || aluFunc === BRUOp.BLTU || aluFunc === BRUOp.BGEU
 
+  // ! AUIPC
   val mispredict = jumpTarget =/= io.IN_readRegUop.bits.predTarget
   val branchJump = pc + imm
   val nextInstPC = pc + 4.U  

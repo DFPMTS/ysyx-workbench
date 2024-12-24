@@ -10,6 +10,8 @@ class ROBIO extends CoreBundle {
   val OUT_robTailPtr = Output(RingBufferPtr(ROB_SIZE))
   val IN_renameRobHeadPtr = Input(RingBufferPtr(ROB_SIZE))
   val OUT_redirect = Output(new RedirectSignal)
+
+  val IN_flush = Input(Bool())
 }
 
 class ROBEntry extends CoreBundle {
@@ -28,8 +30,7 @@ class ROB extends CoreModule {
   val rob = Reg(Vec(ROB_SIZE, new ROBEntry))
 
   // ** head/tail
-  val robHeadPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))
-  robHeadPtr := io.IN_renameRobHeadPtr
+  val robHeadPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))  
   val robTailPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 1.U, index = 0.U))
 
   // ** Control
@@ -66,7 +67,14 @@ class ROB extends CoreModule {
     deqEntry(i) := rob(deqPtr.index)
     deqValid(i) := robHeadPtr.distanceTo(deqPtr) < ROB_SIZE.U && deqEntry(i).executed
   }
-  robTailPtr := robTailPtr + PopCount(deqValid)
+
+  when(io.IN_flush) {
+    robHeadPtr := RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U)
+    robTailPtr := RingBufferPtr(size = ROB_SIZE, flag = 1.U, index = 0.U)
+  }.otherwise {
+    robHeadPtr := io.IN_renameRobHeadPtr
+    robTailPtr := robTailPtr + PopCount(deqValid)
+  }
 
   commitValid := deqValid
   for (i <- 0 until COMMIT_WIDTH) {   

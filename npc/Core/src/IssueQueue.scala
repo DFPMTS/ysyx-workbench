@@ -6,6 +6,8 @@ class IssueQueueIO extends CoreBundle {
   val IN_renameUop = Flipped(Decoupled(new RenameUop))
   val IN_writebackUop = Flipped(Vec(MACHINE_WIDTH, Valid(new WritebackUop)))
   val OUT_issueUop = Decoupled(new RenameUop)
+
+  val IN_flush = Input(Bool())
 }
 
 class IssueQueue extends CoreModule {
@@ -55,7 +57,11 @@ class IssueQueue extends CoreModule {
   val enqStall = headIndex === IQ_SIZE.U
   io.IN_renameUop.ready := !enqStall
 
-  headIndex := headIndex + doEnq - doDeq  
+  when (io.IN_flush) {
+    headIndex := 0.U
+  }.otherwise {
+    headIndex := headIndex + doEnq - doDeq  
+  }
 
   // ** Update output Registers
   uopNext := queue(deqIndex)
