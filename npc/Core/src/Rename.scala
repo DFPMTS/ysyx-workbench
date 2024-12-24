@@ -77,7 +77,11 @@ class Rename extends CoreModule {
 
   // ** robPtr allocation
   val robHeadPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))
-  robHeadPtr := robHeadPtr + PopCount(io.IN_decodeUop.map(_.fire))  
+  when (io.IN_flush) {
+    robHeadPtr := RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U)
+  }.otherwise {
+    robHeadPtr := robHeadPtr + PopCount(io.IN_decodeUop.map(_.fire))  
+  }
   io.OUT_robHeadPtr := robHeadPtr
   
   // ** uopNext generation
