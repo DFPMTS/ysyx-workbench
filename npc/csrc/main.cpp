@@ -1,4 +1,5 @@
 #include "EventMonitor.hpp"
+#include "SimState.hpp"
 #include "Uop.hpp"
 #include "debug.hpp"
 #include "difftest.hpp"
@@ -49,12 +50,15 @@ public:
   }
 };
 
+SimState state;
+
 int main(int argc, char *argv[]) {
 
   WritebackUop writebackUop[4];
 
   Verilated::commandArgs(argc, argv);
   init_monitor(argc, argv);
+  state.bindUops();
   SimulationSpeed sim_speed;
   bool commit = false;
   bool booted = false;
