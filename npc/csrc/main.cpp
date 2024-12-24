@@ -1,4 +1,5 @@
 #include "EventMonitor.hpp"
+#include "Uop.hpp"
 #include "debug.hpp"
 #include "difftest.hpp"
 #include "mem.hpp"
@@ -49,6 +50,9 @@ public:
 };
 
 int main(int argc, char *argv[]) {
+
+  WritebackUop writebackUop[4];
+
   Verilated::commandArgs(argc, argv);
   init_monitor(argc, argv);
   SimulationSpeed sim_speed;

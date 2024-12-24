@@ -22,6 +22,13 @@ class Core extends CoreModule {
     
   val redirect = RegInit(0.U.asTypeOf(new RedirectSignal))
 
+  // * rename
+  val renameUop = Wire(Vec(ISSUE_WIDTH, new RenameUop))
+  val renameRobValid = Wire(Vec(ISSUE_WIDTH, Bool()))
+  val renameIQValid = Wire(Vec(ISSUE_WIDTH, Bool()))
+  dontTouch(renameUop)  
+  
+  // * writeback
   val writebackUop = Wire(Vec(MACHINE_WIDTH, Valid(new WritebackUop)))
   for (i <- 0 until MACHINE_WIDTH) {
     writebackUop(i).valid := false.B
@@ -29,6 +36,7 @@ class Core extends CoreModule {
   }
   dontTouch(writebackUop)
 
+  // * commit
   val commitUop = Wire(Vec(COMMIT_WIDTH, Valid(new CommitUop)))
   dontTouch(commitUop)  
 
@@ -49,20 +57,26 @@ class Core extends CoreModule {
   rename.io.IN_robReady := rob.io.OUT_renameUopReady
   rename.io.IN_flush := redirect.valid
 
+  rename.io.OUT_renameUop <> renameUop
+  rename.io.OUT_robValid <> renameRobValid
+  rename.io.OUT_issueQueueValid <> renameIQValid
+
   // * ROB
   rob.io.IN_renameRobHeadPtr := rename.io.OUT_robHeadPtr
   for (i <- 0 until ISSUE_WIDTH) {
-    rob.io.IN_renameUop(i).valid := rename.io.OUT_robValid(i)
-    rob.io.IN_renameUop(i).bits := rename.io.OUT_renameUop(i)
+    rob.io.IN_renameUop(i).valid := renameRobValid(i)
+    rob.io.IN_renameUop(i).bits := renameUop(i)
   }  
   rob.io.IN_writebackUop <> writebackUop
-  rob.io.OUT_redirect <> redirect
   rob.io.IN_flush := redirect.valid
+
+  rob.io.OUT_redirect <> redirect  
   rob.io.OUT_commitUop <> commitUop
 
+
   // * Scheduler
-  scheduler.io.IN_issueQueueValid := rename.io.OUT_issueQueueValid
-  scheduler.io.IN_renameUop := rename.io.OUT_renameUop
+  scheduler.io.IN_issueQueueValid := renameIQValid
+  scheduler.io.IN_renameUop := renameUop
 
   // * Issue Queue
   for (i <- 0 until MACHINE_WIDTH) {

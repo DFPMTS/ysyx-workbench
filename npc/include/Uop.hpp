@@ -1,9 +1,14 @@
+#ifndef STATUS_HPP
+#define STATUS_HPP
 
 #include <cstdint>
 
-enum class SrcType : uint8_t { ZERO = 0, REG = 1, IMM = 2, PC = 3 };
+using CData = uint8_t;
+using IData = uint32_t;
 
-enum class FuType : uint8_t {
+enum class SrcType : CData { ZERO = 0, REG = 1, IMM = 2, PC = 3 };
+
+enum class FuType : CData {
   ALU = 0,
   BRU = 1,
   LSU = 2,
@@ -13,7 +18,7 @@ enum class FuType : uint8_t {
   CSR = 6
 };
 
-enum class ALUOp : uint8_t {
+enum class ALUOp : CData {
   ADD = 0b0000,
   SUB = 0b0001,
   LEFT = 0b0010,
@@ -30,7 +35,7 @@ enum class ALUOp : uint8_t {
   GEU = 0b1111
 };
 
-enum class BRUOp : uint8_t {
+enum class BRUOp : CData {
   AUIPC = 0b0000,
   JALR = 0b1000,
   JAL = 0b1001,
@@ -42,7 +47,7 @@ enum class BRUOp : uint8_t {
   BGEU = 0b1111
 };
 
-enum class LSUOp : uint8_t {
+enum class LSUOp : CData {
   LB = 0b0000,
   LH = 0b0001,
   LW = 0b0010,
@@ -53,7 +58,7 @@ enum class LSUOp : uint8_t {
   SW = 0b1010
 };
 
-enum class CSROp : uint8_t {
+enum class CSROp : CData {
   CSRR = 0b0000,
   CSRRW = 0b0001,
   CSRRS = 0b0010,
@@ -67,9 +72,9 @@ enum class CSROp : uint8_t {
   EBREAK = 0b1011
 };
 
-enum class ImmType : uint8_t { I = 0, U = 1, S = 2, B = 3, J = 4, X = 0xFF };
+enum class ImmType : CData { I = 0, U = 1, S = 2, B = 3, J = 4, X = 0xFF };
 
-enum class CImmType : uint8_t {
+enum class CImmType : CData {
   LWSP = 0,
   ADDI = 1,
   SLLI = 2,
@@ -88,56 +93,129 @@ enum class CImmType : uint8_t {
   X = 0xFF
 };
 
-enum class Flags : uint8_t { NOTHING = 0, MISPREDICT = 1 };
+enum class Flags : CData { NOTHING = 0, MISPREDICT = 1 };
+
 struct RenameUop {
-  uint8_t dest;
-  uint8_t prd;
-  uint8_t prs1;
-  uint8_t prs2;
-  SrcType src1Type;
-  SrcType src2Type;
-  bool src1Ready;
-  bool src2Ready;
-  uint32_t robPtr;
-  uint32_t ldqIndex;
-  uint32_t stqIndex;
-  uint32_t imm;
-  uint64_t pc;
-  FuType fuType;
-  uint8_t opcode;
-  uint64_t predTarget;
-  bool compressed;
-  Flags flag;
+  CData *dest;
+  CData *prd;
+  CData *prs1;
+  CData *prs2;
+  SrcType *src1Type;
+  SrcType *src2Type;
+  CData *src1Ready;
+  CData *src2Ready;
+  CData *robPtr_flag;
+  CData *robPtr_index;
+  IData *ldqIndex;
+  IData *stqIndex;
+  IData *imm;
+  IData *pc;
+  FuType *fuType;
+  CData *opcode;
+  IData *predTarget;
+  CData *compressed;
+  Flags *flag;
 };
 
 struct ReadRegUop {
-  uint8_t dest;
-  uint8_t prd;
-  uint8_t prs1;
-  uint8_t prs2;
-  uint64_t src1;
-  uint64_t src2;
-  uint32_t robPtr;
-  uint32_t ldqIndex;
-  uint32_t stqIndex;
-  uint32_t imm;
-  uint64_t pc;
-  FuType fuType;
-  uint8_t opcode;
-  uint64_t predTarget;
-  bool compressed;
-  Flags flag;
+  CData *dest;
+  CData *prd;
+  CData *prs1;
+  CData *prs2;
+  IData *src1;
+  IData *src2;
+  CData *robPtr_flag;
+  CData *robPtr_index;
+  IData *ldqIndex;
+  IData *stqIndex;
+  IData *imm;
+  IData *pc;
+  FuType *fuType;
+  CData *opcode;
+  IData *predTarget;
+  CData *compressed;
+  Flags *flag;
 };
 
 struct WritebackUop {
-  uint8_t prd;
-  uint64_t data;
-  uint32_t robPtr;
-  Flags flag;
-  uint64_t target; // temporary
+  CData *prd;
+  IData *data;
+  CData *robPtr_flag;
+  CData *robPtr_index;
+  Flags *flag;
+  IData *target; // temporary
 };
 
 struct CommitUop {
-  uint8_t dest;
-  uint8_t prd;
+  CData *dest;
+  CData *prd;
 };
+
+#define V_WRITEBACK_UOP(i, field)                                              \
+  top->rootp->npc_top__DOT__npc__DOT__writebackUop_##i##_bits_##field
+
+#define V_READREG_UOP(i, field)                                                \
+  top->rootp->npc_top__DOT__npc__DOT__readRegUop_##i##_bits_##field
+
+#define WRITEBACK_FIELDS(X, i)                                                 \
+  X(i, prd)                                                                    \
+  X(i, data)                                                                   \
+  X(i, robPtr_flag)                                                            \
+  X(i, robPtr_index)                                                           \
+  X(i, flag)                                                                   \
+  X(i, target)
+
+#define READREG_FIELDS(X, i)                                                   \
+  X(i, dest)                                                                   \
+  X(i, prd)                                                                    \
+  X(i, prs1)                                                                   \
+  X(i, prs2)                                                                   \
+  X(i, src1)                                                                   \
+  X(i, src2)                                                                   \
+  X(i, robPtr_flag)                                                            \
+  X(i, robPtr_index)                                                           \
+  X(i, ldqIndex)                                                               \
+  X(i, stqIndex)                                                               \
+  X(i, imm)                                                                    \
+  X(i, pc)                                                                     \
+  X(i, fuType)                                                                 \
+  X(i, opcode)                                                                 \
+  X(i, predTarget)                                                             \
+  X(i, compressed)                                                             \
+  X(i, flag)
+
+#define RENAME_FIELDS(X, i)                                                    \
+  X(i, dest)                                                                   \
+  X(i, prd)                                                                    \
+  X(i, prs1)                                                                   \
+  X(i, prs2)                                                                   \
+  X(i, src1Type)                                                               \
+  X(i, src2Type)                                                               \
+  X(i, src1Ready)                                                              \
+  X(i, src2Ready)                                                              \
+  X(i, robPtr_flag)                                                            \
+  X(i, robPtr_index)                                                           \
+  X(i, ldqIndex)                                                               \
+  X(i, stqIndex)                                                               \
+  X(i, imm)                                                                    \
+  X(i, pc)                                                                     \
+  X(i, fuType)                                                                 \
+  X(i, opcode)                                                                 \
+  X(i, predTarget)                                                             \
+  X(i, compressed)                                                             \
+  X(i, flag)
+
+#define BIND_ONE(i, field)                                                     \
+  UOP[i].field = (decltype(UOP[i].field))&V_UOP(i, field);
+
+#define BIND_FIELDS(i) UOP_FIELDS(BIND_ONE, i)
+
+#define REPEAT_1(FN) FN(0)
+#define REPEAT_2(FN) REPEAT_1(FN) FN(1)
+#define REPEAT_3(FN) REPEAT_2(FN) FN(2)
+#define REPEAT_4(FN) REPEAT_3(FN) FN(3)
+#define REPEAT_5(FN) REPEAT_4(FN) FN(4)
+#define REPEAT_6(FN) REPEAT_5(FN) FN(5)
+#define REPEAT_7(FN) REPEAT_6(FN) FN(6)
+
+#endif
