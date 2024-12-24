@@ -29,6 +29,9 @@ class Core extends CoreModule {
   }
   dontTouch(writebackUop)
 
+  val commitUop = Wire(Vec(COMMIT_WIDTH, Valid(new CommitUop)))
+  dontTouch(commitUop)  
+
   // * IF
   ifu.io.redirect := redirect
   ifu.io.master.viewAs[AXI4ysyxSoC] <> io.master
@@ -40,7 +43,7 @@ class Core extends CoreModule {
 
   // * Rename
   rename.io.IN_decodeUop(0) <> idu.io.OUT_decodeUop
-  rename.io.IN_commitUop <> rob.io.OUT_commitUop
+  rename.io.IN_commitUop <> commitUop
   rename.io.IN_writebackUop <> writebackUop
   rename.io.IN_issueQueueReady := scheduler.io.OUT_issueQueueReady
   rename.io.IN_robReady := rob.io.OUT_renameUopReady
@@ -55,6 +58,7 @@ class Core extends CoreModule {
   rob.io.IN_writebackUop <> writebackUop
   rob.io.OUT_redirect <> redirect
   rob.io.IN_flush := redirect.valid
+  rob.io.OUT_commitUop <> commitUop
 
   // * Scheduler
   scheduler.io.IN_issueQueueValid := rename.io.OUT_issueQueueValid
