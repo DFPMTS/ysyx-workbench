@@ -214,4 +214,5 @@ class WritebackUop extends CoreBundle {
 class CommitUop extends CoreBundle {
   val rd = UInt(5.W)
   val prd = UInt(PREG_IDX_W)
+  val robPtr = RingBufferPtr(ROB_SIZE)
 }

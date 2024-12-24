@@ -96,7 +96,7 @@ enum class CImmType : CData {
 enum class Flags : CData { NOTHING = 0, MISPREDICT = 1 };
 
 struct RenameUop {
-  CData *dest;
+  CData *rd;
   CData *prd;
   CData *prs1;
   CData *prs2;
@@ -151,27 +151,27 @@ struct CommitUop {
   CData *prd;
 };
 
+#define V_RENAME_UOP(i, field)                                                 \
+  top->rootp->npc_top__DOT__npc__DOT__renameUop_##i##_##field
+
 #define V_WRITEBACK_UOP(i, field)                                              \
   top->rootp->npc_top__DOT__npc__DOT__writebackUop_##i##_bits_##field
+
+#define V_COMMIT_UOP(i, field)                                                 \
+  top->rootp->npc_top__DOT__npc__DOT__commitUop_##i##_bits_##field
 
 #define V_READREG_UOP(i, field)                                                \
   top->rootp->npc_top__DOT__npc__DOT__readRegUop_##i##_bits_##field
 
-#define WRITEBACK_FIELDS(X, i)                                                 \
-  X(i, prd)                                                                    \
-  X(i, data)                                                                   \
-  X(i, robPtr_flag)                                                            \
-  X(i, robPtr_index)                                                           \
-  X(i, flag)                                                                   \
-  X(i, target)
-
-#define READREG_FIELDS(X, i)                                                   \
+#define RENAME_FIELDS(X, i)                                                    \
   X(i, rd)                                                                     \
   X(i, prd)                                                                    \
   X(i, prs1)                                                                   \
   X(i, prs2)                                                                   \
-  X(i, src1)                                                                   \
-  X(i, src2)                                                                   \
+  X(i, src1Type)                                                               \
+  X(i, src2Type)                                                               \
+  X(i, src1Ready)                                                              \
+  X(i, src2Ready)                                                              \
   X(i, robPtr_flag)                                                            \
   X(i, robPtr_index)                                                           \
   X(i, ldqIndex)                                                               \
@@ -184,15 +184,27 @@ struct CommitUop {
   X(i, compressed)                                                             \
   X(i, flag)
 
-#define RENAME_FIELDS(X, i)                                                    \
+#define WRITEBACK_FIELDS(X, i)                                                 \
+  X(i, prd)                                                                    \
+  X(i, data)                                                                   \
+  X(i, robPtr_flag)                                                            \
+  X(i, robPtr_index)                                                           \
+  X(i, flag)                                                                   \
+  X(i, target)
+
+#define COMMIT_FIELDS(X, i)                                                    \
   X(i, dest)                                                                   \
+  X(i, prd)                                                                    \
+  X(i, robPtr_flag)                                                            \
+  X(i, robPtr_index)
+
+#define READREG_FIELDS(X, i)                                                   \
+  X(i, rd)                                                                     \
   X(i, prd)                                                                    \
   X(i, prs1)                                                                   \
   X(i, prs2)                                                                   \
-  X(i, src1Type)                                                               \
-  X(i, src2Type)                                                               \
-  X(i, src1Ready)                                                              \
-  X(i, src2Ready)                                                              \
+  X(i, src1)                                                                   \
+  X(i, src2)                                                                   \
   X(i, robPtr_flag)                                                            \
   X(i, robPtr_index)                                                           \
   X(i, ldqIndex)                                                               \
