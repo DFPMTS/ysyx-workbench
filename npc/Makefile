@@ -84,6 +84,7 @@ nxdc: $(SRC_AUTO_BIND)
 
 sim: 	
 	xmake build chisel
+	python ./verilator_public.py
 	xmake build Vtop
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	xmake run Vtop $(MAINARGS)
@@ -93,7 +94,6 @@ config:
 
 xmake_test: 
 	xmake build chisel
-	python ./verilator_public.py
 	xmake build Vtop
 	xmake run Vtop --log log.txt --diff $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
