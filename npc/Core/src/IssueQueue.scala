@@ -77,9 +77,21 @@ class IssueQueue extends CoreModule {
   }
   when (doEnq) {
     val enqIndex = Mux(doDeq, headIndex - 1.U, headIndex)
-    queue(enqIndex) := io.IN_renameUop.bits
-    queue(enqIndex).src1Ready := io.IN_renameUop.bits.src1Ready || writebackReady(enqIndex)(0)
-    queue(enqIndex).src2Ready := io.IN_renameUop.bits.src2Ready || writebackReady(enqIndex)(1)
+    val renameUop = io.IN_renameUop.bits
+    queue(enqIndex) := renameUop
+    // * fix srcReady
+    for (i <- 0 until MACHINE_WIDTH) {
+      val writebackValid = io.IN_writebackUop(i).valid
+      val writebackUop = io.IN_writebackUop(i).bits
+      when (writebackValid) {
+        when (renameUop.prs1 === writebackUop.prd) {
+          queue(enqIndex).src1Ready := true.B
+        }
+        when (renameUop.prs2 === writebackUop.prd) {
+          queue(enqIndex).src2Ready := true.B
+        }
+      }
+    }    
   }
 
   when (io.IN_flush) {
