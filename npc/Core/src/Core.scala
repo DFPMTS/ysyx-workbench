@@ -20,7 +20,8 @@ class Core extends CoreModule {
   val pReg = Module(new PReg)
   val alu = Module(new ALU)
     
-  val redirect = Wire(new RedirectSignal)
+  val redirect = RegInit(0.U.asTypeOf(new RedirectSignal))
+
   val writebackUop = Wire(Vec(MACHINE_WIDTH, Valid(new WritebackUop)))
   for (i <- 0 until MACHINE_WIDTH) {
     writebackUop(i).valid := false.B
