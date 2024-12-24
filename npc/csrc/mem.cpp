@@ -19,11 +19,11 @@ static uint32_t image[128] = {
     0x00300193, // li x3, 3
     0x00400213, // li x4, 4
     0x00700393, // li x7, 7
-    0x002182B3, // add x5, x3, x2
-    0x00220333, // add x6, x4, x2
-    0x00538233, // add x4, x7, x5
-    0xFFF30313, // addi x6, x6, -1
-    0xFE1FF06F, // j test
+    0x002183B3, // add x7, x3, x2
+    0x00720233, // add x4, x4, x7
+    0x00338133, // add x2, x7, x3
+    0xFFF10193, // addi x3, x2, -1
+    0xFF1FF06F, // j test
                 // 0x00000297, // auipc t0,0
                 // 0x00028823, // sb  zero,16(t0)
                 // 0x0102c503, // lbu a0,16(t0)
