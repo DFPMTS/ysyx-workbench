@@ -80,7 +80,9 @@ class IssueQueue extends CoreModule {
     queue(enqIndex) := io.IN_renameUop.bits
   }
 
-  when (updateValid) {
+  when (io.IN_flush) {
+    uopValid := false.B
+  }.elsewhen (updateValid) {
     uopValid := hasReady
   }
 
