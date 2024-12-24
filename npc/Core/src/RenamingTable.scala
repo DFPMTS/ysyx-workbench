@@ -47,7 +47,7 @@ class RenamingTable extends CoreModule {
         io.OUT_renameReadReady(i)(j) := readyTable(io.OUT_renameReadPReg(i)(j))
         // * bypass from current cycle's writeback
         for (k <- 0 until MACHINE_WIDTH) {
-          when (io.IN_writebackValid(k) && io.IN_writebackPReg(k) === io.IN_renameReadAReg(i)(j)) {
+          when (io.IN_writebackValid(k) && io.IN_writebackPReg(k) === io.OUT_renameReadPReg(i)(j)) {
             io.OUT_renameReadReady(i)(j) := true.B
           }
         }
