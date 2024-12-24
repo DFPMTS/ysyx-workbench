@@ -147,8 +147,10 @@ struct WritebackUop {
 };
 
 struct CommitUop {
-  CData *dest;
+  CData *rd;
   CData *prd;
+  CData *robPtr_flag;
+  CData *robPtr_index;
 };
 
 #define V_RENAME_UOP(i, field)                                                 \
