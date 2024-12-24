@@ -118,7 +118,7 @@ struct RenameUop {
 };
 
 struct ReadRegUop {
-  CData *dest;
+  CData *rd;
   CData *prd;
   CData *prs1;
   CData *prs2;
@@ -166,7 +166,7 @@ struct CommitUop {
   X(i, target)
 
 #define READREG_FIELDS(X, i)                                                   \
-  X(i, dest)                                                                   \
+  X(i, rd)                                                                     \
   X(i, prd)                                                                    \
   X(i, prs1)                                                                   \
   X(i, prs2)                                                                   \
