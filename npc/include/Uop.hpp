@@ -1,6 +1,7 @@
 #ifndef STATUS_HPP
 #define STATUS_HPP
 
+#include "cpu.hpp"
 #include <cstdint>
 
 using CData = uint8_t;
@@ -95,7 +96,12 @@ enum class CImmType : CData {
 
 enum class Flags : CData { NOTHING = 0, MISPREDICT = 1 };
 
-struct RenameUop {
+struct Uop {
+  CData *valid;
+  bool isValid() { return *valid; }
+};
+
+struct RenameUop : Uop {
   CData *rd;
   CData *prd;
   CData *prs1;
@@ -117,7 +123,7 @@ struct RenameUop {
   Flags *flag;
 };
 
-struct ReadRegUop {
+struct ReadRegUop : Uop {
   CData *rd;
   CData *prd;
   CData *prs1;
@@ -137,7 +143,7 @@ struct ReadRegUop {
   Flags *flag;
 };
 
-struct WritebackUop {
+struct WritebackUop : Uop {
   CData *prd;
   IData *data;
   CData *robPtr_flag;
@@ -146,22 +152,29 @@ struct WritebackUop {
   IData *target; // temporary
 };
 
-struct CommitUop {
+struct CommitUop : Uop {
   CData *rd;
   CData *prd;
   CData *robPtr_flag;
   CData *robPtr_index;
 };
 
+// * rename
 #define V_RENAME_UOP(i, field)                                                 \
   top->rootp->npc_top__DOT__npc__DOT__renameUop_##i##_##field
 
+// * writeback
 #define V_WRITEBACK_UOP(i, field)                                              \
   top->rootp->npc_top__DOT__npc__DOT__writebackUop_##i##_bits_##field
 
+// * commit
 #define V_COMMIT_UOP(i, field)                                                 \
   top->rootp->npc_top__DOT__npc__DOT__commitUop_##i##_bits_##field
 
+#define V_COMMIT_VALID(i)                                                      \
+  top->rootp->npc_top__DOT__npc__DOT__commitUop_##i##_valid
+
+// * read register
 #define V_READREG_UOP(i, field)                                                \
   top->rootp->npc_top__DOT__npc__DOT__readRegUop_##i##_bits_##field
 
@@ -219,10 +232,12 @@ struct CommitUop {
   X(i, compressed)                                                             \
   X(i, flag)
 
-#define BIND_ONE(i, field)                                                     \
+#define BIND_ONE_FIELD(i, field)                                               \
   UOP[i].field = (decltype(UOP[i].field))&V_UOP(i, field);
 
-#define BIND_FIELDS(i) UOP_FIELDS(BIND_ONE, i)
+#define BIND_VALID(i) UOP[i].valid = (decltype(UOP[i].valid))&V_UOP_VALID(i);
+
+#define BIND_FIELDS(i) UOP_FIELDS(BIND_ONE_FIELD, i)
 
 #define REPEAT_1(FN) FN(0)
 #define REPEAT_2(FN) REPEAT_1(FN) FN(1)

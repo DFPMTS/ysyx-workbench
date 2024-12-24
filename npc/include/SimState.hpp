@@ -35,9 +35,11 @@ public:
     // * commitUop
 #define UOP commitUop
 #define V_UOP V_COMMIT_UOP
+#define V_UOP_VALID V_COMMIT_VALID
 #define UOP_FIELDS COMMIT_FIELDS
 
     REPEAT_1(BIND_FIELDS)
+    REPEAT_1(BIND_VALID)
   }
 };
 
