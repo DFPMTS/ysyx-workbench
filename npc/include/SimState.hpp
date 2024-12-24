@@ -15,8 +15,12 @@ public:
     // * renameUop
 #define UOP renameUop
 #define V_UOP V_RENAME_UOP
+#define V_UOP_VALID V_RENAME_VALID
+#define V_UOP_READY V_RENAME_READY
 #define UOP_FIELDS RENAME_FIELDS
     REPEAT_1(BIND_FIELDS)
+    REPEAT_1(BIND_VALID)
+    REPEAT_1(BIND_READY)
 
     // * readRegUop
 #define UOP readRegUop
@@ -40,6 +44,12 @@ public:
 
     REPEAT_1(BIND_FIELDS)
     REPEAT_1(BIND_VALID)
+  }
+
+  void log() {
+    for (int i = 0; i < 1; ++i) {
+      renameUop
+    }
   }
 };
 

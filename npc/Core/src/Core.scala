@@ -25,9 +25,11 @@ class Core extends CoreModule {
   // * rename
   val renameUop = Wire(Vec(ISSUE_WIDTH, new RenameUop))
   val renameRobValid = Wire(Vec(ISSUE_WIDTH, Bool()))
+  val renameRobReady = Wire(Bool())
   val renameIQValid = Wire(Vec(ISSUE_WIDTH, Bool()))
   dontTouch(renameUop)  
   dontTouch(renameRobValid)
+  dontTouch(renameRobReady)
   dontTouch(renameIQValid)
   
   // * read register
@@ -60,7 +62,7 @@ class Core extends CoreModule {
   rename.io.IN_commitUop <> commitUop
   rename.io.IN_writebackUop <> writebackUop
   rename.io.IN_issueQueueReady := scheduler.io.OUT_issueQueueReady
-  rename.io.IN_robReady := rob.io.OUT_renameUopReady
+  rename.io.IN_robReady := renameRobReady
   rename.io.IN_flush := redirect.valid
 
   rename.io.OUT_renameUop <> renameUop
@@ -76,6 +78,7 @@ class Core extends CoreModule {
   rob.io.IN_writebackUop <> writebackUop
   rob.io.IN_flush := redirect.valid
 
+  rob.io.OUT_renameUopReady <> renameRobReady
   rob.io.OUT_redirect <> redirect  
   rob.io.OUT_commitUop <> commitUop
 

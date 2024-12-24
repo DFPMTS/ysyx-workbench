@@ -96,8 +96,11 @@ enum class CImmType : CData {
 
 enum class Flags : CData { NOTHING = 0, MISPREDICT = 1 };
 
+inline CData True = 1;
+
 struct Uop {
   CData *valid;
+  CData *ready = &True;
   bool isValid() { return *valid; }
 };
 
@@ -163,9 +166,16 @@ struct CommitUop : Uop {
 #define V_RENAME_UOP(i, field)                                                 \
   top->rootp->npc_top__DOT__npc__DOT__renameUop_##i##_##field
 
+#define V_RENAME_VALID(i) top->rootp->npc_top__DOT__npc__DOT__renameRobValid_##i
+
+#define V_RENAME_READY(i) top->rootp->npc_top__DOT__npc__DOT__renameRobReady
+
 // * writeback
 #define V_WRITEBACK_UOP(i, field)                                              \
   top->rootp->npc_top__DOT__npc__DOT__writebackUop_##i##_bits_##field
+
+#define V_WRITEBACK_VALID(i)                                                   \
+  top->rootp->npc_top__DOT__npc__DOT__writebackUop_##i##_valid
 
 // * commit
 #define V_COMMIT_UOP(i, field)                                                 \
@@ -177,6 +187,12 @@ struct CommitUop : Uop {
 // * read register
 #define V_READREG_UOP(i, field)                                                \
   top->rootp->npc_top__DOT__npc__DOT__readRegUop_##i##_bits_##field
+
+#define V_READREG_VALID(i)                                                     \
+  top->rootp->npc_top__DOT__npc__DOT__readRegUop_##i##_valid
+
+#define V_READREG_READY(i)                                                     \
+  top->rootp->npc_top__DOT__npc__DOT__readRegUop_##i##_ready
 
 #define RENAME_FIELDS(X, i)                                                    \
   X(i, rd)                                                                     \
@@ -236,6 +252,8 @@ struct CommitUop : Uop {
   UOP[i].field = (decltype(UOP[i].field))&V_UOP(i, field);
 
 #define BIND_VALID(i) UOP[i].valid = (decltype(UOP[i].valid))&V_UOP_VALID(i);
+
+#define BIND_READY(i) UOP[i].ready = (decltype(UOP[i].ready))&V_UOP_READY(i);
 
 #define BIND_FIELDS(i) UOP_FIELDS(BIND_ONE_FIELD, i)
 
