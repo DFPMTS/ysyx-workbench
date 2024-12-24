@@ -193,7 +193,7 @@ struct CommitUop {
   X(i, target)
 
 #define COMMIT_FIELDS(X, i)                                                    \
-  X(i, dest)                                                                   \
+  X(i, rd)                                                                     \
   X(i, prd)                                                                    \
   X(i, robPtr_flag)                                                            \
   X(i, robPtr_index)
