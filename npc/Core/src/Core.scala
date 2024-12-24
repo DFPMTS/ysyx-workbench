@@ -31,7 +31,7 @@ class Core extends CoreModule {
   dontTouch(renameIQValid)
   
   // * read register
-  val readRegUop = Wire(Vec(MACHINE_WIDTH, Valid(new ReadRegUop)))
+  val readRegUop = Wire(Vec(MACHINE_WIDTH, Decoupled(new ReadRegUop)))
   dontTouch(readRegUop)
 
   // * writeback
@@ -94,16 +94,18 @@ class Core extends CoreModule {
   // * Read Register
   readReg.io.IN_issueUop <> iq.map(_.io.OUT_issueUop)
   readReg.io.IN_readRegVal := pReg.io.OUT_pRegVal
-  for (i <- 0 until MACHINE_WIDTH) {
-    readReg.io.OUT_readRegUop(i).ready := false.B
+  for (i <- 0 until MACHINE_WIDTH) {    
+    readRegUop(i) <> readReg.io.OUT_readRegUop(i)
+    readRegUop(i).ready := false.B
   }
+
 
   // * PReg
   pReg.io.IN_pRegIndex := readReg.io.OUT_readRegIndex
   pReg.io.IN_writebackUop := writebackUop
 
   // * Execute
-  alu.io.IN_readRegUop <> readReg.io.OUT_readRegUop(0)
+  alu.io.IN_readRegUop <> readRegUop(0)
   writebackUop(0) := alu.io.OUT_writebackUop
 
   // * Writeback
