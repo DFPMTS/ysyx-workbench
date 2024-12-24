@@ -47,10 +47,9 @@ class ROB extends CoreModule {
     enqEntry.flag := io.IN_renameUop(i).bits.flag
     enqEntry.executed := false.B
     enqEntry.target := 0.U
-
-    val enqPtr = robHeadPtr + i.U
+    
     when (io.IN_renameUop(i).fire) {
-      rob(enqPtr.index) := enqEntry
+      rob(io.IN_renameUop(i).bits.robPtr.index) := enqEntry
     }
   }
 
