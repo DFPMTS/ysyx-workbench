@@ -25,6 +25,8 @@ public:
     // * readRegUop
 #define UOP readRegUop
 #define V_UOP V_READREG_UOP
+#define V_UOP_VALID V_READREG_VALID
+#define V_UOP_READY V_READREG_READY
 #define UOP_FIELDS READREG_FIELDS
 
     REPEAT_4(BIND_FIELDS)
@@ -32,9 +34,11 @@ public:
     // * writebackUop
 #define UOP writebackUop
 #define V_UOP V_WRITEBACK_UOP
+#define V_UOP_VALID V_WRITEBACK_VALID
 #define UOP_FIELDS WRITEBACK_FIELDS
 
     REPEAT_4(BIND_FIELDS)
+    REPEAT_4(BIND_VALID)
 
     // * commitUop
 #define UOP commitUop
@@ -48,7 +52,17 @@ public:
 
   void log() {
     for (int i = 0; i < 1; ++i) {
-      renameUop
+      if (*renameUop[i].valid) {
+        printf("renameUop[%d]:\n", i);
+        printf("  opcode: %d\n", *renameUop[i].opcode);
+        printf("  fuType: %d\n", *renameUop[i].fuType);
+        printf("  robPtr_index: %d\n", *renameUop[i].robPtr_index);
+        printf("  robPtr_flag: %d\n", *renameUop[i].robPtr_flag);
+        printf("  src1Ready: %d\n", *renameUop[i].src1Ready);
+        printf("  src2Ready: %d\n", *renameUop[i].src2Ready);
+        printf("  src1Type: %d\n", *renameUop[i].src1Type);
+        printf("  src2Type: %d\n", *renameUop[i].src2Type);
+      }
     }
   }
 };

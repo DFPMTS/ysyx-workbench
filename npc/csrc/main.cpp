@@ -77,6 +77,7 @@ int main(int argc, char *argv[]) {
   int runT = 100;
   while (runT--) {
     cpu_step();
+    state.log();
     //     ++totalCycles;
     // #ifdef NVBOARD
     //     nvboard_update();
