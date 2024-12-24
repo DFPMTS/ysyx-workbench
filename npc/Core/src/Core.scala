@@ -27,6 +27,8 @@ class Core extends CoreModule {
   val renameRobValid = Wire(Vec(ISSUE_WIDTH, Bool()))
   val renameIQValid = Wire(Vec(ISSUE_WIDTH, Bool()))
   dontTouch(renameUop)  
+  dontTouch(renameRobValid)
+  dontTouch(renameIQValid)
   
   // * writeback
   val writebackUop = Wire(Vec(MACHINE_WIDTH, Valid(new WritebackUop)))
