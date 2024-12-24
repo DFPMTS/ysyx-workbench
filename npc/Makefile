@@ -93,6 +93,7 @@ config:
 
 xmake_test: 
 	xmake build chisel
+	python ./verilator_public.py
 	xmake build Vtop
 	xmake run Vtop --log log.txt --diff $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
