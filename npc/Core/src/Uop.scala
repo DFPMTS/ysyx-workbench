@@ -144,6 +144,9 @@ class DecodeUop extends CoreBundle{
 
   val predTarget = UInt(XLEN.W)
   val compressed = Bool()
+
+  // * debug
+  val inst = UInt(32.W)
 }
 
 class RenameUop extends CoreBundle {
@@ -173,6 +176,9 @@ class RenameUop extends CoreBundle {
   val compressed = Bool()
 
   val flag = UInt(FLAG_W)
+
+  // * debug
+  val inst = UInt(32.W)
 }
 
 class ReadRegUop extends CoreBundle {

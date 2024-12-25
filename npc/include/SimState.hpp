@@ -11,6 +11,8 @@ public:
   ReadRegUop readRegUop[4];
   CommitUop commitUop[4];
 
+  InstInfo inst[128];
+
   void bindUops() {
     // * renameUop
 #define UOP renameUop

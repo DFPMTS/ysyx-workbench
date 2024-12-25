@@ -111,6 +111,8 @@ class Rename extends CoreModule {
     uopNext(i).stqIndex := 0.U
 
     uopNext(i).flag := 0.U
+
+    uopNext(i).inst := io.IN_decodeUop(i).bits.inst
   }
 
   // * Control

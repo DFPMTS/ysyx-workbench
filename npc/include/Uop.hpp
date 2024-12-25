@@ -98,6 +98,14 @@ enum class Flags : CData { NOTHING = 0, MISPREDICT = 1 };
 
 inline CData True = 1;
 
+struct InstInfo {
+  CData valid;
+
+  IData pc;
+  IData inst;
+  CData executed;
+};
+
 struct Uop {
   CData *valid;
   CData *ready = &True;
@@ -124,6 +132,8 @@ struct RenameUop : Uop {
   IData *predTarget;
   CData *compressed;
   Flags *flag;
+
+  IData *inst;
 };
 
 struct ReadRegUop : Uop {
@@ -213,7 +223,8 @@ struct CommitUop : Uop {
   X(i, opcode)                                                                 \
   X(i, predTarget)                                                             \
   X(i, compressed)                                                             \
-  X(i, flag)
+  X(i, flag)                                                                   \
+  X(i, inst)
 
 #define WRITEBACK_FIELDS(X, i)                                                 \
   X(i, prd)                                                                    \

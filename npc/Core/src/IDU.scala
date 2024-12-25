@@ -52,6 +52,8 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   uopNext.pc        := pc
   uopNext.imm       := imm
   uopNext.compressed := false.B
+
+  uopNext.inst      := inst
   
   // * Control
   // ** Input
