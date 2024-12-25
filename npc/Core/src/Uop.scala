@@ -59,14 +59,13 @@ object BRUOp extends HasDecodeConfig {
 
 object LSUOp extends HasDecodeConfig {
   def LB  = "b0000".U(OpcodeWidth.W)
-  def LH  = "b0001".U(OpcodeWidth.W)
-  def LW  = "b0010".U(OpcodeWidth.W)
-  def LBU = "b0100".U(OpcodeWidth.W)
-  def LHU = "b0101".U(OpcodeWidth.W)
-
-  def SB = "b1000".U(OpcodeWidth.W)
-  def SH = "b1001".U(OpcodeWidth.W)
-  def SW = "b1010".U(OpcodeWidth.W)
+  def LBU = "b0001".U(OpcodeWidth.W)
+  def LH  = "b0010".U(OpcodeWidth.W)
+  def LHU = "b0011".U(OpcodeWidth.W)
+  def LW  = "b0100".U(OpcodeWidth.W)    
+  def SB  = "b1000".U(OpcodeWidth.W)
+  def SH  = "b1010".U(OpcodeWidth.W)
+  def SW  = "b1100".U(OpcodeWidth.W)
 }
 
 object CSROp extends HasDecodeConfig {
