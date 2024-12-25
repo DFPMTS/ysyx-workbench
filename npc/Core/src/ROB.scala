@@ -28,6 +28,7 @@ class ROB extends CoreModule {
   val io = IO(new ROBIO)
   
   val rob = Reg(Vec(ROB_SIZE, new ROBEntry))
+  val robStall = RegInit(false.B)
 
   // ** head/tail
   val robHeadPtr = RegInit(RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U))  
@@ -67,21 +68,25 @@ class ROB extends CoreModule {
     deqValid(i) := robHeadPtr.distanceTo(deqPtr) < ROB_SIZE.U && deqEntry(i).executed
   }
 
-  when(io.IN_flush) {
-    robHeadPtr := RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U)
-    robTailPtr := RingBufferPtr(size = ROB_SIZE, flag = 1.U, index = 0.U)
-  }.otherwise {
-    robHeadPtr := io.IN_renameRobHeadPtr
-    robTailPtr := robTailPtr + PopCount(deqValid)
+  commitValid := deqValid
+  when(io.IN_flush || robStall) {
+    commitValid := VecInit(Seq.fill(COMMIT_WIDTH)(false.B))
   }
 
-  commitValid := deqValid
   for (i <- 0 until COMMIT_WIDTH) {   
     commitUop(i).rd := deqEntry(i).rd
     commitUop(i).prd := deqEntry(i).prd
     commitUop(i).robPtr := robTailPtr + i.U
     redirect.valid := deqEntry(i).flag === Flags.MISPREDICT
     redirect.pc := deqEntry(i).target
+  }
+
+  when(io.IN_flush) {
+    robHeadPtr := RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U)
+    robTailPtr := RingBufferPtr(size = ROB_SIZE, flag = 1.U, index = 0.U)
+  }.elsewhen(!robStall) {
+    robHeadPtr := io.IN_renameRobHeadPtr
+    robTailPtr := robTailPtr + PopCount(deqValid)
   }
 
   // val redirect = deqEntry.flag === Flags.MISPREDICT
