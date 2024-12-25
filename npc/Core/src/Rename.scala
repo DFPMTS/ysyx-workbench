@@ -113,6 +113,8 @@ class Rename extends CoreModule {
     uopNext(i).flag := 0.U
 
     uopNext(i).inst := io.IN_decodeUop(i).bits.inst
+    uopNext(i).rs1 := io.IN_decodeUop(i).bits.rs1
+    uopNext(i).rs2 := io.IN_decodeUop(i).bits.rs2
   }
 
   // * Control

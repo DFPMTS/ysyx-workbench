@@ -61,7 +61,29 @@ public:
         auto robIndex = *commitUop[i].robPtr_index;
         auto &inst = insts[robIndex];
         itrace_generate(buf, inst.pc, inst.inst);
-        printf("[%d] %s\n", robIndex, buf);
+        printf("[%3d] %s\n", robIndex, buf);
+        printf("      ")
+      }
+    }
+
+    // * writeback
+    for (int i = 0; i < 1; ++i) {
+      if (*writebackUop[i].valid && *writebackUop[i].ready) {
+        auto robIndex = *writebackUop[i].robPtr_index;
+        auto &inst = insts[robIndex];
+        inst.result = *writebackUop[i].data;
+        inst.executed = true;
+        inst.flag = (Flags)*writebackUop[i].flag;
+      }
+    }
+
+    // * read register
+    for (int i = 0; i < 1; ++i) {
+      if (*readRegUop[i].valid && *readRegUop[i].ready) {
+        auto robIndex = *readRegUop[i].robPtr_index;
+        auto &inst = insts[robIndex];
+        inst.src1 = *readRegUop[i].src1;
+        inst.src2 = *readRegUop[i].src2;
       }
     }
 
@@ -69,8 +91,12 @@ public:
     for (int i = 0; i < 1; ++i) {
       if (*renameUop[i].valid && *renameUop[i].ready) {
         auto &inst = insts[*renameUop[i].robPtr_index];
-        inst.inst = *renameUop[i].inst;
-        inst.pc = *renameUop[i].pc;
+        auto &uop = renameUop[i];
+        inst.inst = *uop.inst;
+        inst.pc = *uop.pc;
+        inst.prd = *uop.prd;
+        inst.prs1 = *uop.prs1;
+        inst.prs2 = *uop.prs2;
         inst.valid = true;
       }
     }

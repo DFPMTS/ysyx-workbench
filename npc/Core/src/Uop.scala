@@ -178,6 +178,8 @@ class RenameUop extends CoreBundle {
   val flag = UInt(FLAG_W)
 
   // * debug
+  val rs1 = UInt(5.W)
+  val rs2 = UInt(5.W)
   val inst = UInt(32.W)
 }
 

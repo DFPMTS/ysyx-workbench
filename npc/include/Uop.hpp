@@ -103,6 +103,21 @@ struct InstInfo {
 
   IData pc;
   IData inst;
+
+  CData rd;
+  CData rs1;
+  CData rs2;
+
+  CData prd;
+  CData prs1;
+  CData prs2;
+
+  IData src1;
+  IData src2;
+
+  IData result;
+  Flags flag;
+
   CData executed;
 };
 
@@ -134,6 +149,8 @@ struct RenameUop : Uop {
   Flags *flag;
 
   IData *inst;
+  CData *rs1;
+  CData *rs2;
 };
 
 struct ReadRegUop : Uop {
@@ -224,7 +241,9 @@ struct CommitUop : Uop {
   X(i, predTarget)                                                             \
   X(i, compressed)                                                             \
   X(i, flag)                                                                   \
-  X(i, inst)
+  X(i, inst)                                                                   \
+  X(i, rs1)                                                                    \
+  X(i, rs2)
 
 #define WRITEBACK_FIELDS(X, i)                                                 \
   X(i, prd)                                                                    \
