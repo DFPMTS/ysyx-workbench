@@ -3,6 +3,7 @@ target("Vtop")
   set_toolchains("@verilator")  
 
   add_cxxflags("-fPIE")
+  add_cxxflags("-g")
   on_config(function (target) 
     local llvm_cxxflags = os.iorun("llvm-config --cxxflags")
     local llvm_ldflags = os.iorun("llvm-config --libs")
