@@ -26,6 +26,8 @@ class Core extends CoreModule {
   val alu = Module(new ALU)
   val lsu = Module(new LSU)
 
+  val arbiter = Module(new AXI_Arbiter)
+
   val redirect = RegInit(0.U.asTypeOf(new RedirectSignal))
 
   // * rename
@@ -56,7 +58,7 @@ class Core extends CoreModule {
 
   // * IF
   ifu.io.redirect := redirect
-  ifu.io.master.viewAs[AXI4ysyxSoC] <> io.master
+  arbiter.io.winMaster.viewAs[AXI4ysyxSoC] <> io.master
   ifu.io.flushICache := false.B
 
   // * DE
@@ -118,6 +120,10 @@ class Core extends CoreModule {
 
   lsu.io.IN_readRegUop <> readRegUop(1)
   writebackUop(1) := lsu.io.OUT_writebackUop
+
+  // * AXI4 master
+  arbiter.io.IFUMaster <> ifu.io.master
+  arbiter.io.LSUMaster <> lsu.io.master
 
   // AXI4 slave
   io.slave.awready := false.B
