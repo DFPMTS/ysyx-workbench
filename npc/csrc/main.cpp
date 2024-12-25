@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
   // return 0;
   // begin_wave = true;
   sim_speed.initTimer();
-  int runT = 200;
+  int runT = 500;
   while (runT--) {
     cpu_step();
     state.log();
