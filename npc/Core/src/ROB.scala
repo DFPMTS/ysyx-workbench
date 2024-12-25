@@ -78,8 +78,10 @@ class ROB extends CoreModule {
     commitUop(i).prd := deqEntry(i).prd
     commitUop(i).robPtr := robTailPtr + i.U
     redirect.valid := deqEntry(i).flag === Flags.MISPREDICT
-    redirect.pc := deqEntry(i).target
+    redirect.pc := deqEntry(i).target    
   }
+  
+  robStall := redirect.valid
 
   when(io.IN_flush) {
     robHeadPtr := RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U)
