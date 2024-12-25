@@ -51,19 +51,19 @@ class IssueQueue(FUs: Seq[UInt]) extends CoreModule {
     }    
   }  
 
-  val deqValid = (0 until IQ_SIZE).map(i => {
+  val readyVec = (0 until IQ_SIZE).map(i => {
     (i.U < headIndex && (queue(i).src1Ready || writebackReady(i)(0)) && 
                         (queue(i).src2Ready || writebackReady(i)(1))) &&
     (!hasFU(FuType.LSU).B || queue(i).fuType =/= FuType.LSU || queue(i).robPtr === io.IN_robTailPtr)      
   })
   
-  val hasDeq = deqValid.reduce(_ || _)
-  val deqIndex = PriorityEncoder(deqValid)
+  val hasReady = readyVec.reduce(_ || _)
+  val deqIndex = PriorityEncoder(readyVec)
  
   val updateValid = io.OUT_issueUop.fire || !uopValid
 
   val doEnq = io.IN_renameUop.fire
-  val doDeq = updateValid && hasDeq
+  val doDeq = updateValid && hasReady
 
   val enqStall = headIndex === IQ_SIZE.U
   io.IN_renameUop.ready := !enqStall
@@ -108,7 +108,7 @@ class IssueQueue(FUs: Seq[UInt]) extends CoreModule {
   when (io.IN_flush) {
     uopValid := false.B
   }.elsewhen (updateValid) {
-    uopValid := hasDeq
+    uopValid := hasReady
   }
 
   // ** Output
