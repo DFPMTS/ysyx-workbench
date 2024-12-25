@@ -15,7 +15,12 @@ class Core extends CoreModule {
   val rename = Module(new Rename)
   val rob = Module(new ROB)
   val scheduler = Module(new Scheduler)
-  val iq = Seq.fill(MACHINE_WIDTH)(Module(new IssueQueue))
+  val iq = Seq(
+    Module(new IssueQueue(Seq(FuType.ALU))),
+    Module(new IssueQueue(Seq(FuType.LSU))),
+    Module(new IssueQueue(Seq(FuType.ALU))),
+    Module(new IssueQueue(Seq(FuType.ALU))),
+  )
   val readReg = Module(new ReadReg)
   val pReg = Module(new PReg)
   val alu = Module(new ALU)
