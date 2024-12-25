@@ -1,6 +1,7 @@
 import chisel3._
 import chisel3.util._
 import scala.reflect.internal.Mode
+import java.util.concurrent.Future
 
 class IDUIO extends Bundle {
   val IN_inst       = Flipped(Decoupled(new InstSignal))
@@ -31,6 +32,7 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   // *** Control Signals Generation  
   decodeModule.io.inst := io.IN_inst.bits.inst
   val decodeSignal     = decodeModule.io.signals
+  val illegalInst      = decodeSignal.invalid
 
   // *** Immediate Generation  
   immgenModule.io.inst      := io.IN_inst.bits.inst
@@ -45,8 +47,8 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   uopNext.src1Type  := decodeSignal.src1Type
   uopNext.src2Type  := decodeSignal.src2Type  
 
-  uopNext.fuType    := decodeSignal.fuType
-  uopNext.opcode    := decodeSignal.opcode
+  uopNext.fuType    := Mux(illegalInst, FuType.EXCEPTION,       decodeSignal.fuType)
+  uopNext.opcode    := Mux(illegalInst, Exception.ILLEGAL_INST, decodeSignal.opcode)
   
   uopNext.predTarget := pc + 4.U
   uopNext.pc        := pc

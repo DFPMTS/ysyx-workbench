@@ -2,6 +2,8 @@ import chisel3._
 import chisel3.util._
 import utils._
 import os.makeDir.all
+import FuType.EXCEPTION
+import java.util.concurrent.Future
 
 class RenameIO extends CoreBundle {
   // * rename
@@ -147,12 +149,15 @@ class Rename extends CoreModule {
     uopReg(i) := Mux(inFire(i), uopNext(i), uopReg(i))
   }
 
+  val issueQueueValid = VecInit((0 until ISSUE_WIDTH).map(i => 
+    inValid(i) && uopNext(i).fuType =/= FuType.EXCEPTION))
+
   // ** update uopValid  
   when (io.IN_flush) {
     uopRobValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
     uopIssueQueueValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
   }.elsewhen(inReady) {
-    uopRobValid := inValid
+    uopRobValid := issueQueueValid
     uopIssueQueueValid := inValid
   }.otherwise {
     when(io.IN_robReady) {

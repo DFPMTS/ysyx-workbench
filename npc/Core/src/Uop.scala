@@ -9,6 +9,17 @@ object SrcType extends HasDecodeConfig {
   val PC   = 3.U(2.W)
 }
 
+object Exception extends HasDecodeConfig {
+  val INST_ADDR_MISALIGNED  = 0.U(4.W)
+  val INST_ACCESS_FAULT     = 1.U(4.W)
+  val ILLEGAL_INST          = 2.U(4.W)
+  val BREAKPOINT            = 3.U(4.W)
+  val LOAD_ADDR_MISALIGNED  = 4.U(4.W)
+  val LOAD_ACCESS_FAULT     = 5.U(4.W)
+  val STORE_ADDR_MISALIGNED = 6.U(4.W)
+  val STORE_ACCESS_FAULT    = 7.U(4.W)  
+}
+
 object FuType extends HasDecodeConfig {
   val ALU = 0.U(FuTypeWidth.W)
   val BRU = 1.U(FuTypeWidth.W)
@@ -17,6 +28,7 @@ object FuType extends HasDecodeConfig {
   val DIV = 4.U(FuTypeWidth.W)
   val AGU = 5.U(FuTypeWidth.W)
   val CSR = 6.U(FuTypeWidth.W)
+  val EXCEPTION = 7.U(FuTypeWidth.W)
 }
 
 object ALUOp extends HasDecodeConfig {
