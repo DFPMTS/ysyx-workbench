@@ -33,6 +33,8 @@ public:
 #define UOP_FIELDS READREG_FIELDS
 
     REPEAT_4(BIND_FIELDS)
+    REPEAT_4(BIND_VALID)
+    REPEAT_4(BIND_READY)
 
     // * writebackUop
 #define UOP writebackUop
