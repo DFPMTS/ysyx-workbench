@@ -108,7 +108,7 @@ class IssueQueue(FUs: Seq[UInt]) extends CoreModule {
   when (io.IN_flush) {
     uopValid := false.B
   }.elsewhen (updateValid) {
-    uopValid := hasReady
+    uopValid := hasDeq
   }
 
   // ** Output
