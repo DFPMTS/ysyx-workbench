@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
     //     }
   }
   std::cerr << "Simulation End" << std::endl;
+  state.printInsts();
   ++totalCycles;
   // a0
   int retval = 0;

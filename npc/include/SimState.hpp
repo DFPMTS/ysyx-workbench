@@ -63,6 +63,7 @@ public:
       if (*commitUop[i].valid && *commitUop[i].ready) {
         auto robIndex = *commitUop[i].robPtr_index;
         auto &inst = insts[robIndex];
+        inst.valid = false;
         itrace_generate(buf, inst.pc, inst.inst);
         printf("[%3d] %s\n", robIndex, buf);
         printf("      rd  = %2d  rs1  = %2d  rs2  = %2d\n", inst.rd, inst.rs1,
@@ -112,6 +113,14 @@ public:
         inst.prs1 = *uop.prs1;
         inst.prs2 = *uop.prs2;
         inst.valid = true;
+      }
+    }
+  }
+
+  void printInsts() {
+    for (int i = 0; i < 128; ++i) {
+      if (insts[i].valid) {
+        printf("[%3d] pc = %d inst = %d\n", i, insts[i].pc, insts[i].inst);
       }
     }
   }
