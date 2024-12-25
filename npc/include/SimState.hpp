@@ -4,6 +4,7 @@
 #include "Uop.hpp"
 #include "cpu.hpp"
 #include "itrace.hpp"
+#include <cstdio>
 
 class SimState {
 public:
@@ -68,6 +69,8 @@ public:
                inst.rs2);
         printf("      prd = %2d  prs1 = %2d  prs2 = %2d\n", inst.prd, inst.prs1,
                inst.prs2);
+        printf("      result = %d/%u/%x\n", inst.result, inst.result,
+               inst.result);
       }
     }
 
