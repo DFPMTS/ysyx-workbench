@@ -118,6 +118,7 @@ public:
   }
 
   void printInsts() {
+    printf("============================================\n");
     for (int i = 0; i < 128; ++i) {
       if (insts[i].valid) {
         auto &inst = insts[i];
