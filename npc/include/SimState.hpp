@@ -62,7 +62,10 @@ public:
         auto &inst = insts[robIndex];
         itrace_generate(buf, inst.pc, inst.inst);
         printf("[%3d] %s\n", robIndex, buf);
-        printf("      ")
+        printf("      rd  = %2d  rs1  = %2d  rs2  = %2d\n", inst.rd, inst.rs1,
+               inst.rs2);
+        printf("      prd = %2d  prs1 = %2d  prs2 = %2d\n", inst.prd, inst.prs1,
+               inst.prs2);
       }
     }
 
@@ -94,6 +97,10 @@ public:
         auto &uop = renameUop[i];
         inst.inst = *uop.inst;
         inst.pc = *uop.pc;
+
+        inst.rd = *uop.rd;
+        inst.rs1 = *uop.rs1;
+        inst.rs2 = *uop.rs2;
         inst.prd = *uop.prd;
         inst.prs1 = *uop.prs1;
         inst.prs2 = *uop.prs2;
