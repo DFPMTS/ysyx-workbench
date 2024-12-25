@@ -29,7 +29,7 @@ class Scheduler extends CoreModule {
   val hasAluValid = io.IN_issueQueueValid.reduce(_ || _)
 
   io.OUT_issueQueueReady(aluValidIndex) := io.OUT_renameUop(0).ready
-  io.OUT_renameUop(0).valid := io.IN_issueQueueValid(aluValidIndex)
+  io.OUT_renameUop(0).valid := io.IN_issueQueueValid(aluValidIndex) && hasAluValid
   io.OUT_renameUop(0).bits := io.IN_renameUop(aluValidIndex)
 
   // * LSU
@@ -38,6 +38,6 @@ class Scheduler extends CoreModule {
   val hasLsuValid = io.IN_issueQueueValid.reduce(_ || _)
 
   io.OUT_issueQueueReady(lsuValidIndex) := io.OUT_renameUop(1).ready
-  io.OUT_renameUop(1).valid := io.IN_issueQueueValid(lsuValidIndex)
+  io.OUT_renameUop(1).valid := io.IN_issueQueueValid(lsuValidIndex) && hasLsuValid
   io.OUT_renameUop(1).bits := io.IN_renameUop(lsuValidIndex)
 }
