@@ -26,7 +26,7 @@ class Scheduler extends CoreModule {
   // * ALU
   val aluValid = (0 until ISSUE_WIDTH).map(i => io.IN_issueQueueValid(i) && isALU(io.IN_renameUop(i)))
   val aluValidIndex = PriorityEncoder(aluValid)
-  val hasAluValid = io.IN_issueQueueValid.reduce(_ || _)
+  val hasAluValid = aluValid.reduce(_ || _)
 
   io.OUT_issueQueueReady(aluValidIndex) := io.OUT_renameUop(0).ready
   io.OUT_renameUop(0).valid := io.IN_issueQueueValid(aluValidIndex) && hasAluValid
@@ -35,7 +35,7 @@ class Scheduler extends CoreModule {
   // * LSU
   val lsuValid = (0 until ISSUE_WIDTH).map(i => io.IN_issueQueueValid(i) && isLSU(io.IN_renameUop(i)))
   val lsuValidIndex = PriorityEncoder(lsuValid)
-  val hasLsuValid = io.IN_issueQueueValid.reduce(_ || _)
+  val hasLsuValid = lsuValid.reduce(_ || _)
 
   io.OUT_issueQueueReady(lsuValidIndex) := io.OUT_renameUop(1).ready
   io.OUT_renameUop(1).valid := io.IN_issueQueueValid(lsuValidIndex) && hasLsuValid
