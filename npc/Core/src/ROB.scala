@@ -57,7 +57,8 @@ class ROB extends CoreModule {
   // ** dequeue (Commit)
   val commitUop = Reg(Vec(COMMIT_WIDTH, new CommitUop))
   val commitValid = RegInit(VecInit(Seq.fill(COMMIT_WIDTH)(false.B)))
-  val redirect = RegInit(0.U.asTypeOf(new RedirectSignal))
+  val redirectC = Wire(new RedirectSignal)
+  val redirectR = RegInit(0.U.asTypeOf(new RedirectSignal))
 
   val deqEntry = Wire(Vec(COMMIT_WIDTH, new ROBEntry))
   val deqValid = Wire(Vec(COMMIT_WIDTH, Bool()))
@@ -77,11 +78,12 @@ class ROB extends CoreModule {
     commitUop(i).rd := deqEntry(i).rd
     commitUop(i).prd := deqEntry(i).prd
     commitUop(i).robPtr := robTailPtr + i.U
-    redirect.valid := deqEntry(i).flag === Flags.MISPREDICT
-    redirect.pc := deqEntry(i).target    
+    redirectC.valid := deqEntry(i).flag === Flags.MISPREDICT
+    redirectC.pc := deqEntry(i).target    
   }
-  
-  robStall := redirect.valid
+
+  robStall := redirectC.valid
+  redirectR := redirectC
 
   when(io.IN_flush) {
     robHeadPtr := RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U)
