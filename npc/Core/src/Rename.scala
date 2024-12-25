@@ -86,25 +86,27 @@ class Rename extends CoreModule {
   
   // ** uopNext generation
   for (i <- 0 until ISSUE_WIDTH) {
-    uopNext(i).rd := io.IN_decodeUop(i).bits.rd
+    val decodeUop = io.IN_decodeUop(i).bits
+
+    uopNext(i).rd := decodeUop.rd
     uopNext(i).prd := Mux(allocatePReg(i), freeList.io.OUT_renamePReg(i), 0.U)
     uopNext(i).prs1 := renamingTable.io.OUT_renameReadPReg(i)(0)
     uopNext(i).prs2 := renamingTable.io.OUT_renameReadPReg(i)(1)
 
-    uopNext(i).src1Type := io.IN_decodeUop(i).bits.src1Type
-    uopNext(i).src2Type := io.IN_decodeUop(i).bits.src2Type
+    uopNext(i).src1Type := decodeUop.src1Type
+    uopNext(i).src2Type := decodeUop.src2Type
 
     uopNext(i).src1Ready := renamingTable.io.OUT_renameReadReady(i)(0)
     uopNext(i).src2Ready := renamingTable.io.OUT_renameReadReady(i)(1)
 
-    uopNext(i).fuType := io.IN_decodeUop(i).bits.fuType
-    uopNext(i).opcode := io.IN_decodeUop(i).bits.opcode
+    uopNext(i).fuType := decodeUop.fuType
+    uopNext(i).opcode := decodeUop.opcode
 
-    uopNext(i).imm := io.IN_decodeUop(i).bits.imm
-    uopNext(i).pc := io.IN_decodeUop(i).bits.pc    
+    uopNext(i).imm := decodeUop.imm
+    uopNext(i).pc := decodeUop.pc    
 
-    uopNext(i).predTarget := io.IN_decodeUop(i).bits.predTarget
-    uopNext(i).compressed := io.IN_decodeUop(i).bits.compressed
+    uopNext(i).predTarget := decodeUop.predTarget
+    uopNext(i).compressed := decodeUop.compressed
 
     uopNext(i).robPtr := robHeadPtr
     uopNext(i).ldqIndex := 0.U
@@ -112,9 +114,9 @@ class Rename extends CoreModule {
 
     uopNext(i).flag := 0.U
 
-    uopNext(i).inst := io.IN_decodeUop(i).bits.inst
-    uopNext(i).rs1 := io.IN_decodeUop(i).bits.rs1
-    uopNext(i).rs2 := io.IN_decodeUop(i).bits.rs2
+    uopNext(i).inst := decodeUop.inst
+    uopNext(i).rs1 := decodeUop.rs1
+    uopNext(i).rs2 := decodeUop.rs2
   }
 
   // * Control

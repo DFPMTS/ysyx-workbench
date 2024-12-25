@@ -89,7 +89,7 @@ class ALU extends Module with HasALUFuncs {
       ALUOp.GEU -> geRes
     )
   )  
-
+  
   val aluUop = Wire(new WritebackUop)
   aluUop.data := out
   aluUop.prd := io.IN_readRegUop.bits.prd
@@ -100,13 +100,13 @@ class ALU extends Module with HasALUFuncs {
   // ** BRU
   // ** Branch's result is calculated in ALU (Branch Opcode is same as corresponding ALU Opcode)
   // ** BRUOp.JAL and BRUOp.JALR's target are also calculated in ALU  
-  // ** AUIPC's result is calculated in ALU
+  // ** AUIPC's result is calculated in ALU  
   val isBRU = fuType === FuType.BRU
+  val isAUIPC = aluFunc === BRUOp.AUIPC
   val isJump = aluFunc === BRUOp.JAL || aluFunc === BRUOp.JALR
   val isBranch = aluFunc === BRUOp.BEQ || aluFunc === BRUOp.BNE || aluFunc === BRUOp.BLT || aluFunc === BRUOp.BGE || aluFunc === BRUOp.BLTU || aluFunc === BRUOp.BGEU
 
-  // ! AUIPC
-  val mispredict = jumpTarget =/= io.IN_readRegUop.bits.predTarget
+  val mispredict = (jumpTarget =/= io.IN_readRegUop.bits.predTarget) && !isAUIPC
   val branchJump = pc + imm
   val nextInstPC = pc + 4.U  
   val branchTarget = Mux(cmpOut, branchJump, nextInstPC)

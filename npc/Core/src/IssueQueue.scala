@@ -6,12 +6,20 @@ class IssueQueueIO extends CoreBundle {
   val IN_renameUop = Flipped(Decoupled(new RenameUop))
   val IN_writebackUop = Flipped(Vec(MACHINE_WIDTH, Valid(new WritebackUop)))
   val OUT_issueUop = Decoupled(new RenameUop)
-
+  val IN_robTailPtr = Input(RingBufferPtr(ROB_SIZE))
   val IN_flush = Input(Bool())
 }
 
-class IssueQueue extends CoreModule {
+class IssueQueue(FUs: Seq[UInt]) extends CoreModule {
   val io = IO(new IssueQueueIO)
+
+  def hasFU(fu: UInt) = {
+    FUs.contains(fu)
+  }
+
+  def isFuType(uop: RenameUop, fu: UInt) = {
+    uop.fuType === fu
+  }
 
   // ** Dequeue Uop
   val uopNext = Wire(new RenameUop)
@@ -43,16 +51,19 @@ class IssueQueue extends CoreModule {
     }    
   }  
 
-  val readyVec = (0 until IQ_SIZE).map(i => i.U < headIndex && 
-                                      (queue(i).src1Ready || writebackReady(i)(0)) && 
-                                      (queue(i).src2Ready || writebackReady(i)(1)))
-  val hasReady = readyVec.reduce(_ || _)
-  val deqIndex = PriorityEncoder(readyVec)
+  val deqValid = (0 until IQ_SIZE).map(i => {
+    (i.U < headIndex && (queue(i).src1Ready || writebackReady(i)(0)) && 
+                        (queue(i).src2Ready || writebackReady(i)(1))) &&
+    (!hasFU(FuType.LSU).B || queue(i).fuType =/= FuType.LSU || queue(i).robPtr === io.IN_robTailPtr)      
+  })
+  
+  val hasDeq = deqValid.reduce(_ || _)
+  val deqIndex = PriorityEncoder(deqValid)
  
   val updateValid = io.OUT_issueUop.fire || !uopValid
 
   val doEnq = io.IN_renameUop.fire
-  val doDeq = updateValid && hasReady
+  val doDeq = updateValid && hasDeq
 
   val enqStall = headIndex === IQ_SIZE.U
   io.IN_renameUop.ready := !enqStall

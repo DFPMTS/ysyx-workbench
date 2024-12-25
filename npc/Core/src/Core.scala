@@ -19,7 +19,8 @@ class Core extends CoreModule {
   val readReg = Module(new ReadReg)
   val pReg = Module(new PReg)
   val alu = Module(new ALU)
-    
+  val lsu = Module(new LSU)
+
   val redirect = RegInit(0.U.asTypeOf(new RedirectSignal))
 
   // * rename
@@ -82,7 +83,6 @@ class Core extends CoreModule {
   rob.io.OUT_redirect <> redirect  
   rob.io.OUT_commitUop <> commitUop
 
-
   // * Scheduler
   scheduler.io.IN_issueQueueValid := renameIQValid
   scheduler.io.IN_renameUop := renameUop
@@ -91,6 +91,7 @@ class Core extends CoreModule {
   for (i <- 0 until MACHINE_WIDTH) {
     iq(i).io.IN_renameUop <> scheduler.io.OUT_renameUop(i)
     iq(i).io.IN_writebackUop := writebackUop
+    iq(i).io.IN_robTailPtr := rob.io.OUT_robTailPtr
     iq(i).io.IN_flush := redirect.valid
   }
 
@@ -102,7 +103,6 @@ class Core extends CoreModule {
     readRegUop(i).ready := false.B
   }
 
-
   // * PReg
   pReg.io.IN_pRegIndex := readReg.io.OUT_readRegIndex
   pReg.io.IN_writebackUop := writebackUop
@@ -111,25 +111,10 @@ class Core extends CoreModule {
   alu.io.IN_readRegUop <> readRegUop(0)
   writebackUop(0) := alu.io.OUT_writebackUop
 
-  // * Writeback
-  
+  lsu.io.IN_readRegUop <> readRegUop(1)
+  writebackUop(1) := lsu.io.OUT_writebackUop
 
-  // val commitHelper = Module(new CommitHelper);
-  // commitHelper.io.commit := mem.io.valid
-
-  // if (Config.debug) {
-  //   val valid  = RegNext(mem.io.valid)
-  //   val archPC = RegInit(UInt(32.W), Config.resetPC)
-  //   archPC := Mux(mem.io.valid, Mux(mem.io.outDnpc.valid, mem.io.outDnpc.pc, archPC + 4.U), archPC)
-  //   dontTouch(valid)
-  //   dontTouch(archPC)
-  // }
-
-  // ifu.io.flushICache := false.B
-
-  // arbiter.io.winMaster.viewAs[AXI4ysyxSoC] <> io.master
-
-  // // AXI4 slave
+  // AXI4 slave
   io.slave.awready := false.B
   io.slave.arready := false.B
   io.slave.wready  := false.B
