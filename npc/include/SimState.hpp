@@ -58,9 +58,10 @@ public:
     char buf[512];
     for (int i = 0; i < 1; ++i) {
       if (*commitUop[i].valid && *commitUop[i].ready) {
-        auto &inst = insts[*commitUop[i].robPtr_index];
+        auto robIndex = *commitUop[i].robPtr_index;
+        auto &inst = insts[robIndex];
         itrace_generate(buf, inst.pc, inst.inst);
-        printf("%s\n", buf);
+        printf("[%d] %s\n", robIndex, buf);
       }
     }
 
