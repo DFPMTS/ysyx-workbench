@@ -94,7 +94,7 @@ class ROB extends CoreModule {
   }
 
   // val redirect = deqEntry.flag === Flags.MISPREDICT
-  io.OUT_redirect := redirect
+  io.OUT_redirect := redirectR
 
   // ** writeback
   for (i <- 0 until MACHINE_WIDTH) {
