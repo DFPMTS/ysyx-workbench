@@ -71,7 +71,7 @@ public:
                inst.prs2);
         printf("      src1   = %d\n", inst.src1);
         printf("      src2   = %d\n", inst.src2);
-        printf("      result = %d/%u/%x\n", inst.result, inst.result,
+        printf("      result = %d/%u/0x%x\n", inst.result, inst.result,
                inst.result);
       }
     }
