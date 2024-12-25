@@ -78,7 +78,7 @@ public:
     }
 
     // * writeback
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < 4; ++i) {
       if (*writebackUop[i].valid && *writebackUop[i].ready) {
         auto robIndex = *writebackUop[i].robPtr_index;
         auto &inst = insts[robIndex];
