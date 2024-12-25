@@ -15,23 +15,23 @@
 #define SERIAL_PORT (DEVICE_BASE + 0x00003f8)
 
 static uint32_t image[128] = {
-    0x00200113, // li x2, 2
-    0x00300193, // li x3, 3
-    0x00400213, // li x4, 4
-    0x00700393, // li x7, 7
-    0x00500293, // li t0, 5
-    0x002183B3, // add x7, x3, x2
-    0x00720233, // add x4, x4, x7
-    0x00338133, // add x2, x7, x3
-    0xFFF10193, // addi x3, x2, -1
-    0xFFF28293, // addi t0, t0, -1
-    0xFE0296E3, // bnez t0, test
-    0x800002B7, // li t0, 0x80000000
-    0x00028293, // li t0, 0x80000000
-    0x0002A303, // lw t1, 0(t0)
-    0x0042A383, // lw t2, 4(t0)
-    0x0082AE03, // lw t3, 8(t0)
-    0x00C2AE83, // lw t4, 12(t0)
+    0x00200113, // addi x2 x0 2
+    0x00300193, // addi x3 x0 3
+    0x00400213, // addi x4 x0 4
+    0x00700393, // addi x7 x0 7
+    0x00500413, // addi x8 x0 5
+    0x002183B3, // add x7 x3 x2
+    0x00720233, // add x4 x4 x7
+    0x00338133, // add x2 x7 x3
+    0xFFF10193, // addi x3 x2 -1
+    0xFFF40413, // addi x8 x8 -1
+    0xFE0416E3, // bne x8 x0 -20
+    0x800002B7, // lui x5 524288
+    0x00028293, // addi x5 x5 0
+    0x0002A303, // lw x6 0(x5)
+    0x0042A383, // lw x7 4(x5)
+    0x0082AE03, // lw x28 8(x5)
+    0x00C2AE83, // lw x29 12(x5)
                 // 0x00000297, // auipc t0,0
                 // 0x00028823, // sb  zero,16(t0)
                 // 0x0102c503, // lbu a0,16(t0)
