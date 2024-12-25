@@ -3,6 +3,7 @@
 
 #include "Uop.hpp"
 #include "cpu.hpp"
+#include "itrace.hpp"
 
 class SimState {
 public:
@@ -11,7 +12,7 @@ public:
   ReadRegUop readRegUop[4];
   CommitUop commitUop[4];
 
-  InstInfo inst[128];
+  InstInfo insts[128];
 
   void bindUops() {
     // * renameUop
@@ -53,17 +54,23 @@ public:
   }
 
   void log() {
+    // * commit
+    char buf[512];
     for (int i = 0; i < 1; ++i) {
-      if (*renameUop[i].valid) {
-        printf("renameUop[%d]:\n", i);
-        printf("  opcode: %d\n", *renameUop[i].opcode);
-        printf("  fuType: %d\n", *renameUop[i].fuType);
-        printf("  robPtr_index: %d\n", *renameUop[i].robPtr_index);
-        printf("  robPtr_flag: %d\n", *renameUop[i].robPtr_flag);
-        printf("  src1Ready: %d\n", *renameUop[i].src1Ready);
-        printf("  src2Ready: %d\n", *renameUop[i].src2Ready);
-        printf("  src1Type: %d\n", *renameUop[i].src1Type);
-        printf("  src2Type: %d\n", *renameUop[i].src2Type);
+      if (*commitUop[i].valid && *commitUop[i].ready) {
+        auto &inst = insts[*commitUop[i].robPtr_index];
+        itrace_generate(buf, inst.pc, inst.inst);
+        printf("%s\n", buf);
+      }
+    }
+
+    // * rename
+    for (int i = 0; i < 1; ++i) {
+      if (*renameUop[i].valid && *renameUop[i].ready) {
+        auto &inst = insts[*renameUop[i].robPtr_index];
+        inst.inst = *renameUop[i].inst;
+        inst.pc = *renameUop[i].pc;
+        inst.valid = true;
       }
     }
   }
