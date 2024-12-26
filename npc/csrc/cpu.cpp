@@ -1,6 +1,8 @@
 #include "cpu.hpp"
 #include "difftest.hpp"
 #include "disasm.hpp"
+#include <cstdint>
+#include <functional>
 
 Vtop *top;
 VerilatedFstC *fst;
@@ -59,10 +61,7 @@ void init_regs() {
   // MAP_REG(15);
 }
 
-uint32_t gpr(int id) {
-  check_gpr_bound(id);
-  return *gprs[id];
-}
+std::function<uint32_t(int)> gpr;
 
 void get_context(difftest_context_t *dut) {
   for (int i = 0; i < 16; ++i) {

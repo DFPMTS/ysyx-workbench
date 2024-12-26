@@ -1,6 +1,7 @@
 #include "EventMonitor.hpp"
 #include "SimState.hpp"
 #include "Uop.hpp"
+#include "cpu.hpp"
 #include "debug.hpp"
 #include "difftest.hpp"
 #include "mem.hpp"
@@ -73,6 +74,9 @@ int main(int argc, char *argv[]) {
   // begin_wave = true;
   sim_speed.initTimer();
   int T = 400;
+
+  gpr = [&](int index) { return state.getReg(index); };
+
   while (running) {
     cpu_step();
     state.log();

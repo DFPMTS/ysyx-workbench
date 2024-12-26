@@ -24,7 +24,7 @@ struct difftest_context_t {
   uint32_t pc;
 };
 
-uint32_t gpr(int id);
+extern std::function<uint32_t(int)> gpr;
 
 const char *reg_name(int id);
 void get_context(difftest_context_t *dut);
