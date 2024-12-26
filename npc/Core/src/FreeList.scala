@@ -61,6 +61,7 @@ class FreeList extends CoreModule {
   val allocateConfirm = Wire(Vec(COMMIT_WIDTH, Bool()))
   for(i <- 0 until COMMIT_WIDTH) {
     freeValid(i) := false.B
+    allocateConfirm(i) := false.B
     when(io.IN_commitValid(i)) {
       val commitPReg = io.IN_commitPReg(i)
       val commitPrevPReg = io.IN_commitPrevPReg(i)
