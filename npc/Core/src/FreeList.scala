@@ -24,6 +24,7 @@ class FreeList extends CoreModule {
 
   // * Request consumes PRegs, so headPtr is after tailPtr
   val headPtr = RegInit(RingBufferPtr(size = NUM_PREG - 1, flag = 0.U, index = 0.U))
+  val archHeadPtr = RegInit(RingBufferPtr(size = NUM_PREG - 1, flag = 0.U, index = 0.U))
   val tailPtr = RegInit(RingBufferPtr(size = NUM_PREG - 1, flag = 1.U, index = 0.U))
   
   
@@ -36,7 +37,7 @@ class FreeList extends CoreModule {
   // * Stall when not enough free PReg
   io.OUT_renameStall := headPtr.distanceTo(tailPtr) < ISSUE_WIDTH.U
   when(io.IN_flush) {
-    headPtr := RingBufferPtr(size = NUM_PREG - 1, flag = ~tailPtr.flag, index = tailPtr.index)
+    headPtr := archHeadPtr
   }.elsewhen(!io.OUT_renameStall) {
     headPtr := headPtr + PopCount(io.IN_renameReqValid)
   }  
@@ -48,7 +49,7 @@ class FreeList extends CoreModule {
   for (i <- 0 until COMMIT_WIDTH) {    
     isCommitLatest(i) := true.B
     for (j <- i + 1 until COMMIT_WIDTH) {
-      when(io.IN_commitRd(i) === io.IN_commitRd(j)) {
+      when(io.IN_commitValid(j) && io.IN_commitRd(i) === io.IN_commitRd(j)) {
         isCommitLatest(i) := false.B
       }
     }
@@ -56,7 +57,10 @@ class FreeList extends CoreModule {
   // ** free PReg
   // ** the latest commit of the same rd will free the PrevPReg
   // ** the other commits will free the PReg (since their own PReg is killed by the latest)
+  val freeValid = Wire(Vec(COMMIT_WIDTH, Bool()))
+  val allocateConfirm = Wire(Vec(COMMIT_WIDTH, Bool()))
   for(i <- 0 until COMMIT_WIDTH) {
+    freeValid(i) := false.B
     when(io.IN_commitValid(i)) {
       val commitPReg = io.IN_commitPReg(i)
       val commitPrevPReg = io.IN_commitPrevPReg(i)
@@ -65,14 +69,20 @@ class FreeList extends CoreModule {
       when (isCommitLatest(i)) {
         when (commitPrevPReg =/= 0.U) {
           freeList(commitIndex) := commitPrevPReg
+          freeValid(i) := true.B
+        }
+        when(io.IN_commitRd(i) =/= 0.U) {
+          allocateConfirm(i) := true.B
         }
       } .otherwise {        
         when (commitPReg =/= 0.U) {
           freeList(commitIndex) := commitPReg
+          freeValid(i) := true.B
         }        
       }      
     }
   }
-  val freeValid = (0 until COMMIT_WIDTH).map(i => io.IN_commitValid(i) && io.IN_commitRd(i) =/= 0.U)
+
   tailPtr := tailPtr + PopCount(freeValid)
+  archHeadPtr := archHeadPtr + PopCount(allocateConfirm)
 }
