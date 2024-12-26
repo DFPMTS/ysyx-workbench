@@ -24,9 +24,6 @@ class FreeList extends CoreModule {
 
   // * Request consumes PRegs, so headPtr is after tailPtr
   val headPtr = RegInit(RingBufferPtr(size = NUM_PREG - 1, flag = 0.U, index = 0.U))
-  val headPtrNext = WireInit(headPtr)
-  headPtr := headPtrNext
-
   val tailPtr = RegInit(RingBufferPtr(size = NUM_PREG - 1, flag = 1.U, index = 0.U))
   
   
@@ -38,8 +35,10 @@ class FreeList extends CoreModule {
   }
   // * Stall when not enough free PReg
   io.OUT_renameStall := headPtr.distanceTo(tailPtr) < ISSUE_WIDTH.U
-  when(!io.OUT_renameStall) {
-    headPtrNext := headPtr + PopCount(io.IN_renameReqValid)
+  when(io.IN_flush) {
+    headPtr := RingBufferPtr(size = NUM_PREG - 1, flag = ~tailPtr.flag, index = tailPtr.index)
+  }.elsewhen(!io.OUT_renameStall) {
+    headPtr := headPtr + PopCount(io.IN_renameReqValid)
   }  
   
 
