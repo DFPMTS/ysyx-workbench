@@ -46,7 +46,7 @@ class ROB extends CoreModule {
     val enqEntry = Wire(new ROBEntry)
     enqEntry.rd := renameUop.rd
     enqEntry.prd := renameUop.prd
-    enqEntry.flag := Mux(renameUop.fuType === FuType.FLAG, renameUop.opcode, 0.U)
+    enqEntry.flag := 0.U
     enqEntry.pc  := renameUop.pc
     enqEntry.executed := false.B
     enqEntry.target := 0.U
@@ -86,6 +86,9 @@ class ROB extends CoreModule {
 
   robStall := redirectC.valid
   redirectR := redirectC
+  when(io.IN_flush || robStall) {
+    redirectR.valid := false.B
+  }
 
   when(io.IN_flush) {
     robHeadPtr := RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U)
