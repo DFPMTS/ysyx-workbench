@@ -53,9 +53,6 @@ public:
 SimState state;
 
 int main(int argc, char *argv[]) {
-
-  WritebackUop writebackUop[4];
-
   Verilated::commandArgs(argc, argv);
   init_monitor(argc, argv);
   state.bindUops();
@@ -74,10 +71,10 @@ int main(int argc, char *argv[]) {
   // return 0;
   // begin_wave = true;
   sim_speed.initTimer();
-  int runT = 500;
-  while (runT--) {
+  while (running) {
     cpu_step();
     state.log();
+    ++totalCycles;
     //     ++totalCycles;
     // #ifdef NVBOARD
     //     nvboard_update();

@@ -1,5 +1,5 @@
-#ifndef STATUS_HPP
-#define STATUS_HPP
+#ifndef UOP_HPP
+#define UOP_HPP
 
 #include "cpu.hpp"
 #include <cstdint>
