@@ -70,6 +70,7 @@ public:
         auto &uop = commitUop[i];
         inst.valid = false;
         if (*uop.rd) {
+          printf("archTable[%d] = %d\n", *uop.rd, *uop.prd);
           archTable[*uop.rd] = *uop.prd;
         }
         itrace_generate(buf, inst.pc, inst.inst);
