@@ -4,6 +4,7 @@
 #include "Uop.hpp"
 #include "cpu.hpp"
 #include "itrace.hpp"
+#include <cstdint>
 #include <cstdio>
 
 class SimState {
@@ -14,6 +15,8 @@ public:
   CommitUop commitUop[4];
 
   InstInfo insts[128];
+  uint32_t archTable[32] = {};
+  uint32_t pReg[64] = {};
 
   void bindUops() {
     // * renameUop
@@ -63,7 +66,9 @@ public:
       if (*commitUop[i].valid && *commitUop[i].ready) {
         auto robIndex = *commitUop[i].robPtr_index;
         auto &inst = insts[robIndex];
+        auto &uop = commitUop[i];
         inst.valid = false;
+        archTable[*uop.rd] = *uop.prd;
         itrace_generate(buf, inst.pc, inst.inst);
         printf("[%3d] %s\n", robIndex, buf);
         printf("      rd  = %2d  rs1  = %2d  rs2  = %2d\n", inst.rd, inst.rs1,
@@ -82,6 +87,8 @@ public:
       if (*writebackUop[i].valid && *writebackUop[i].ready) {
         auto robIndex = *writebackUop[i].robPtr_index;
         auto &inst = insts[robIndex];
+        auto &uop = writebackUop[i];
+        pReg[*uop.prd] = *writebackUop[i].data;
         inst.result = *writebackUop[i].data;
         inst.executed = true;
         inst.flag = (Flags)*writebackUop[i].flag;
@@ -130,6 +137,8 @@ public:
       }
     }
   }
+
+  uint32_t getReg(int index) { return pReg[archTable[index]]; }
 };
 
 #endif

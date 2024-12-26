@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
   state.printInsts();
   ++totalCycles;
   // a0
-  int retval = 0;
+  int retval = state.getReg(10);
 
 #ifdef WAVE
   fst->close();
