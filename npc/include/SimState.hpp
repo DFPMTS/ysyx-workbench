@@ -69,7 +69,9 @@ public:
         auto &inst = insts[robIndex];
         auto &uop = commitUop[i];
         inst.valid = false;
-        archTable[*uop.rd] = *uop.prd;
+        if (*uop.rd) {
+          archTable[*uop.rd] = *uop.prd;
+        }
         itrace_generate(buf, inst.pc, inst.inst);
         printf("[%3d] %s\n", robIndex, buf);
         printf("      rd  = %2d  rs1  = %2d  rs2  = %2d\n", inst.rd, inst.rs1,
@@ -90,7 +92,9 @@ public:
         auto robIndex = *writebackUop[i].robPtr_index;
         auto &inst = insts[robIndex];
         auto &uop = writebackUop[i];
-        pReg[*uop.prd] = *writebackUop[i].data;
+        if (*uop.prd) {
+          pReg[*uop.prd] = *writebackUop[i].data;
+        }
         inst.result = *writebackUop[i].data;
         inst.executed = true;
         inst.flag = (Flags)*writebackUop[i].flag;
