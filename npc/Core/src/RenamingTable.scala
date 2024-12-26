@@ -87,7 +87,7 @@ class RenamingTable extends CoreModule {
 
   // * Flush
   when (io.IN_flush) {
-    archTable := specTable
+    specTable := archTable
     readyTable := VecInit(Seq.fill(NUM_PREG)(true.B))
   }
 }
