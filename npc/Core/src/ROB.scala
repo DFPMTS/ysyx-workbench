@@ -80,7 +80,7 @@ class ROB extends CoreModule {
     commitUop(i).rd := deqEntry(i).rd
     commitUop(i).prd := deqEntry(i).prd
     commitUop(i).robPtr := robTailPtr + i.U
-    redirectC.valid := deqEntry(i).flag === Flags.MISPREDICT
+    redirectC.valid := deqValid(i) && deqEntry(i).flag === Flags.MISPREDICT
     redirectC.pc := deqEntry(i).target    
   }
 
