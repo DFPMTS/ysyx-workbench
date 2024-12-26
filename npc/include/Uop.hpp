@@ -146,7 +146,6 @@ struct RenameUop : Uop {
   CData *opcode;
   IData *predTarget;
   CData *compressed;
-  Flags *flag;
 
   IData *inst;
   CData *rs1;
@@ -170,7 +169,6 @@ struct ReadRegUop : Uop {
   CData *opcode;
   IData *predTarget;
   CData *compressed;
-  Flags *flag;
 };
 
 struct WritebackUop : Uop {
@@ -240,7 +238,6 @@ struct CommitUop : Uop {
   X(i, opcode)                                                                 \
   X(i, predTarget)                                                             \
   X(i, compressed)                                                             \
-  X(i, flag)                                                                   \
   X(i, inst)                                                                   \
   X(i, rs1)                                                                    \
   X(i, rs2)
@@ -275,8 +272,7 @@ struct CommitUop : Uop {
   X(i, fuType)                                                                 \
   X(i, opcode)                                                                 \
   X(i, predTarget)                                                             \
-  X(i, compressed)                                                             \
-  X(i, flag)
+  X(i, compressed)
 
 #define BIND_ONE_FIELD(i, field)                                               \
   UOP[i].field = (decltype(UOP[i].field))&V_UOP(i, field);
