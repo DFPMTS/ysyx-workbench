@@ -8,6 +8,7 @@ class ReadRegIO extends CoreBundle {
   val OUT_readRegIndex = Vec(MACHINE_WIDTH, Vec(2, UInt(PREG_IDX_W)))
   val IN_readRegVal = Flipped(Vec(MACHINE_WIDTH, Vec(2, UInt(XLEN.W))))
   val OUT_readRegUop = Vec(MACHINE_WIDTH, Decoupled(new ReadRegUop))
+  val IN_flush = Input(Bool())
 }
 
 class ReadReg extends CoreModule {
@@ -59,6 +60,10 @@ class ReadReg extends CoreModule {
         uop(i) := uopNext(i)
         uopValid(i) := io.IN_issueUop(i).valid
       }
+    }
+
+    when(io.IN_flush) {
+      uopValid := VecInit(Seq.fill(MACHINE_WIDTH)(false.B))
     }
 
     // ** Output

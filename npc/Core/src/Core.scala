@@ -114,6 +114,7 @@ class Core extends CoreModule {
     readRegUop(i) <> readReg.io.OUT_readRegUop(i)
     readRegUop(i).ready := false.B
   }
+  readReg.io.IN_flush := redirect.valid
 
   // * PReg
   pReg.io.IN_pRegIndex := readReg.io.OUT_readRegIndex
