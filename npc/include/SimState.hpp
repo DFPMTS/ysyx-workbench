@@ -3,6 +3,7 @@
 
 #include "Uop.hpp"
 #include "cpu.hpp"
+#include "difftest.hpp"
 #include "itrace.hpp"
 #include <cstdint>
 #include <cstdio>
@@ -79,6 +80,7 @@ public:
         printf("      src2   = %d/%u/0x%x\n", inst.src2, inst.src2, inst.src2);
         printf("      result = %d/%u/0x%x\n", inst.result, inst.result,
                inst.result);
+        difftest();
       }
     }
 
