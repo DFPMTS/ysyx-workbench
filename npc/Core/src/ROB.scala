@@ -46,7 +46,7 @@ class ROB extends CoreModule {
     val enqEntry = Wire(new ROBEntry)
     enqEntry.rd := renameUop.rd
     enqEntry.prd := renameUop.prd
-    enqEntry.flag := Mux(renameUop.fuType === FuType.EXCEPTION, renameUop.opcode, Exception.NONE)
+    enqEntry.flag := Mux(renameUop.fuType === FuType.FLAG, renameUop.opcode, 0.U)
     enqEntry.executed := false.B
     enqEntry.target := 0.U
     
