@@ -56,6 +56,7 @@ SimState state;
 
 int main(int argc, char *argv[]) {
   Verilated::commandArgs(argc, argv);
+  gpr = [&](int index) { return state.getReg(index); };
   init_monitor(argc, argv);
   state.bindUops();
   SimulationSpeed sim_speed;
@@ -74,8 +75,6 @@ int main(int argc, char *argv[]) {
   // begin_wave = true;
   sim_speed.initTimer();
   int T = 400;
-
-  gpr = [&](int index) { return state.getReg(index); };
 
   while (running) {
     cpu_step();
