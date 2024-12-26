@@ -19,7 +19,7 @@ class ROBEntry extends CoreBundle {
   val prd  = UInt(PREG_IDX_W)
   val flag = UInt(FLAG_W)
   val executed = Bool()
-
+  val pc   = UInt(XLEN.W)
   // * temporary
   val target = UInt(XLEN.W)
 }
@@ -42,10 +42,11 @@ class ROB extends CoreModule {
 
   // ** enqueue
   for (i <- 0 until ISSUE_WIDTH) {
+    val renameUop = io.IN_renameUop(i).bits
     val enqEntry = Wire(new ROBEntry)
-    enqEntry.rd := io.IN_renameUop(i).bits.rd
-    enqEntry.prd := io.IN_renameUop(i).bits.prd
-    enqEntry.flag := io.IN_renameUop(i).bits.flag
+    enqEntry.rd := renameUop.rd
+    enqEntry.prd := renameUop.prd
+    enqEntry.flag := Mux(renameUop.fuType === FuType.EXCEPTION, renameUop.opcode, Exception.NONE)
     enqEntry.executed := false.B
     enqEntry.target := 0.U
     

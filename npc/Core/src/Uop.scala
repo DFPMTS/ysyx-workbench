@@ -9,15 +9,29 @@ object SrcType extends HasDecodeConfig {
   val PC   = 3.U(2.W)
 }
 
-object Exception extends HasDecodeConfig {
-  val INST_ADDR_MISALIGNED  = 0.U(4.W)
-  val INST_ACCESS_FAULT     = 1.U(4.W)
-  val ILLEGAL_INST          = 2.U(4.W)
-  val BREAKPOINT            = 3.U(4.W)
-  val LOAD_ADDR_MISALIGNED  = 4.U(4.W)
-  val LOAD_ACCESS_FAULT     = 5.U(4.W)
-  val STORE_ADDR_MISALIGNED = 6.U(4.W)
-  val STORE_ACCESS_FAULT    = 7.U(4.W)  
+// TODO : add C extension
+// * "With the addition of the C extension, no instructions can 
+// *  raise instruction-address-misaligned exceptions."
+// * So we are safe to use its encoding space for NONE exception.
+object FlagOp extends HasDecodeConfig {
+  val NONE                  = 0.U(FlagWidth.W)
+  val INST_ACCESS_FAULT     = 1.U(FlagWidth.W)
+  val ILLEGAL_INST          = 2.U(FlagWidth.W)
+  val BREAKPOINT            = 3.U(FlagWidth.W)
+  val LOAD_ADDR_MISALIGNED  = 4.U(FlagWidth.W)
+  val LOAD_ACCESS_FAULT     = 5.U(FlagWidth.W)
+  val STORE_ADDR_MISALIGNED = 6.U(FlagWidth.W)
+  val STORE_ACCESS_FAULT    = 7.U(FlagWidth.W)
+  // * custom begin
+  val ECALL                 = 8.U(FlagWidth.W)
+  val MRET                  = 9.U(FlagWidth.W)
+  val FENCE_I               = 9.U(FlagWidth.W)
+  val SFENCE_VMA            = 10.U(FlagWidth.W)
+  // * custom end
+  val INST_PAGE_FAULT       = 12.U(FlagWidth.W)
+  val LOAD_PAGE_FAULT       = 13.U(FlagWidth.W)
+  // 14
+  val STORE_PAGE_FAULT      = 15.U(FlagWidth.W)
 }
 
 object FuType extends HasDecodeConfig {
@@ -28,7 +42,7 @@ object FuType extends HasDecodeConfig {
   val DIV = 4.U(FuTypeWidth.W)
   val AGU = 5.U(FuTypeWidth.W)
   val CSR = 6.U(FuTypeWidth.W)
-  val EXCEPTION = 7.U(FuTypeWidth.W)
+  val FLAG = 7.U(FuTypeWidth.W)
 }
 
 object ALUOp extends HasDecodeConfig {
@@ -81,7 +95,7 @@ object LSUOp extends HasDecodeConfig {
 }
 
 object CSROp extends HasDecodeConfig {
-  def CSRR = "b0000".U(OpcodeWidth.W)
+  def CSRR  = "b0000".U(OpcodeWidth.W)
   def CSRRW = "b0001".U(OpcodeWidth.W)
   def CSRRS = "b0010".U(OpcodeWidth.W)
   def CSRRC = "b0011".U(OpcodeWidth.W)
@@ -216,12 +230,17 @@ class ReadRegUop extends CoreBundle {
   val compressed = Bool()
 }
 
+class TrapUop extends CoreBundle {
+  val prd = UInt(PREG_IDX_W)
+  val flag = UInt(FLAG_W)
+  val pc  = UInt(XLEN.W)
+}
+
 class WritebackUop extends CoreBundle {
   val prd = UInt(PREG_IDX_W)
   val data = UInt(XLEN.W)  
   val robPtr = RingBufferPtr(ROB_SIZE)
   val flag = UInt(FLAG_W)
-
   // * temporary
   val target = UInt(XLEN.W)
 }

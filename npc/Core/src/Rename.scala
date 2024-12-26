@@ -114,8 +114,6 @@ class Rename extends CoreModule {
     uopNext(i).ldqIndex := 0.U
     uopNext(i).stqIndex := 0.U
 
-    uopNext(i).flag := 0.U
-
     uopNext(i).inst := decodeUop.inst
     uopNext(i).rs1 := decodeUop.rs1
     uopNext(i).rs2 := decodeUop.rs2

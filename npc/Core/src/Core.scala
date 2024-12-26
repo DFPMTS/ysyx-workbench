@@ -16,15 +16,23 @@ class Core extends CoreModule {
   val rob = Module(new ROB)
   val scheduler = Module(new Scheduler)
   val iq = Seq(
-    Module(new IssueQueue(Seq(FuType.ALU))),
+    Module(new IssueQueue(Seq(FuType.ALU, FuType.CSR))),
     Module(new IssueQueue(Seq(FuType.LSU))),
     Module(new IssueQueue(Seq(FuType.ALU))),
     Module(new IssueQueue(Seq(FuType.ALU))),
   )
+  val dispatcher = Seq(
+    Module(new Dispatcher(Seq(FuType.ALU, FuType.CSR))),
+    Module(new Dispatcher(Seq(FuType.LSU))),
+    Module(new Dispatcher(Seq(FuType.ALU))),
+    Module(new Dispatcher(Seq(FuType.ALU))),
+  )
+
   val readReg = Module(new ReadReg)
   val pReg = Module(new PReg)
   val alu = Module(new ALU)
   val lsu = Module(new LSU)
+  val csr = Module(new CSR)
 
   val arbiter = Module(new AXI_Arbiter)
 
@@ -115,8 +123,18 @@ class Core extends CoreModule {
   pReg.io.IN_writebackUop := writebackUop
 
   // * Execute
-  alu.io.IN_readRegUop <> readRegUop(0)
-  writebackUop(0) := alu.io.OUT_writebackUop
+  // ** Port 0: ALU / CSR
+  dispatcher(0).io.IN_uop <> readRegUop(0)
+
+  alu.io.IN_readRegUop <> dispatcher(0).io.OUT_uop(0)
+  csr.io.IN_readRegUop <> dispatcher(0).io.OUT_uop(1)
+
+  val port0wbsel = Module(new WritebackSel(2))
+  port0wbsel.io.IN_uop(0) := alu.io.OUT_writebackUop
+  port0wbsel.io.IN_uop(1) := csr.io.OUT_writebackUop
+  writebackUop(0) := port0wbsel.io.OUT_uop
+
+  // ** Port 1: LSU
 
   lsu.io.IN_readRegUop <> readRegUop(1)
   writebackUop(1) := lsu.io.OUT_writebackUop

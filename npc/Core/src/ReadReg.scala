@@ -48,8 +48,6 @@ class ReadReg extends CoreModule {
 
       uopNext(i).predTarget := issueUop.predTarget
       uopNext(i).compressed := issueUop.compressed
-
-      uopNext(i).flag := 0.U
     }
 
     // * Control

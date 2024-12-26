@@ -2,15 +2,15 @@ import chisel3._
 import chisel3.util._
 import utils._
 
-class ExceptionHandlerIO extends CoreBundle {
-  val IN_exception = Flipped(Valid(new Exception))
+class FlagHandlerIO extends CoreBundle {
+  val IN_exception = Flipped(Valid(new FlagUop))
   val OUT_flush = Output(Bool())
-  val OUT_PC = Output(UInt(32.W))
+  val OUT_redirect = Output(new RedirectSignal)  
 }
 
 
-class ExceptionHandler extends CoreModule {
-  val io = IO(new ExceptionHandlerIO)
+class FlagHandler extends CoreModule {
+  val io = IO(new FlagHandlerIO)
 
   val flush = RegInit(false.B)
   val PC = Reg(UInt(32.W))

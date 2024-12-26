@@ -1,5 +1,7 @@
 import chisel3._
 import chisel3.util._
+import utils._
+import Config.XLEN
 
 object CSRList {
   val mstatus   = 0x300.U
@@ -10,69 +12,79 @@ object CSRList {
   val marchid   = 0xf12.U
 }
 
-class CSR extends Module {
-  val io = IO(
-    new Bundle {
-      val ren   = Input(Bool())
-      val addr  = Input(UInt(12.W))
-      val wen   = Input(Bool())
-      val wdata = Input(UInt(32.W))
-      val ecall = Input(Bool())
-      val pc    = Input(UInt(32.W))
+class CSRIO extends CoreBundle {
+  val IN_readRegUop  = Flipped(Decoupled(new ReadRegUop))
+  val OUT_writebackUop  = Valid(new WritebackUop)
+}
 
-      val rdata  = Output(UInt(32.W))
-      val mepc   = Output(UInt(32.W))
-      val mcause = Output(UInt(32.W))
-      val mtvec  = Output(UInt(32.W))
-    }
-  )
+class CSR extends Module {
+  val io = IO(new CSRIO)
   val mstatus = RegInit("h1800".U(32.W))
   val mtvec   = Reg(UInt(32.W))
   val mepc    = Reg(UInt(32.W))
   val mcause  = Reg(UInt(32.W))
-  io.mtvec  := mtvec
-  io.mepc   := mepc
-  io.mcause := mcause
 
-  when(io.ecall) {
+  val inValid = io.IN_readRegUop.valid
+  val inUop = io.IN_readRegUop.bits
+  val addr = io.IN_readRegUop.bits.imm
+  val ren  = inValid
+  val wen  = inValid && inUop.opcode === CSROp.CSRRW
+  val wdata = inUop.src1
+  val rdata = Wire(UInt(XLEN.W))
+  val ecall = inValid && inUop.opcode === CSROp.ECALL
+
+  val uop = Reg(new WritebackUop)
+  val uopValid = RegInit(false.B)
+
+  when(ecall) {
     // M-mode
     mcause := 11.U
-    mepc   := io.pc
+    mepc   := inUop.pc
   }
-  io.rdata := 0.U
-  when(io.ren) {
-    when(io.addr === CSRList.mstatus) {
-      io.rdata := mstatus
+  rdata := 0.U
+  when(ren) {
+    when(addr === CSRList.mstatus) {
+      rdata := mstatus
     }
-    when(io.addr === CSRList.mtvec) {
-      io.rdata := mtvec
+    when(addr === CSRList.mtvec) {
+      rdata := mtvec
     }
-    when(io.addr === CSRList.mepc) {
-      io.rdata := mepc
+    when(addr === CSRList.mepc) {
+      rdata := mepc
     }
-    when(io.addr === CSRList.mcause) {
-      io.rdata := mcause
+    when(addr === CSRList.mcause) {
+      rdata := mcause
     }
-    when(io.addr === CSRList.mvendorid) {
-      io.rdata := 0x79737978.U
+    when(addr === CSRList.mvendorid) {
+      rdata := 0x79737978.U
     }
-    when(io.addr === CSRList.marchid) {
-      io.rdata := 23060238.U
+    when(addr === CSRList.marchid) {
+      rdata := 23060238.U
     }
   }
 
-  when(io.wen) {
-    when(io.addr === CSRList.mstatus) {
-      mstatus := io.wdata
+  when(wen) {
+    when(addr === CSRList.mstatus) {
+      mstatus := wdata
     }
-    when(io.addr === CSRList.mtvec) {
-      mtvec := io.wdata
+    when(addr === CSRList.mtvec) {
+      mtvec := wdata
     }
-    when(io.addr === CSRList.mepc) {
-      mepc := io.wdata
+    when(addr === CSRList.mepc) {
+      mepc := wdata
     }
-    when(io.addr === CSRList.mcause) {
-      mcause := io.wdata
+    when(addr === CSRList.mcause) {
+      mcause := wdata
     }
   }
+
+  uopValid := inValid
+  uop.data := rdata
+  uop.target := Mux(ecall, mtvec, 0.U)
+  uop.flag := Mux(ecall, Flags.MISPREDICT, Flags.NOTHING)
+  uop.prd  := inUop.prd
+  uop.robPtr := inUop.robPtr
+  
+  io.OUT_writebackUop.valid := uopValid
+  io.OUT_writebackUop.bits := uop
 }

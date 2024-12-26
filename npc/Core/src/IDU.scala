@@ -47,8 +47,8 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   uopNext.src1Type  := decodeSignal.src1Type
   uopNext.src2Type  := decodeSignal.src2Type  
 
-  uopNext.fuType    := Mux(illegalInst, FuType.EXCEPTION,       decodeSignal.fuType)
-  uopNext.opcode    := Mux(illegalInst, Exception.ILLEGAL_INST, decodeSignal.opcode)
+  uopNext.fuType    := Mux(illegalInst, FuType.FLAG,         decodeSignal.fuType)
+  uopNext.opcode    := Mux(illegalInst, FlagOp.ILLEGAL_INST, decodeSignal.opcode)
   
   uopNext.predTarget := pc + 4.U
   uopNext.pc        := pc
