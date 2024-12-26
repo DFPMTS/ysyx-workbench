@@ -23,7 +23,7 @@ class SRAM extends Module {
 
   val out_data_buffer = Reg(UInt(32.W))
 
-  val s_Idle :: s_Read :: s_Write :: s_Wait_W :: Nil = Enum(4)
+  val s_Idle :: s_Read :: s_Write :: s_Wait_W :: s_WriteUp :: Nil = Enum(5)
 
   val next_state = WireDefault(s_Idle)
   val state      = RegNext(next_state, s_Idle)
@@ -33,17 +33,20 @@ class SRAM extends Module {
     is(s_Idle) {
       when(io.ar.fire) {
         next_state := s_Read
-      }.elsewhen(io.aw.fire) {
-        when(io.w.fire) {
-          next_state := s_Write
-        }.otherwise {
-          next_state := s_Wait_W
-        }
+      }.elsewhen(io.aw.valid) {
+        next_state := s_WriteUp        
       }
-    }
+    }    
     is(s_Read) {
       when(io.r.fire) {
         next_state := s_Idle
+      }
+    }
+    is(s_WriteUp) {
+      when(io.aw.fire && io.w.fire) {
+          next_state := s_Write
+      }.elsewhen(io.aw.fire) {
+          next_state := s_Wait_W
       }
     }
     is(s_Wait_W) {
@@ -82,6 +85,8 @@ class SRAM extends Module {
   switch(state) {
     is(s_Idle) {
       io.ar.ready := true.B
+    }
+    is(s_WriteUp){
       io.aw.ready := true.B
       io.w.ready  := true.B
     }
