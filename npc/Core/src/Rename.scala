@@ -124,7 +124,7 @@ class Rename extends CoreModule {
   val inReady = (0 until ISSUE_WIDTH).map(i => {
       (!uopRobValid(i) || outRobReady) && (!uopIssueQueueValid(i) || outIssueQueueReady(i))
     }
-  ).reduce(_ && _)
+  ).reduce(_ && _) && !renameStall
 
   // ** maintain current uop
   for (i <- 0 until MACHINE_WIDTH) {

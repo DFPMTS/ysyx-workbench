@@ -74,5 +74,6 @@ class FreeList extends CoreModule {
       }      
     }
   }
-  tailPtr := tailPtr + PopCount(io.IN_commitValid)
+  val freeValid = (0 until COMMIT_WIDTH).map(i => io.IN_commitValid(i) && io.IN_commitRd(i) =/= 0.U)
+  tailPtr := tailPtr + PopCount(freeValid)
 }
