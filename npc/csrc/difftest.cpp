@@ -47,7 +47,6 @@ void init_difftest(const char *diff_so_file) {
   difftest_context_t dut;
   get_context(&dut);
   dut.pc = RESET_VECTOR;
-  isa_reg_display(&dut);
   ref_difftest_regcpy(&dut, DIFFTEST_TO_REF);
 }
 
