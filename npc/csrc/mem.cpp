@@ -33,6 +33,7 @@ static uint32_t image[128] = {
     0x0082AE03, // lw x28 8(x5)
     0x00C2AE83, // lw x29 12(x5)
     0x300012F3, // csrrw x5 768 x0
+    0x00100073, // ebreak
                 // 0x00000297, // auipc t0,0
                 // 0x00028823, // sb  zero,16(t0)
                 // 0x0102c503, // lbu a0,16(t0)

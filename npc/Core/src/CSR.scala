@@ -32,6 +32,7 @@ class CSR extends Module {
   val wdata = inUop.src1
   val rdata = Wire(UInt(XLEN.W))
   val ecall = inValid && inUop.opcode === CSROp.ECALL
+  val ebreak = inValid && inUop.opcode === CSROp.EBREAK
 
   val uop = Reg(new WritebackUop)
   val uopValid = RegInit(false.B)
@@ -77,6 +78,11 @@ class CSR extends Module {
       mcause := wdata
     }
   }
+
+  val error = Module(new Error)
+  error.io.ebreak := ebreak
+  error.io.access_fault := false.B
+  error.io.invalid_inst := false.B
 
   uopValid := inValid
   uop.data := rdata
