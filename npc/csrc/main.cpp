@@ -73,7 +73,10 @@ int main(int argc, char *argv[]) {
   // begin_wave = true;
   sim_speed.initTimer();
   int T = 400;
-  atexit([]() { state.printInsts(); });
+  atexit([]() {
+    printf("Print Insts\n");
+    state.printInsts();
+  });
   while (T--) {
     cpu_step();
     state.log();
