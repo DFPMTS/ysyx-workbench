@@ -70,11 +70,9 @@ public:
                inst.rs2);
         printf("      prd = %2d  prs1 = %2d  prs2 = %2d\n", inst.prd, inst.prs1,
                inst.prs2);
-        printf("      src1   = %10d/%10u/0x%8x\n", inst.src1, inst.src1,
-               inst.src1);
-        printf("      src2   = %10d/%10u/0x%8x\n", inst.src2, inst.src2,
-               inst.src2);
-        printf("      result = %10d/%10u/0x%8x\n", inst.result, inst.result,
+        printf("      src1   = %d/%u/0x%x\n", inst.src1, inst.src1, inst.src1);
+        printf("      src2   = %d/%u/0x%x\n", inst.src2, inst.src2, inst.src2);
+        printf("      result = %d/%u/0x%x\n", inst.result, inst.result,
                inst.result);
       }
     }
