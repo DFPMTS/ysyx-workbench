@@ -85,6 +85,8 @@ class CSR extends Module {
   uop.prd  := inUop.prd
   uop.robPtr := inUop.robPtr
   
+  io.IN_readRegUop.ready := true.B
+
   io.OUT_writebackUop.valid := uopValid
   io.OUT_writebackUop.bits := uop
 }

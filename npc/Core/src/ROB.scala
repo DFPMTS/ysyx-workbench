@@ -47,6 +47,7 @@ class ROB extends CoreModule {
     enqEntry.rd := renameUop.rd
     enqEntry.prd := renameUop.prd
     enqEntry.flag := Mux(renameUop.fuType === FuType.FLAG, renameUop.opcode, 0.U)
+    enqEntry.pc  := renameUop.pc
     enqEntry.executed := false.B
     enqEntry.target := 0.U
     
