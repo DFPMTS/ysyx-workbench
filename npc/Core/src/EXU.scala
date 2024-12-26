@@ -82,16 +82,16 @@ class EXU extends Module with HasDecodeConstants {
   val isEBREAK  = isCSR && ctrlBuffer.fuOp === EBREAK
   val isFENCE_I = isCSR && ctrlBuffer.fuOp === FENCE_I
 
-  csr.io.ren   := isCSRS && rd =/= 0.U && validBuffer
-  csr.io.addr  := dataBuffer.imm(11, 0)
-  csr.io.wen   := isCSRW && rs1 =/= 0.U && validBuffer
-  csr.io.wdata := dataBuffer.src1
-  csr.io.ecall := isECALL && validBuffer
-  csr.io.pc    := dataBuffer.pc
+  // csr.io.ren   := isCSRS && rd =/= 0.U && validBuffer
+  // csr.io.addr  := dataBuffer.imm(11, 0)
+  // csr.io.wen   := isCSRW && rs1 =/= 0.U && validBuffer
+  // csr.io.wdata := dataBuffer.src1
+  // csr.io.ecall := isECALL && validBuffer
+  // csr.io.pc    := dataBuffer.pc
 
-  csrOut     := csr.io.rdata
-  csrPCValid := isECALL || isMRET
-  csrPC      := Mux(isECALL, csr.io.mtvec, csr.io.mepc)
+  // csrOut     := csr.io.rdata
+  // csrPCValid := isECALL || isMRET
+  // csrPC      := Mux(isECALL, csr.io.mtvec, csr.io.mepc)
 
   val error = Module(new Error)
   error.io.ebreak       := validBuffer && isEBREAK
