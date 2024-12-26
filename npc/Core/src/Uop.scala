@@ -186,8 +186,6 @@ class RenameUop extends CoreBundle {
   val predTarget = UInt(XLEN.W)
   val compressed = Bool()
 
-  val flag = UInt(FLAG_W)
-
   // * debug
   val rs1 = UInt(5.W)
   val rs2 = UInt(5.W)
@@ -216,8 +214,6 @@ class ReadRegUop extends CoreBundle {
 
   val predTarget = UInt(XLEN.W)
   val compressed = Bool()
-
-  val flag = UInt(FLAG_W)
 }
 
 class WritebackUop extends CoreBundle {

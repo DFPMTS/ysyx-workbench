@@ -152,7 +152,7 @@ class Rename extends CoreModule {
   val issueQueueValid = VecInit((0 until ISSUE_WIDTH).map(i => 
     inValid(i) && uopNext(i).fuType =/= FuType.EXCEPTION))
 
-  // ** update uopValid  
+  // ** update uopValid
   when (io.IN_flush) {
     uopRobValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
     uopIssueQueueValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
