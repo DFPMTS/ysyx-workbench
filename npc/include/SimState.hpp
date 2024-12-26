@@ -69,10 +69,6 @@ public:
         auto &inst = insts[robIndex];
         auto &uop = commitUop[i];
         inst.valid = false;
-        if (*uop.rd) {
-          printf("archTable[%d] = %d\n", *uop.rd, *uop.prd);
-          archTable[*uop.rd] = *uop.prd;
-        }
         itrace_generate(buf, inst.pc, inst.inst);
         printf("[%3d] %s\n", robIndex, buf);
         printf("      rd  = %2d  rs1  = %2d  rs2  = %2d\n", inst.rd, inst.rs1,
@@ -83,6 +79,10 @@ public:
         printf("      src2   = %d/%u/0x%x\n", inst.src2, inst.src2, inst.src2);
         printf("      result = %d/%u/0x%x\n", inst.result, inst.result,
                inst.result);
+        if (*uop.rd) {
+          printf("      archTable[%d] = %d\n", *uop.rd, *uop.prd);
+          archTable[*uop.rd] = *uop.prd;
+        }
         difftest();
       }
     }
@@ -94,6 +94,7 @@ public:
         auto &inst = insts[robIndex];
         auto &uop = writebackUop[i];
         if (*uop.prd) {
+          printf("writeback: pReg[%d] = %d\n", *uop.prd, *writebackUop[i].data);
           pReg[*uop.prd] = *writebackUop[i].data;
         }
         inst.result = *writebackUop[i].data;
