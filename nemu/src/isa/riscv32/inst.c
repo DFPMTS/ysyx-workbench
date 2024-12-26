@@ -223,7 +223,9 @@ static int decode_exec(Decode *s) {
   __VA_ARGS__ ; \
 }
 
+  #ifdef CONFIG_HAS_CLINT
   cycle_mtime();
+  #endif
 
 
   // interrupt
