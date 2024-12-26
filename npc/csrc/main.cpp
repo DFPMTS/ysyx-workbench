@@ -8,6 +8,7 @@
 #include "status.hpp"
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 
 void nvboard_update();
 void nvboard_quit();
@@ -72,6 +73,7 @@ int main(int argc, char *argv[]) {
   // begin_wave = true;
   sim_speed.initTimer();
   int T = 400;
+  atexit([]() { state.printInsts(); });
   while (T--) {
     cpu_step();
     state.log();
