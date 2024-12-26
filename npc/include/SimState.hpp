@@ -18,6 +18,7 @@ public:
   InstInfo insts[128];
   uint32_t archTable[32] = {};
   uint32_t pReg[64] = {};
+  uint32_t pc = 0;
 
   void bindUops() {
     // * renameUop
@@ -83,6 +84,7 @@ public:
           printf("      archTable[%d] = %d\n", *uop.rd, *uop.prd);
           archTable[*uop.rd] = *uop.prd;
         }
+        pc = inst.pc + 4;
         difftest();
       }
     }
@@ -145,6 +147,8 @@ public:
       }
     }
   }
+
+  uint32_t getPC() { return pc; }
 
   uint32_t getReg(int index) { return pReg[archTable[index]]; }
 };
