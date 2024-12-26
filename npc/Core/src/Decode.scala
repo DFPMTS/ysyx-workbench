@@ -64,7 +64,6 @@ class Decode extends CoreModule {
   def ebreak     = BitPat("b0000000 00001 00000 000 00000 11100 11")
   def csrrw      = BitPat("b??????? ????? ????? 001 ????? 11100 11")
   def csrrs      = BitPat("b??????? ????? ????? 010 ????? 11100 11")
-  def csrr_s     = BitPat("b??????? ????? ????? 010 00000 11100 11") // CSRRS with rs1=0 
   def mret       = BitPat("b0011000 00010 00000 000 00000 11100 11")
 
 
@@ -112,7 +111,6 @@ ecall      -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.CSR, CSROp.ECALL,   
 ebreak     -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.CSR, CSROp.EBREAK,    ImmType.X),
 csrrw      -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR, CSROp.CSRRW,     ImmType.I),
 csrrs      -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR, CSROp.CSRRS,     ImmType.I),
-csrr_s     -> List(N, Y, SrcType.ZERO, SrcType.ZERO, FuType.CSR, CSROp.CSRR,      ImmType.I),
 mret       -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.CSR, CSROp.MRET,      ImmType.X),
 
   )
