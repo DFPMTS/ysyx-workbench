@@ -84,7 +84,7 @@ uint64_t read_mtime();
 uint64_t read_mtimecmp();
 
 word_t isa_query_intr() {
-
+  return 0;
   // set mip/mie
   if (read_mtime() >= read_mtimecmp()) {
     cpu.mip.MTI = 1;
