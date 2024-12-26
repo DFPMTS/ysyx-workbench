@@ -120,7 +120,7 @@ class LSU extends CoreModule with HasLSUOps {
   val uop = Reg(new WritebackUop)
   val uopValid = RegInit(false.B)
   
-  uopValid := io.master.r.fire
+  uopValid := io.master.r.fire || io.master.b.fire
   
   uop.data := sign_ext_data
   uop.prd := inUop.prd
