@@ -22,7 +22,7 @@ class Core extends CoreModule {
     Module(new IssueQueue(Seq(FuType.ALU))),
   )
   val dispatcher = Seq(
-    Module(new Dispatcher(Seq(FuType.ALU, FuType.CSR))),
+    Module(new Dispatcher(Seq(Seq(FuType.ALU, FuType.BRU), Seq(FuType.CSR)))),
   )
 
   val readReg = Module(new ReadReg)
