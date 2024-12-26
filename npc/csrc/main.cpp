@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     printf("Print Insts\n");
     state.printInsts();
   });
-  while (T--) {
+  while (running) {
     cpu_step();
     state.log();
     ++totalCycles;
