@@ -28,7 +28,8 @@ test:
 gen_verilog: $(VSRCS_FLAG)$(SIM_TARGET)$(MODE)
 
 $(VSRCS_FLAG)$(SIM_TARGET)$(MODE): $(CORE_SRCS)
-	make verilog 
+	make verilog
+	python ./verilator_public.py
 	touch $@
 
 $(BIN): $(VSRCS_FLAG) $(CSRCS) $(CINCS)
@@ -84,8 +85,6 @@ nxdc: $(SRC_AUTO_BIND)
 
 sim: 	
 	xmake build chisel
-	python ./verilator_public.py
-	touch $(VSRCS_FLAG)$(SIM_TARGET)$(MODE)
 	xmake build Vtop
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	xmake run Vtop $(MAINARGS)
