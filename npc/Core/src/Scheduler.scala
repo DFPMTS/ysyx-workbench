@@ -28,8 +28,10 @@ class Scheduler extends CoreModule {
   val port0ValidIndex = PriorityEncoder(port0Valid)
   val hasPort0Valid = port0Valid.reduce(_ || _)
 
-  io.OUT_issueQueueReady(port0ValidIndex) := io.OUT_renameUop(0).ready
-  io.OUT_renameUop(0).valid := io.IN_issueQueueValid(port0ValidIndex) && hasPort0Valid
+  when(hasPort0Valid){
+    io.OUT_issueQueueReady(port0ValidIndex) := io.OUT_renameUop(0).ready
+    io.OUT_renameUop(0).valid := io.IN_issueQueueValid(port0ValidIndex)
+  }
   io.OUT_renameUop(0).bits := io.IN_renameUop(port0ValidIndex)
 
   // * Port 1: LSU
@@ -37,7 +39,9 @@ class Scheduler extends CoreModule {
   val port1ValidIndex = PriorityEncoder(port1Valid)
   val hasPort1Valid = port1Valid.reduce(_ || _)
 
-  io.OUT_issueQueueReady(port1ValidIndex) := io.OUT_renameUop(1).ready
-  io.OUT_renameUop(1).valid := io.IN_issueQueueValid(port1ValidIndex) && hasPort1Valid
+  when (hasPort1Valid) {
+    io.OUT_issueQueueReady(port1ValidIndex) := io.OUT_renameUop(1).ready    
+    io.OUT_renameUop(1).valid := io.IN_issueQueueValid(port1ValidIndex)
+  }  
   io.OUT_renameUop(1).bits := io.IN_renameUop(port1ValidIndex)
 }
