@@ -67,6 +67,8 @@ class ROB extends CoreModule {
 
   for (i <- 0 until COMMIT_WIDTH) {
     val deqPtr = robTailPtr + i.U
+    val distance = robHeadPtr.distanceTo(deqPtr)
+    dontTouch(distance)
     deqEntry(i) := rob(deqPtr.index)
     deqValid(i) := robHeadPtr.distanceTo(deqPtr) < ROB_SIZE.U && deqEntry(i).executed
   }
