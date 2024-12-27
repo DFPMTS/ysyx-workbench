@@ -146,7 +146,7 @@ public:
       if (insts[i].valid) {
         auto &inst = insts[i];
         itrace_generate(buf, inst.pc, inst.inst);
-        printf("[%3d] %s", i, buf);
+        printf("[%3d] %s\n", i, buf);
         printf("      rd  = %2d  rs1  = %2d  rs2  = %2d\n", inst.rd, inst.rs1,
                inst.rs2);
         printf("      prd = %2d  prs1 = %2d  prs2 = %2d\n", inst.prd, inst.prs1,
