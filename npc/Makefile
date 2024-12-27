@@ -85,7 +85,6 @@ nxdc: $(SRC_AUTO_BIND)
 sim: 	
 	xmake build chisel
 	python ./verilator_public.py
-	touch $(VSRCS_FLAG)$(MODE)
 	xmake build Vtop
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	xmake run Vtop $(MAINARGS)
