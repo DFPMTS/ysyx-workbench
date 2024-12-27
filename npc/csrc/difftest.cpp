@@ -84,6 +84,7 @@ void trace(uint32_t pc, uint32_t inst) {
 }
 
 void difftest() {
+  puts("====difftest====");
   difftest_step();
   get_context(&dut);
   ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
