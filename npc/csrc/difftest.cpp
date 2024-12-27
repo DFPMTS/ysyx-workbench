@@ -84,7 +84,6 @@ void trace(uint32_t pc, uint32_t inst) {
 }
 
 void difftest() {
-  puts("====difftest====");
   difftest_step();
   get_context(&dut);
   ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
@@ -92,7 +91,7 @@ void difftest() {
     isa_reg_display(&dut);
     assert(0);
   }
-  isa_reg_display(&ref);
+  // isa_reg_display(&ref);
 }
 
 void difftest_step() {

@@ -62,12 +62,13 @@ void init_regs() {
 }
 
 std::function<uint32_t(int)> gpr;
+std::function<uint32_t(void)> PC;
 
 void get_context(difftest_context_t *dut) {
   for (int i = 0; i < 16; ++i) {
     dut->gpr[i] = gpr(i);
   }
-  // dut->pc = PC;
+  dut->pc = PC();
 }
 
 void cpu_step() {

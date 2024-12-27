@@ -4,6 +4,8 @@
 #include "Vtop.h"
 #include "config.hpp"
 #include <Vtop___024root.h>
+#include <cstdint>
+#include <functional>
 #include <iostream>
 #include <verilated.h>
 #include <verilated_fst_c.h>
@@ -25,6 +27,7 @@ struct difftest_context_t {
 };
 
 extern std::function<uint32_t(int)> gpr;
+extern std::function<uint32_t(void)> PC;
 
 const char *reg_name(int id);
 void get_context(difftest_context_t *dut);

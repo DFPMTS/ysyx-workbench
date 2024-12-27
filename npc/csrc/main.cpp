@@ -57,6 +57,7 @@ SimState state;
 int main(int argc, char *argv[]) {
   Verilated::commandArgs(argc, argv);
   gpr = [&](int index) { return state.getReg(index); };
+  PC = [&]() { return state.getPC(); };
   init_monitor(argc, argv);
   state.bindUops();
   SimulationSpeed sim_speed;
