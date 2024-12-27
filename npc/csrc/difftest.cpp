@@ -92,7 +92,7 @@ void difftest() {
     isa_reg_display(&dut);
     assert(0);
   }
-  // isa_reg_display(&dut);
+  isa_reg_display(&ref);
 }
 
 void difftest_step() {
