@@ -63,6 +63,7 @@ public:
   }
 
   void log(uint64_t cycle) {
+    printf("cycle: %ld\n", cycle);
     if (cycle > lastCommit + 10000) {
       exit(114);
     }
