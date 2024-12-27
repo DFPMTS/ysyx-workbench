@@ -89,6 +89,7 @@ class IssueQueue(FUs: Seq[UInt]) extends CoreModule {
   }
   when (doEnq) {
     val enqIndex = Mux(doDeq, headIndex - 1.U, headIndex)(IQ_IDX_W.get - 1, 0)
+    dontTouch(enqIndex)
     val renameUop = io.IN_renameUop.bits
     queue(enqIndex) := renameUop
     // * fix srcReady
