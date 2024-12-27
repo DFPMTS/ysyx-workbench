@@ -19,6 +19,7 @@ public:
   uint32_t archTable[32] = {};
   uint32_t pReg[64] = {};
   uint32_t pc = 0;
+  uint32_t lastCommit;
 
   void bindUops() {
     // * renameUop
@@ -61,11 +62,15 @@ public:
     REPEAT_1(BIND_VALID)
   }
 
-  void log() {
+  void log(uint64_t cycle) {
+    if (cycle > lastCommit + 10000) {
+      exit(114);
+    }
     // * commit
     char buf[512];
     for (int i = 0; i < 1; ++i) {
       if (*commitUop[i].valid && *commitUop[i].ready) {
+        lastCommit = cycle;
         auto robIndex = *commitUop[i].robPtr_index;
         auto &inst = insts[robIndex];
         auto &uop = commitUop[i];
