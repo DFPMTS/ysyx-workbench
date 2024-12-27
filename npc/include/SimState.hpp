@@ -141,10 +141,12 @@ public:
 
   void printInsts() {
     printf("============================================\n");
+    char buf[512];
     for (int i = 0; i < 128; ++i) {
       if (insts[i].valid) {
         auto &inst = insts[i];
-        printf("[%3d] pc = 0x%x inst = %x\n", i, insts[i].pc, insts[i].inst);
+        itrace_generate(buf, inst.pc, inst.inst);
+        printf("[%3d] %s", i, buf);
         printf("      rd  = %2d  rs1  = %2d  rs2  = %2d\n", inst.rd, inst.rs1,
                inst.rs2);
         printf("      prd = %2d  prs1 = %2d  prs2 = %2d\n", inst.prd, inst.prs1,
