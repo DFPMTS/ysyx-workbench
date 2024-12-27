@@ -97,7 +97,9 @@ class ROB extends CoreModule {
     robHeadPtr := RingBufferPtr(size = ROB_SIZE, flag = 0.U, index = 0.U)
     robTailPtr := RingBufferPtr(size = ROB_SIZE, flag = 1.U, index = 0.U)
   }.elsewhen(!robStall) {
-    robHeadPtr := io.IN_renameRobHeadPtr
+    when(!enqStall){
+      robHeadPtr := io.IN_renameRobHeadPtr
+    }
     robTailPtr := robTailPtr + PopCount(deqValid)
   }
 
