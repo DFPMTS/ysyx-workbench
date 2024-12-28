@@ -28,7 +28,8 @@ test:
 gen_verilog: $(VSRCS_FLAG)$(SIM_TARGET)$(MODE)
 
 $(VSRCS_FLAG)$(SIM_TARGET)$(MODE): $(CORE_SRCS)
-	make verilog 
+	make verilog
+	python ./verilator_public.py
 	touch $@
 
 $(BIN): $(VSRCS_FLAG) $(CSRCS) $(CINCS)

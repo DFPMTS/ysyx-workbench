@@ -3,6 +3,7 @@ target("Vtop")
   set_toolchains("@verilator")  
 
   add_cxxflags("-fPIE")
+  add_cxxflags("-g")
   on_config(function (target) 
     local llvm_cxxflags = os.iorun("llvm-config --cxxflags")
     local llvm_ldflags = os.iorun("llvm-config --libs")
@@ -18,6 +19,7 @@ target("Vtop")
   add_files("csrc/*.cc")
   if get_config("sim_target") == "npc" then
     add_values("verilator.flags", "--trace-fst")
+    add_values("verilator.flags", "-sv")
   else 
     add_values("verilator.flags", "--trace-fst", "--timescale", "1ns/1ps", "--no-timing", "--top-module", "ysyxSoCFull", "--autoflush", "-Wno-WIDTHEXPAND")
     add_values("verilator.flags","-I../ysyxSoC/perip/uart16550/rtl")

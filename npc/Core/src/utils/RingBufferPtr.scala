@@ -8,7 +8,7 @@ class RingBufferPtr(size: Int) extends CoreBundle {
   // ** extra flag bit, used for distinguishing between full and empty
   // ** everytime we wrap around, we flip this bit
   val WIDTH_INDEX = log2Up(size)
-  val flag = UInt()  
+  val flag = UInt(1.W)  
   // ** real index
   val index = UInt(WIDTH_INDEX.W)
 
@@ -56,14 +56,25 @@ class RingBufferPtr(size: Int) extends CoreBundle {
       distance := size.U - this.index + that.index
     }
     distance
-  }  
+  }
+
+  // ! this assumes the distance from this to that is less than size
+  def isAheadOf(that: RingBufferPtr): Bool = {
+    val flagDiff = this.flag =/= that.flag
+    val indexAhead = this.index > that.index
+    flagDiff ^ indexAhead
+  }
 }
 
 object RingBufferPtr {
-  def apply(size: Int, flag: UInt, index: UInt): RingBufferPtr = {
+  def apply(size: Int, flag: UInt, index: UInt) = {
     val ptr = Wire(new RingBufferPtr(size))
     ptr.flag := flag
     ptr.index := index
+    ptr
+  }
+  def apply(size: Int) = {
+    val ptr = new RingBufferPtr(size)
     ptr
   }
 }

@@ -1,4 +1,7 @@
 #include "EventMonitor.hpp"
+#include "SimState.hpp"
+#include "Uop.hpp"
+#include "cpu.hpp"
 #include "debug.hpp"
 #include "difftest.hpp"
 #include "mem.hpp"
@@ -6,6 +9,7 @@
 #include "status.hpp"
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 
 void nvboard_update();
 void nvboard_quit();
@@ -48,9 +52,14 @@ public:
   }
 };
 
+SimState state;
+
 int main(int argc, char *argv[]) {
   Verilated::commandArgs(argc, argv);
+  gpr = [&](int index) { return state.getReg(index); };
+  PC = [&]() { return state.getPC(); };
   init_monitor(argc, argv);
+  state.bindUops();
   SimulationSpeed sim_speed;
   bool commit = false;
   bool booted = false;
@@ -66,38 +75,44 @@ int main(int argc, char *argv[]) {
   // return 0;
   // begin_wave = true;
   sim_speed.initTimer();
+  int T = 400;
+  atexit([]() { state.printInsts(); });
   while (running) {
     cpu_step();
+    state.log(totalCycles);
     ++totalCycles;
-#ifdef NVBOARD
-    nvboard_update();
-#endif
-    if (commit) {
-      // check the comments of PC / INST
-#ifdef DIFFTEST
-      difftest();
-#endif
-      commit = false;
-    }
-    if (isCommit()) {
-      commit = true;
-      trace(PC, INST);
-      if (PC == 0xa0000000) {
-        begin_wave = true;
-        printPerfCounters();
-        clearAllEventCount();
-        totalCycles = 0;
-        booted = true;
-      }
-    }
-    if (totalCycles % 10000000 == 0) {
-      std::cerr << "Total cycles: " << totalCycles << std::endl;
-      printPerfCounters();
-    }
+    //     ++totalCycles;
+    // #ifdef NVBOARD
+    //     nvboard_update();
+    // #endif
+    //     if (commit) {
+    //       // check the comments of PC / INST
+    // #ifdef DIFFTEST
+    //       difftest();
+    // #endif
+    //       commit = false;
+    //     }
+    //     if (isCommit()) {
+    //       commit = true;
+    //       trace(PC, INST);
+    //       if (PC == 0xa0000000) {
+    //         begin_wave = true;
+    //         printPerfCounters();
+    //         clearAllEventCount();
+    //         totalCycles = 0;
+    //         booted = true;
+    //       }
+    //     }
+    //     if (totalCycles % 10000000 == 0) {
+    //       std::cerr << "Total cycles: " << totalCycles << std::endl;
+    //       printPerfCounters();
+    //     }
   }
+  std::cerr << "Simulation End" << std::endl;
+  state.printInsts();
   ++totalCycles;
   // a0
-  int retval = gpr(10);
+  int retval = state.getReg(10);
 
 #ifdef WAVE
   fst->close();

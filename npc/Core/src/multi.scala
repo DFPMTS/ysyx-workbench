@@ -14,7 +14,7 @@ class multi extends Module {
   // val exu = Module(new EXU)
   // val mem = Module(new MEM)
 
-  // val arbiter = Module(new AXI_Arbiter)
+  val arbiter = Module(new AXI_Arbiter)
 
   // val EXtoIF = Wire(new RedirectSignal)
 
@@ -50,7 +50,7 @@ class multi extends Module {
 
   // ifu.io.flushICache := false.B
 
-  // arbiter.io.winMaster.viewAs[AXI4ysyxSoC] <> io.master
+  arbiter.io.winMaster.viewAs[AXI4ysyxSoC] <> io.master
 
   // // AXI4 slave
   // io.slave.awready := false.B
