@@ -141,14 +141,14 @@ mem_word_t mem_read(paddr_t addr) {
   if (in_clock(addr)) {
     access_device = true;
 #ifdef MTRACE
-    log_write("|clock| %u", addr);
+    log_write("|clock| ");
 #endif
     valid = true;
     retval = clock_read(addr - RTC_ADDR);
   }
 #ifdef MTRACE
   if (valid)
-    log_write("0x%08x / %lu\n", retval, retval);
+    log_write("<0x%08x / %lu>\n", retval, retval);
   else
     log_write("NOT VALID / NOT VALID\n");
 #endif

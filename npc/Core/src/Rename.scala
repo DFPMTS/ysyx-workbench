@@ -141,7 +141,9 @@ class Rename extends CoreModule {
   }
   // ** update uop
   for (i <- 0 until ISSUE_WIDTH) {
-    uopReg(i) := Mux(inFire(i), uopNext(i), uopReg(i))
+    when (inFire(i)) {
+      uopReg(i) := uopNext(i)
+    }
   }
 
   val issueQueueValid = VecInit((0 until ISSUE_WIDTH).map(i => 

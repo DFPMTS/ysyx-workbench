@@ -66,6 +66,17 @@ class Decode extends CoreModule {
   def csrrs      = BitPat("b??????? ????? ????? 010 ????? 11100 11")
   def mret       = BitPat("b0011000 00010 00000 000 00000 11100 11")
 
+  // * RV32M
+  def mul        = BitPat("b0000001 ????? ????? 000 ????? 01100 11")
+  def mulh       = BitPat("b0000001 ????? ????? 001 ????? 01100 11")
+  def mulhsu     = BitPat("b0000001 ????? ????? 010 ????? 01100 11")
+  def mulhu      = BitPat("b0000001 ????? ????? 011 ????? 01100 11")
+  def div        = BitPat("b0000001 ????? ????? 100 ????? 01100 11")
+  def divu       = BitPat("b0000001 ????? ????? 101 ????? 01100 11")
+  def rem        = BitPat("b0000001 ????? ????? 110 ????? 01100 11")
+  def remu       = BitPat("b0000001 ????? ????? 111 ????? 01100 11")
+
+
 
   val defaultCtrl: List[BitPat] = List(Y, N, BitPat.dontCare(2), BitPat.dontCare(2), BitPat.dontCare(FuTypeWidth), BitPat.dontCare(OpcodeWidth), ImmType.X)
   val lut: List[(BitPat, List[BitPat])] = List(
@@ -112,6 +123,15 @@ ebreak     -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.CSR, CSROp.EBREAK,  
 csrrw      -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR, CSROp.CSRRW,     ImmType.I),
 csrrs      -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR, CSROp.CSRRS,     ImmType.I),
 mret       -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.CSR, CSROp.MRET,      ImmType.X),
+// * RV32M
+mul        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.MUL, MULOp.MUL,       ImmType.X),
+mulh       -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.MUL, MULOp.MULH,      ImmType.X),
+mulhsu     -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.MUL, MULOp.MULHSU,    ImmType.X),
+mulhu      -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.MUL, MULOp.MULHU,     ImmType.X),
+div        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.DIV, DIVOp.DIV,       ImmType.X),
+divu       -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.DIV, DIVOp.DIVU,      ImmType.X),
+rem        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.DIV, DIVOp.REM,       ImmType.X),
+remu       -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.DIV, DIVOp.REMU,      ImmType.X),
 
   )
   def listToBitPat(l: List[BitPat]) = {

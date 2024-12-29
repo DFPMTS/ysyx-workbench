@@ -62,6 +62,7 @@ class CSR extends Module {
   val rdata = Wire(UInt(XLEN.W))
   val ecall = inValid && inUop.opcode === CSROp.ECALL
   val ebreak = inValid && inUop.opcode === CSROp.EBREAK
+  val mret = inValid && inUop.opcode === CSROp.MRET
 
   val uop = Reg(new WritebackUop)
   val uopValid = RegInit(false.B)
@@ -71,6 +72,7 @@ class CSR extends Module {
     mcause := 11.U
     mepc   := inUop.pc
   }
+
   rdata := 0.U
   when(ren) {
     when(addr === CSRList.mstatus) {
@@ -115,8 +117,8 @@ class CSR extends Module {
 
   uopValid := inValid
   uop.data := rdata
-  uop.target := Mux(ecall, mtvec, 0.U)
-  uop.flag := Mux(ecall, Flags.MISPREDICT, Flags.NOTHING)
+  uop.target := Mux(ecall, mtvec, mepc)
+  uop.flag := Mux(ecall || mret, Flags.MISPREDICT, Flags.NOTHING)
   uop.prd  := inUop.prd
   uop.robPtr := inUop.robPtr
   

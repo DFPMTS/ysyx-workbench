@@ -16,20 +16,32 @@ class Core extends CoreModule {
   val rob = Module(new ROB)
   val scheduler = Module(new Scheduler)
   val iq = Seq(
-    Module(new IssueQueue(Seq(FuType.ALU, FuType.CSR))),
+    Module(new IssueQueue(Seq(FuType.ALU, FuType.MUL, FuType.CSR))),
+    Module(new IssueQueue(Seq(FuType.ALU, FuType.DIV))),
     Module(new IssueQueue(Seq(FuType.LSU))),
-    Module(new IssueQueue(Seq(FuType.ALU))),
     Module(new IssueQueue(Seq(FuType.ALU))),
   )
   val dispatcher = Seq(
-    Module(new Dispatcher(Seq(Seq(FuType.ALU, FuType.BRU), Seq(FuType.CSR)))),
+    Module(new Dispatcher(
+      Seq(Seq(FuType.ALU, FuType.BRU), Seq(FuType.MUL), Seq(FuType.CSR))
+    )),
+    Module(new Dispatcher(
+      Seq(Seq(FuType.ALU, FuType.BRU), Seq(FuType.DIV))
+    )),
   )
 
   val readReg = Module(new ReadReg)
   val pReg = Module(new PReg)
-  val alu = Module(new ALU)
+  // * Port 0
+  val alu0 = Module(new ALU)
+  val mul  = Module(new MUL)
+  val csr  = Module(new CSR)
+  // * Port 0
+  val alu1 = Module(new ALU)
+  val div  = Module(new DIV)
+  // * Port 2
   val lsu = Module(new LSU)
-  val csr = Module(new CSR)
+
 
   val arbiter = Module(new AXI_Arbiter)
 
@@ -105,6 +117,7 @@ class Core extends CoreModule {
     iq(i).io.IN_writebackUop := writebackUop
     iq(i).io.IN_robTailPtr := rob.io.OUT_robTailPtr
     iq(i).io.IN_flush := redirect.valid
+    iq(i).io.IN_idivBusy := div.io.OUT_idivBusy
   }
 
   // * Read Register
@@ -121,21 +134,39 @@ class Core extends CoreModule {
   pReg.io.IN_writebackUop := writebackUop
 
   // * Execute
-  // ** Port 0: ALU / CSR
+  // ** Port 0: ALU / MUL / CSR
   dispatcher(0).io.IN_uop <> readRegUop(0)
 
-  alu.io.IN_readRegUop <> dispatcher(0).io.OUT_uop(0)
-  csr.io.IN_readRegUop <> dispatcher(0).io.OUT_uop(1)
+  alu0.io.IN_flush := redirect.valid
+  mul.io.IN_flush := redirect.valid
 
-  val port0wbsel = Module(new WritebackSel(2))
-  port0wbsel.io.IN_uop(0) := alu.io.OUT_writebackUop
-  port0wbsel.io.IN_uop(1) := csr.io.OUT_writebackUop
+  alu0.io.IN_readRegUop <> dispatcher(0).io.OUT_uop(0)
+  mul.io.IN_readRegUop  <> dispatcher(0).io.OUT_uop(1)
+  csr.io.IN_readRegUop  <> dispatcher(0).io.OUT_uop(2)
+
+  val port0wbsel = Module(new WritebackSel(3))
+  port0wbsel.io.IN_uop(0) := alu0.io.OUT_writebackUop
+  port0wbsel.io.IN_uop(1) := mul.io.OUT_writebackUop
+  port0wbsel.io.IN_uop(2) := csr.io.OUT_writebackUop
   writebackUop(0) := port0wbsel.io.OUT_uop
 
-  // ** Port 1: LSU
+  // ** Port 1: ALU / DIV / CSR
+  dispatcher(1).io.IN_uop <> readRegUop(1)
 
-  lsu.io.IN_readRegUop <> readRegUop(1)
-  writebackUop(1) := lsu.io.OUT_writebackUop
+  alu1.io.IN_flush := redirect.valid
+  div.io.IN_flush := redirect.valid
+
+  alu1.io.IN_readRegUop <> dispatcher(1).io.OUT_uop(0)
+  div.io.IN_readRegUop  <> dispatcher(1).io.OUT_uop(1)
+
+  val port1wbsel = Module(new WritebackSel(2))
+  port1wbsel.io.IN_uop(0) := alu1.io.OUT_writebackUop
+  port1wbsel.io.IN_uop(1) := div.io.OUT_writebackUop
+  writebackUop(1) := port1wbsel.io.OUT_uop
+
+  // ** Port 2: LSU
+  lsu.io.IN_readRegUop <> readRegUop(2)
+  writebackUop(2) := lsu.io.OUT_writebackUop
 
   // * AXI4 master
   arbiter.io.IFUMaster <> ifu.io.master

@@ -110,6 +110,20 @@ object CSROp extends HasDecodeConfig {
   def EBREAK = "b1011".U(OpcodeWidth.W)
 }
 
+object MULOp extends HasDecodeConfig {
+  def MUL    = 0.U(OpcodeWidth.W)
+  def MULH   = 1.U(OpcodeWidth.W)
+  def MULHSU = 2.U(OpcodeWidth.W)
+  def MULHU  = 3.U(OpcodeWidth.W) 
+}
+
+object DIVOp extends HasDecodeConfig {
+  def DIV  = 0.U(OpcodeWidth.W)
+  def DIVU = 1.U(OpcodeWidth.W)
+  def REM  = 2.U(OpcodeWidth.W)
+  def REMU = 3.U(OpcodeWidth.W)
+}
+
 object ImmType extends HasDecodeConfig{
   def I = 0.U(ImmTypeWidth.W)
   def U = 1.U(ImmTypeWidth.W)

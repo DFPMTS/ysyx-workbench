@@ -61,7 +61,7 @@ class RingBufferPtr(size: Int) extends CoreBundle {
   // ! this assumes the distance from this to that is less than size
   def isAheadOf(that: RingBufferPtr): Bool = {
     val flagDiff = this.flag =/= that.flag
-    val indexAhead = this.index > that.index
+    val indexAhead = this.index >= that.index
     flagDiff ^ indexAhead
   }
 }

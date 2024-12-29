@@ -21,27 +21,43 @@ class Scheduler extends CoreModule {
     io.OUT_renameUop(i).bits := io.IN_renameUop(0)
   }
 
-  def isPort0(uop: RenameUop) = uop.fuType === FuType.ALU || uop.fuType === FuType.BRU || uop.fuType === FuType.CSR
-  def isPort1(uop: RenameUop) = uop.fuType === FuType.LSU
-  // * Port 0: ALU/BRU/CSR
-  val port0Valid = (0 until ISSUE_WIDTH).map(i => io.IN_issueQueueValid(i) && isPort0(io.IN_renameUop(i)))
-  val port0ValidIndex = PriorityEncoder(port0Valid)
-  val hasPort0Valid = port0Valid.reduce(_ || _)
-
-  when(hasPort0Valid){
-    io.OUT_issueQueueReady(port0ValidIndex) := io.OUT_renameUop(0).ready
-    io.OUT_renameUop(0).valid := io.IN_issueQueueValid(port0ValidIndex)
+  // * Port 0: ALU/BRU/MUL/CSR
+  // * Port 1: ALU/BRU/DIV
+  // * Port 2: LSU
+  def isPort(portIndex: Int, uop: RenameUop) = {
+    if (portIndex == 0) {
+      (uop.fuType === FuType.ALU || uop.fuType === FuType.BRU || uop.fuType === FuType.MUL ||uop.fuType === FuType.CSR) &&
+      (!(uop.fuType === FuType.ALU || uop.fuType === FuType.BRU) || uop.robPtr.index(0) === 0.U)
+    }else if (portIndex == 1) {
+      (uop.fuType === FuType.ALU || uop.fuType === FuType.BRU || uop.fuType === FuType.DIV) && 
+      // (uop.fuType === FuType.DIV)  &&
+      (!(uop.fuType === FuType.ALU || uop.fuType === FuType.BRU) || uop.robPtr.index(0) === 1.U)
+    }else if (portIndex == 2) {
+      uop.fuType === FuType.LSU
+    }else {
+      false.B
+    }
   }
-  io.OUT_renameUop(0).bits := io.IN_renameUop(port0ValidIndex)
 
-  // * Port 1: LSU
-  val port1Valid = (0 until ISSUE_WIDTH).map(i => io.IN_issueQueueValid(i) && isPort1(io.IN_renameUop(i)))
-  val port1ValidIndex = PriorityEncoder(port1Valid)
-  val hasPort1Valid = port1Valid.reduce(_ || _)
+  val portValid = (0 until MACHINE_WIDTH) map { portIndex =>
+    (0 until ISSUE_WIDTH) map { i =>
+      io.IN_issueQueueValid(i) && isPort(portIndex, io.IN_renameUop(i))
+    }
+  }
 
-  when (hasPort1Valid) {
-    io.OUT_issueQueueReady(port1ValidIndex) := io.OUT_renameUop(1).ready    
-    io.OUT_renameUop(1).valid := io.IN_issueQueueValid(port1ValidIndex)
-  }  
-  io.OUT_renameUop(1).bits := io.IN_renameUop(port1ValidIndex)
+  val portValidIndex = portValid map { valid =>
+    PriorityEncoder(valid)
+  }
+
+  val hasPortValid = portValid map { valid =>
+    valid.reduce(_ || _)
+  }
+
+  for (i <- 0 until MACHINE_WIDTH) {
+    when (hasPortValid(i)) {
+      io.OUT_issueQueueReady(portValidIndex(i)) := io.OUT_renameUop(i).ready
+      io.OUT_renameUop(i).valid := io.IN_issueQueueValid(portValidIndex(i))
+    }
+    io.OUT_renameUop(i).bits := io.IN_renameUop(portValidIndex(i))
+  }
 }

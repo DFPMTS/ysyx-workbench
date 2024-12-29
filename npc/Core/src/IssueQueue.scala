@@ -1,6 +1,7 @@
 import chisel3._
 import chisel3.util._
 import utils._
+import org.fusesource.jansi.internal.Kernel32.FOCUS_EVENT_RECORD
 
 class IssueQueueIO extends CoreBundle {
   val IN_renameUop = Flipped(Decoupled(new RenameUop))
@@ -8,6 +9,8 @@ class IssueQueueIO extends CoreBundle {
   val OUT_issueUop = Decoupled(new RenameUop)
   val IN_robTailPtr = Input(RingBufferPtr(ROB_SIZE))
   val IN_flush = Input(Bool())
+
+  val IN_idivBusy = Input(Bool())
 }
 
 class IssueQueue(FUs: Seq[UInt]) extends CoreModule {
@@ -29,6 +32,13 @@ class IssueQueue(FUs: Seq[UInt]) extends CoreModule {
   val queue = Reg(Vec(IQ_SIZE, new RenameUop))
 
   val headIndex = RegInit(0.U(IQ_IDX_W + 1))
+
+  // * Can only handle one long-latency Fu
+  val wbReverved = RegInit(VecInit(Seq.fill(32)(false.B)))
+  for (i <- 0 until 32 - 1) {
+    wbReverved(i) := wbReverved(i + 1)
+  }
+  wbReverved(31) := false.B
 
   // ** Writeback
   val writebackReady = Wire(Vec(IQ_SIZE, Vec(2, Bool())))
@@ -55,7 +65,9 @@ class IssueQueue(FUs: Seq[UInt]) extends CoreModule {
     (i.U < headIndex && (queue(i).src1Ready || writebackReady(i)(0)) && 
                         (queue(i).src2Ready || writebackReady(i)(1))) &&
     (!hasFU(FuType.LSU).B || queue(i).fuType =/= FuType.LSU || queue(i).robPtr.index === io.IN_robTailPtr.index) &&
-    (!hasFU(FuType.CSR).B || queue(i).fuType =/= FuType.CSR || queue(i).robPtr.index === io.IN_robTailPtr.index)
+    (!hasFU(FuType.CSR).B || queue(i).fuType =/= FuType.CSR || queue(i).robPtr.index === io.IN_robTailPtr.index) && 
+    ((queue(i).fuType =/= FuType.ALU && queue(i).fuType =/= FuType.BRU) || !wbReverved(0)) && 
+    (queue(i).fuType =/= FuType.DIV || !io.IN_idivBusy)
   })
   
   val hasReady = readyVec.reduce(_ || _)
@@ -79,6 +91,12 @@ class IssueQueue(FUs: Seq[UInt]) extends CoreModule {
   uopNext := queue(deqIndex)
   when (doDeq) {
     uop := uopNext
+    when(uopNext.fuType === FuType.MUL) {
+      wbReverved(IMUL_DELAY - 1) := true.B      
+    }
+    when(uopNext.fuType === FuType.DIV) {
+      wbReverved(IDIV_DELAY - 1) := true.B      
+    }
     for (i <- 0 until IQ_SIZE - 1) {
       when (i.U >= deqIndex) {
         queue(i) := queue(i + 1)

@@ -32,6 +32,7 @@ trait HasALUFuncs {
 class ALUIO extends CoreBundle {
   val IN_readRegUop = Flipped(Decoupled(new ReadRegUop))
   val OUT_writebackUop = Valid(new WritebackUop)
+  val IN_flush = Input(Bool())
 }
 
 class ALU extends Module with HasALUFuncs {
@@ -125,6 +126,9 @@ class ALU extends Module with HasALUFuncs {
   io.IN_readRegUop.ready := true.B
 
   uopValid := io.IN_readRegUop.valid
+  when(io.IN_flush) {
+    uopValid := false.B
+  }
 
   uop := Mux(isBRU, bruUop, aluUop)
 
