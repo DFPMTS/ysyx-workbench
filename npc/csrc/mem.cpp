@@ -136,6 +136,7 @@ mem_word_t mem_read(paddr_t addr) {
 #ifdef MTRACE
   log_write("(%lu)read:  0x%08x : ", eval_time, addr);
 #endif
+  auto raw_addr = addr;
   addr &= ADDR_MASK;
   bool valid = false;
   mem_word_t retval = 0;
@@ -151,10 +152,10 @@ mem_word_t mem_read(paddr_t addr) {
     valid = true;
     retval = clock_read(addr - RTC_ADDR);
   }
-  if (in_uart(addr)) {
+  if (in_uart(raw_addr)) {
     access_device = true;
     valid = true;
-    retval = uart_io_handler(addr - UART_BASE, 1, 0, false);
+    retval = uart_io_handler(raw_addr - UART_BASE, 1, 0, false);
   }
 #ifdef MTRACE
   if (valid)
@@ -173,6 +174,7 @@ mem_word_t mem_read(paddr_t addr) {
 void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
   if (!running)
     return;
+  auto raw_addr = addr;
   addr &= ADDR_MASK;
 #ifdef MTRACE
   log_write("(%lu)write: 0x%08x - %x : 0x%08x / %lu\n", eval_time, addr, wmask,
@@ -190,9 +192,9 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
     serial_write(addr - SERIAL_PORT, wdata);
     return;
   }
-  if (in_uart(addr)) {
+  if (in_uart(raw_addr)) {
     access_device = true;
-    uart_io_handler(addr - UART_BASE, 1, (uint8_t)wdata, true);
+    uart_io_handler(raw_addr - UART_BASE, 1, (uint8_t)wdata, true);
     return;
   }
   assert(0);
