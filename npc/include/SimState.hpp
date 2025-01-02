@@ -81,8 +81,8 @@ public:
         inst.valid = false;
         if (inst.fuType == FuType::LSU) {
           auto addr = inst.src1 + inst.imm;
-          if (addr >= 0x10000000 + 0xbff8 && addr < 0x10000000 + 0xc000 ||
-              addr >= 0x10000000 + 0x4000 && addr < 0x10000000 + 0x4008) {
+          if (addr >= 0x11000000 + 0xbff8 && addr < 0x11000000 + 0xc000 ||
+              addr >= 0x11000000 + 0x4000 && addr < 0x11000000 + 0x4008) {
             access_device = true;
           }
         }
