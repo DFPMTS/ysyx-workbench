@@ -70,14 +70,14 @@ static char uart_read() {
   return succ ? read_char : 0; // when will read(stdin) return -1?
 }
 
-void send_key_uart(char keycode) {
+static void send_key_uart(char keycode) {
   if (keycode != '\0') {
     uart_key_enqueue(keycode);
   }
 }
 
-static uint8_t uart_io_handler(uint32_t offset, int len, uint8_t wdata,
-                               bool is_write) {
+uint8_t uart_io_handler(uint32_t offset, int len, uint8_t wdata,
+                        bool is_write) {
   assert(len == 1);
   if (is_write) {
     uart_base[offset] = wdata;
