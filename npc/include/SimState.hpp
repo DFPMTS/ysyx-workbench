@@ -78,8 +78,8 @@ public:
         auto &inst = insts[robIndex];
         auto &uop = commitUop[i];
         inst.valid = false;
-        itrace_generate(buf, inst.pc, inst.inst);
         if (begin_wave) {
+          itrace_generate(buf, inst.pc, inst.inst);
           printf("[%3d] %s\n", robIndex, buf);
           printf("      rd  = %2d  rs1  = %2d  rs2  = %2d\n", inst.rd, inst.rs1,
                  inst.rs2);
