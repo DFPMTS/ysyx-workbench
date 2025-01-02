@@ -156,6 +156,7 @@ mem_word_t mem_read(paddr_t addr) {
     access_device = true;
     valid = true;
     retval = uart_io_handler(raw_addr - UART_BASE, 1, 0, false);
+    retval <<= (raw_addr - addr) * 8;
   }
 #ifdef MTRACE
   if (valid)
