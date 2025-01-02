@@ -27,7 +27,7 @@ trait HasLSUOps {
 }
 
 class LSUIO extends CoreBundle {
-  val IN_readRegUop = Flipped(Decoupled(new ReadRegUop))
+  val IN_AGUUop = Flipped(Decoupled(new AGUUop))
   val OUT_writebackUop = Valid(new WritebackUop)
   val master = new AXI4(32, 32)
 }
@@ -38,16 +38,16 @@ class LSU extends CoreModule with HasLSUOps {
   val sIdle :: sWaitResp :: Nil = Enum(2)
   val state = RegInit(sIdle)
 
-  val inUop = io.IN_readRegUop.bits
+  val inUop = io.IN_AGUUop.bits
   val opcode = inUop.opcode
 
-  val insert = state === sIdle && io.IN_readRegUop.valid
+  val insert = state === sIdle && io.IN_AGUUop.valid
   val respValid = io.master.r.fire || io.master.b.fire
-  io.IN_readRegUop.ready := state === sWaitResp && respValid
+  io.IN_AGUUop.ready := state === sWaitResp && respValid
 
   state := MuxLookup(state, sIdle)(
     Seq(
-      sIdle -> Mux(io.IN_readRegUop.valid, sWaitResp, sIdle),
+      sIdle -> Mux(io.IN_AGUUop.valid, sWaitResp, sIdle),
       sWaitResp -> Mux(io.master.r.fire || io.master.b.fire, sIdle, sWaitResp)
     )
   )
@@ -57,7 +57,7 @@ class LSU extends CoreModule with HasLSUOps {
   val is_read_w  = opcode(3) === R
   val is_write_w = opcode(3) === W
 
-  val addr        = RegEnable(inUop.src1 + inUop.imm, insert)
+  val addr        = RegEnable(inUop.addr, insert)
   val addr_offset = addr(1, 0)
 
   // ar_valid/aw_valid/w_valid 当一个valid请求进入时置为true,在相应通道握手后为false
@@ -97,7 +97,7 @@ class LSU extends CoreModule with HasLSUOps {
     Mux(io.master.w.fire, false.B, w_valid)
   )
   io.master.w.valid     := w_valid
-  io.master.w.bits.data := inUop.src2 << (addr_offset << 3.U)
+  io.master.w.bits.data := inUop.wdata << (addr_offset << 3.U)
   io.master.w.bits.strb := MuxLookup(memLen, 0.U(4.W))(
     Seq(
       0.U(2.W) -> "b0001".U,
@@ -127,6 +127,7 @@ class LSU extends CoreModule with HasLSUOps {
   uop.robPtr := inUop.robPtr
   uop.flag := 0.U
   uop.target := 0.U
+  uop.dest := inUop.dest
 
   io.OUT_writebackUop.bits := uop
   io.OUT_writebackUop.valid := uopValid

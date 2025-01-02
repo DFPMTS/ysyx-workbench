@@ -41,11 +41,11 @@ class RingBufferPtr(size: Int) extends CoreBundle {
   }
 
   def isFull(that: RingBufferPtr): Bool = {
-    (this.flag =/= that.flag) && (this.index === that.index)
+    this === that
   }
 
   def isEmpty(that: RingBufferPtr): Bool = {
-    this === that
+    (this.flag =/= that.flag) && (this.index === that.index)
   }
 
   def distanceTo(that: RingBufferPtr): UInt = {    
@@ -61,7 +61,7 @@ class RingBufferPtr(size: Int) extends CoreBundle {
   // ! this assumes the distance from this to that is less than size
   def isAheadOf(that: RingBufferPtr): Bool = {
     val flagDiff = this.flag =/= that.flag
-    val indexAhead = this.index > that.index
+    val indexAhead = this.index >= that.index
     flagDiff ^ indexAhead
   }
 }

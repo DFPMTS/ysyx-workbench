@@ -19,19 +19,26 @@ static uint64_t totalCycles = 0;
 
 void printPerfCounters() {
   std::cout << "-----------------------------------" << std::endl;
-  std::cout << "ifuFinished" << " " << getEventCount("ifuFinished")
-            << std::endl;
-  std::cout << "icacheMiss" << " " << getEventCount("icacheMiss") << std::endl;
-  std::cout << "ifuStalled" << " " << getEventCount("ifuStalled") << std::endl;
+  std::cout << "ifuFinished"
+            << " " << getEventCount("ifuFinished") << std::endl;
+  std::cout << "icacheMiss"
+            << " " << getEventCount("icacheMiss") << std::endl;
+  std::cout << "ifuStalled"
+            << " " << getEventCount("ifuStalled") << std::endl;
 
-  std::cout << "iduBruInst" << " " << getEventCount("iduBruInst") << std::endl;
-  std::cout << "iduAluInst" << " " << getEventCount("iduAluInst") << std::endl;
-  std::cout << "iduMemInst" << " " << getEventCount("iduMemInst") << std::endl;
-  std::cout << "iduCsrInst" << " " << getEventCount("iduCsrInst") << std::endl;
+  std::cout << "iduBruInst"
+            << " " << getEventCount("iduBruInst") << std::endl;
+  std::cout << "iduAluInst"
+            << " " << getEventCount("iduAluInst") << std::endl;
+  std::cout << "iduMemInst"
+            << " " << getEventCount("iduMemInst") << std::endl;
+  std::cout << "iduCsrInst"
+            << " " << getEventCount("iduCsrInst") << std::endl;
 
-  std::cout << "memFinished" << " " << getEventCount("memFinished")
-            << std::endl;
-  std::cout << "memStalled" << " " << getEventCount("memStalled") << std::endl;
+  std::cout << "memFinished"
+            << " " << getEventCount("memFinished") << std::endl;
+  std::cout << "memStalled"
+            << " " << getEventCount("memStalled") << std::endl;
 
   std::cout << "Total cycles: " << totalCycles << std::endl;
 
@@ -67,7 +74,7 @@ int main(int argc, char *argv[]) {
   nvboard_init(1);
 #endif
   Log("Simulation begin");
-  begin_wave = true;
+  // begin_wave = true;
   // int T = 1000000;
   // while (true) {
   //   trace_pc();
@@ -76,11 +83,19 @@ int main(int argc, char *argv[]) {
   // begin_wave = true;
   sim_speed.initTimer();
   int T = 400;
-  atexit([]() { state.printInsts(); });
+  atexit([]() {
+    state.printInsts();
+#ifdef WAVE
+    fst->close();
+#endif
+  });
   while (running) {
     cpu_step();
     state.log(totalCycles);
     ++totalCycles;
+    // if (totalCycles > 13000000) {
+    //   begin_wave = true;
+    // }
     //     ++totalCycles;
     // #ifdef NVBOARD
     //     nvboard_update();
@@ -109,6 +124,7 @@ int main(int argc, char *argv[]) {
     //     }
   }
   std::cerr << "Simulation End" << std::endl;
+  printf("Total cycles: %lu\n", totalCycles);
   state.printInsts();
   ++totalCycles;
   // a0
@@ -119,9 +135,9 @@ int main(int argc, char *argv[]) {
 #endif
 
   if (retval == 0) {
-    Log("Hit GOOD trap.\n");
+    Log("\033[32mHit GOOD trap.\033[0m\n");
   } else {
-    Log("Hit BAD trap.\n");
+    Log("\033[31mHit  BAD trap.\033[0m\n");
   }
 #ifdef NVBOARD
   nvboard_quit();

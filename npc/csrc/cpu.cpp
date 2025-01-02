@@ -76,27 +76,27 @@ void cpu_step() {
   top->clock = 0;
 
   top->eval();
+  eval_time = sim_time * SIM_T - 2;
 #ifdef WAVE
   if (begin_wave) {
-    eval_time = sim_time * SIM_T - 2;
     fst->dump(eval_time);
   }
 #endif
 
   top->clock = 1;
   top->eval();
+  eval_time = sim_time * SIM_T;
 #ifdef WAVE
   if (begin_wave) {
-    eval_time = sim_time * SIM_T;
     fst->dump(eval_time);
   }
 #endif
 
   top->clock = 0;
   top->eval();
+  eval_time = sim_time * SIM_T + 2;
 #ifdef WAVE
   if (begin_wave) {
-    eval_time = sim_time * SIM_T + 2;
     fst->dump(eval_time);
   }
 #endif

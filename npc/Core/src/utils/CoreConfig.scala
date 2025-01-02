@@ -23,8 +23,15 @@ trait HasCoreParameters {
   def COMMIT_WIDTH = 1
 
 
+  // * Int Mul Delay
+  // * Delay = IMUL latency - ALU latency
+  def IMUL_DELAY = 2
+
+  // * Int Div Delay
+  def IDIV_DELAY = 3
+
   // * Physical Register
-  def NUM_PREG = 64
+  def NUM_PREG = 32
   def PREG_IDX_W = log2Up(NUM_PREG).W
 
   // * ROB 
@@ -45,6 +52,9 @@ trait HasCoreParameters {
 
   // * Flag
   def FLAG_W = 4.W
+
+  // * Page Number Length
+  def PAGE_NR_LEN = 20
 
 
   def ZERO = 0.U

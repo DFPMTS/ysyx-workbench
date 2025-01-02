@@ -32,6 +32,7 @@ trait HasALUFuncs {
 class ALUIO extends CoreBundle {
   val IN_readRegUop = Flipped(Decoupled(new ReadRegUop))
   val OUT_writebackUop = Valid(new WritebackUop)
+  val IN_flush = Input(Bool())
 }
 
 class ALU extends Module with HasALUFuncs {
@@ -91,6 +92,7 @@ class ALU extends Module with HasALUFuncs {
   )  
   
   val aluUop = Wire(new WritebackUop)
+  aluUop.dest := Dest.ROB
   aluUop.data := out
   aluUop.prd := io.IN_readRegUop.bits.prd
   aluUop.robPtr := io.IN_readRegUop.bits.robPtr
@@ -113,11 +115,12 @@ class ALU extends Module with HasALUFuncs {
   jumpTarget := Mux(isJump, out, branchTarget)
 
   val bruUop = Wire(new WritebackUop)
+  bruUop.dest := Dest.ROB
   bruUop.target := jumpTarget
   bruUop.data := Mux(isJump, nextInstPC, out)
   bruUop.prd := io.IN_readRegUop.bits.prd
   bruUop.robPtr := io.IN_readRegUop.bits.robPtr
-  bruUop.flag := mispredict
+  bruUop.flag := Mux(mispredict, FlagOp.MISPREDICT, FlagOp.NONE)
 
   val uop = Reg(new WritebackUop)
   val uopValid = RegInit(false.B)
@@ -125,6 +128,9 @@ class ALU extends Module with HasALUFuncs {
   io.IN_readRegUop.ready := true.B
 
   uopValid := io.IN_readRegUop.valid
+  when(io.IN_flush) {
+    uopValid := false.B
+  }
 
   uop := Mux(isBRU, bruUop, aluUop)
 

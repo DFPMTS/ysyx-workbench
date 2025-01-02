@@ -45,21 +45,34 @@ class IDU extends Module with HasDecodeConstants with HasPerfCounters {
   uopNext.rs2       := Mux(decodeSignal.src2Type === REG, rs2, 0.U)
 
   uopNext.src1Type  := decodeSignal.src1Type
-  uopNext.src2Type  := decodeSignal.src2Type  
+  uopNext.src2Type  := decodeSignal.src2Type
 
   uopNext.fuType    := Mux(illegalInst, FuType.FLAG,         decodeSignal.fuType)
   uopNext.opcode    := Mux(illegalInst, FlagOp.ILLEGAL_INST, decodeSignal.opcode)
   
-  when (decodeSignal.fuType === FuType.CSR && decodeSignal.opcode === CSROp.CSRRS && rs1 === 0.U) {
+  when (decodeSignal.fuType === FuType.CSR && (decodeSignal.opcode === CSROp.CSRRS || decodeSignal.opcode === CSROp.CSRRC || 
+  decodeSignal.opcode === CSROp.CSRRSI || decodeSignal.opcode === CSROp.CSRRCI) && rs1 === 0.U) {
     uopNext.opcode := CSROp.CSRR
   }
 
   uopNext.predTarget := pc + 4.U
   uopNext.pc        := pc
+
   uopNext.imm       := imm
+  when (decodeSignal.fuType === FuType.CSR && (decodeSignal.opcode === CSROp.CSRRWI || 
+  decodeSignal.opcode === CSROp.CSRRSI || decodeSignal.opcode === CSROp.CSRRCI)) {
+    uopNext.imm := Cat(rs1, imm(11, 0))
+  }
+  
   uopNext.compressed := false.B
 
   uopNext.inst      := inst
+
+  when(io.IN_inst.bits.pageFault) {
+    uopNext.fuType := FuType.FLAG
+    uopNext.opcode := FlagOp.INST_PAGE_FAULT
+    uopNext.rd     := ZERO
+  }
   
   // * Control
   // ** Input

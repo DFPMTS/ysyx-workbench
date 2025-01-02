@@ -11,29 +11,50 @@ class Core extends CoreModule {
   })
 
   val ifu = Module(new IFU)
+  val itlb = Module(new TLB(size = 2, id = 0))
   val idu = Module(new IDU)
   val rename = Module(new Rename)
   val rob = Module(new ROB)
   val scheduler = Module(new Scheduler)
   val iq = Seq(
-    Module(new IssueQueue(Seq(FuType.ALU, FuType.CSR))),
+    Module(new IssueQueue(Seq(FuType.ALU, FuType.MUL, FuType.CSR))),
+    Module(new IssueQueue(Seq(FuType.ALU, FuType.DIV))),
     Module(new IssueQueue(Seq(FuType.LSU))),
-    Module(new IssueQueue(Seq(FuType.ALU))),
     Module(new IssueQueue(Seq(FuType.ALU))),
   )
   val dispatcher = Seq(
-    Module(new Dispatcher(Seq(Seq(FuType.ALU, FuType.BRU), Seq(FuType.CSR)))),
+    Module(new Dispatcher(
+      Seq(Seq(FuType.ALU, FuType.BRU), Seq(FuType.MUL), Seq(FuType.CSR))
+    )),
+    Module(new Dispatcher(
+      Seq(Seq(FuType.ALU, FuType.BRU), Seq(FuType.DIV))
+    )),
   )
 
   val readReg = Module(new ReadReg)
   val pReg = Module(new PReg)
-  val alu = Module(new ALU)
-  val lsu = Module(new LSU)
-  val csr = Module(new CSR)
+  // * Port 0
+  val alu0 = Module(new ALU)
+  val mul  = Module(new MUL)
+  val csr  = Module(new CSR)
+  // * Port 1
+  val alu1 = Module(new ALU)
+  val div  = Module(new DIV)
+  // * Port 2
+  val agu  = Module(new AGU)
+  val lsu  = Module(new LSU)
+  val dtlb = Module(new TLB(size = 2, id = 1))
+  val ptw  = Module(new PTW)
+  val loadArb = Module(new LoadArbiter)
+
 
   val arbiter = Module(new AXI_Arbiter)
 
-  val redirect = RegInit(0.U.asTypeOf(new RedirectSignal))
+  val flagHandler = Module(new FlagHandler)
+  flagHandler.io.OUT_CSRCtrl <> csr.io.IN_CSRCtrl
+  flagHandler.io.IN_trapCSR <> csr.io.OUT_trapCSR
+  val flush = flagHandler.io.OUT_flush
+  val redirect = flagHandler.io.OUT_redirect
 
   // * rename
   val renameUop = Wire(Vec(ISSUE_WIDTH, new RenameUop))
@@ -65,10 +86,16 @@ class Core extends CoreModule {
   ifu.io.redirect := redirect
   arbiter.io.winMaster.viewAs[AXI4ysyxSoC] <> io.master
   ifu.io.flushICache := false.B
+  ifu.io.OUT_TLBReq <> itlb.io.IN_TLBReq
+  ifu.io.IN_TLBResp <> itlb.io.OUT_TLBResp
+  ifu.io.OUT_PTWReq <> ptw.io.IN_PTWReq(0)
+  ifu.io.IN_PTWResp <> ptw.io.OUT_PTWResp
+  ifu.io.IN_VMCSR <> csr.io.OUT_VMCSR
+  itlb.io.IN_PTWResp <> ptw.io.OUT_PTWResp
 
   // * DE
   idu.io.IN_inst <> ifu.io.out
-  idu.io.IN_flush := redirect.valid
+  idu.io.IN_flush := flush
 
   // * Rename
   rename.io.IN_decodeUop(0) <> idu.io.OUT_decodeUop
@@ -76,7 +103,7 @@ class Core extends CoreModule {
   rename.io.IN_writebackUop <> writebackUop
   rename.io.IN_issueQueueReady := scheduler.io.OUT_issueQueueReady
   rename.io.IN_robReady := renameRobReady
-  rename.io.IN_flush := redirect.valid
+  rename.io.IN_flush := flush
 
   rename.io.OUT_renameUop <> renameUop
   rename.io.OUT_robValid <> renameRobValid
@@ -89,10 +116,10 @@ class Core extends CoreModule {
     rob.io.IN_renameUop(i).bits := renameUop(i)
   }  
   rob.io.IN_writebackUop <> writebackUop
-  rob.io.IN_flush := redirect.valid
+  rob.io.IN_flush := flush
 
   rob.io.OUT_renameUopReady <> renameRobReady
-  rob.io.OUT_redirect <> redirect  
+  rob.io.OUT_flagUop <> flagHandler.io.IN_flagUop
   rob.io.OUT_commitUop <> commitUop
 
   // * Scheduler
@@ -104,7 +131,8 @@ class Core extends CoreModule {
     iq(i).io.IN_renameUop <> scheduler.io.OUT_renameUop(i)
     iq(i).io.IN_writebackUop := writebackUop
     iq(i).io.IN_robTailPtr := rob.io.OUT_robTailPtr
-    iq(i).io.IN_flush := redirect.valid
+    iq(i).io.IN_flush := flush
+    iq(i).io.IN_idivBusy := div.io.OUT_idivBusy
   }
 
   // * Read Register
@@ -114,28 +142,66 @@ class Core extends CoreModule {
     readRegUop(i) <> readReg.io.OUT_readRegUop(i)
     readRegUop(i).ready := false.B
   }
-  readReg.io.IN_flush := redirect.valid
+  readReg.io.IN_flush := flush
 
   // * PReg
   pReg.io.IN_pRegIndex := readReg.io.OUT_readRegIndex
   pReg.io.IN_writebackUop := writebackUop
 
   // * Execute
-  // ** Port 0: ALU / CSR
+  // ** Port 0: ALU / MUL / CSR
   dispatcher(0).io.IN_uop <> readRegUop(0)
 
-  alu.io.IN_readRegUop <> dispatcher(0).io.OUT_uop(0)
-  csr.io.IN_readRegUop <> dispatcher(0).io.OUT_uop(1)
+  alu0.io.IN_flush := flush
+  mul.io.IN_flush := flush
 
-  val port0wbsel = Module(new WritebackSel(2))
-  port0wbsel.io.IN_uop(0) := alu.io.OUT_writebackUop
-  port0wbsel.io.IN_uop(1) := csr.io.OUT_writebackUop
+  alu0.io.IN_readRegUop <> dispatcher(0).io.OUT_uop(0)
+  mul.io.IN_readRegUop  <> dispatcher(0).io.OUT_uop(1)
+  csr.io.IN_readRegUop  <> dispatcher(0).io.OUT_uop(2)
+
+  val port0wbsel = Module(new WritebackSel(3))
+  port0wbsel.io.IN_uop(0) := alu0.io.OUT_writebackUop
+  port0wbsel.io.IN_uop(1) := mul.io.OUT_writebackUop
+  port0wbsel.io.IN_uop(2) := csr.io.OUT_writebackUop
   writebackUop(0) := port0wbsel.io.OUT_uop
 
-  // ** Port 1: LSU
+  // ** Port 1: ALU / DIV / CSR
+  dispatcher(1).io.IN_uop <> readRegUop(1)
 
-  lsu.io.IN_readRegUop <> readRegUop(1)
-  writebackUop(1) := lsu.io.OUT_writebackUop
+  alu1.io.IN_flush := flush
+  div.io.IN_flush := flush
+
+  alu1.io.IN_readRegUop <> dispatcher(1).io.OUT_uop(0)
+  div.io.IN_readRegUop  <> dispatcher(1).io.OUT_uop(1)
+
+  val port1wbsel = Module(new WritebackSel(2))
+  port1wbsel.io.IN_uop(0) := alu1.io.OUT_writebackUop
+  port1wbsel.io.IN_uop(1) := div.io.OUT_writebackUop
+  writebackUop(1) := port1wbsel.io.OUT_uop
+
+  // ** Port 2: LSU
+  agu.io.IN_readRegUop <> readRegUop(2)
+
+  agu.io.OUT_TLBReq <> dtlb.io.IN_TLBReq
+  agu.io.IN_TLBResp <> dtlb.io.OUT_TLBResp
+
+  dtlb.io.IN_PTWResp <> ptw.io.OUT_PTWResp
+  ptw.io.IN_VMCSR := csr.io.OUT_VMCSR
+  ptw.io.IN_writebackUop <> writebackUop(2)
+
+  agu.io.IN_VMCSR := csr.io.OUT_VMCSR
+  agu.io.OUT_PTWReq <> ptw.io.IN_PTWReq(1)
+
+  agu.io.OUT_writebackUop <> writebackUop(3)
+  agu.io.IN_PTWResp <> ptw.io.OUT_PTWResp
+  agu.io.IN_flush := flush
+  
+  loadArb.io.IN_AGUUop <> agu.io.OUT_AGUUop
+  loadArb.io.IN_PTWUop <> ptw.io.OUT_PTWUop
+  
+  lsu.io.IN_AGUUop <> loadArb.io.OUT_AGUUop
+
+  writebackUop(2) := lsu.io.OUT_writebackUop
 
   // * AXI4 master
   arbiter.io.IFUMaster <> ifu.io.master

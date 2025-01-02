@@ -141,7 +141,9 @@ class Rename extends CoreModule {
   }
   // ** update uop
   for (i <- 0 until ISSUE_WIDTH) {
-    uopReg(i) := Mux(inFire(i), uopNext(i), uopReg(i))
+    when (inFire(i)) {
+      uopReg(i) := uopNext(i)
+    }
   }
 
   val issueQueueValid = VecInit((0 until ISSUE_WIDTH).map(i => 
@@ -152,8 +154,8 @@ class Rename extends CoreModule {
     uopRobValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
     uopIssueQueueValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))
   }.elsewhen(inReady) {
-    uopRobValid := issueQueueValid
-    uopIssueQueueValid := inValid
+    uopRobValid := inValid
+    uopIssueQueueValid := issueQueueValid
   }.otherwise {
     when(io.IN_robReady) {
       uopRobValid := VecInit(Seq.fill(ISSUE_WIDTH)(false.B))

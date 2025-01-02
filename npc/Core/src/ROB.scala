@@ -9,7 +9,7 @@ class ROBIO extends CoreBundle {
   val OUT_commitUop = Vec(COMMIT_WIDTH, Valid(new CommitUop))  
   val OUT_robTailPtr = Output(RingBufferPtr(ROB_SIZE))
   val IN_renameRobHeadPtr = Input(RingBufferPtr(ROB_SIZE))
-  val OUT_redirect = Output(new RedirectSignal)
+  val OUT_flagUop = Valid(new FlagUop)
 
   val IN_flush = Input(Bool())
 }
@@ -46,9 +46,9 @@ class ROB extends CoreModule {
     val enqEntry = Wire(new ROBEntry)
     enqEntry.rd := renameUop.rd
     enqEntry.prd := renameUop.prd
-    enqEntry.flag := 0.U
+    enqEntry.flag := Mux(renameUop.fuType === FuType.FLAG, renameUop.opcode, FlagOp.NONE)
     enqEntry.pc  := renameUop.pc
-    enqEntry.executed := false.B
+    enqEntry.executed := renameUop.fuType === FuType.FLAG
     enqEntry.target := 0.U
     
     when (io.IN_renameUop(i).fire) {
@@ -59,17 +59,18 @@ class ROB extends CoreModule {
   // ** dequeue (Commit)
   val commitUop = Reg(Vec(COMMIT_WIDTH, new CommitUop))
   val commitValid = RegInit(VecInit(Seq.fill(COMMIT_WIDTH)(false.B)))
-  val redirectC = Wire(new RedirectSignal)
-  val redirectR = RegInit(0.U.asTypeOf(new RedirectSignal))
+
+  val flagUopNextValid = Wire(Bool())
+  val flagUopNext = Wire(new FlagUop)
+  val flagUopValid = RegInit(false.B)
+  val flagUop     = Reg(new FlagUop)
 
   val deqEntry = Wire(Vec(COMMIT_WIDTH, new ROBEntry))
   val deqValid = Wire(Vec(COMMIT_WIDTH, Bool()))
 
   for (i <- 0 until COMMIT_WIDTH) {
     val deqPtr = robTailPtr + i.U
-    dontTouch(deqPtr)
     val distance = robHeadPtr.distanceTo(deqPtr)
-    dontTouch(distance)
     deqEntry(i) := rob(deqPtr.index)
     deqValid(i) := robHeadPtr.distanceTo(deqPtr) < ROB_SIZE.U && deqEntry(i).executed
   }
@@ -83,14 +84,19 @@ class ROB extends CoreModule {
     commitUop(i).rd := deqEntry(i).rd
     commitUop(i).prd := deqEntry(i).prd
     commitUop(i).robPtr := robTailPtr + i.U
-    redirectC.valid := deqValid(i) && deqEntry(i).flag === Flags.MISPREDICT
-    redirectC.pc := deqEntry(i).target    
+    flagUopNextValid := deqValid(i) && deqEntry(i).flag =/= FlagOp.NONE
+    flagUopNext.target := deqEntry(i).target
+    flagUopNext.flag := deqEntry(i).flag
+    flagUopNext.prd := deqEntry(i).prd
+    flagUopNext.pc := deqEntry(i).pc
   }
 
-  robStall := redirectC.valid
-  redirectR := redirectC
+  robStall := flagUopNextValid
+  flagUop := flagUopNext
+
+  flagUopValid := flagUopNextValid
   when(io.IN_flush || robStall) {
-    redirectR.valid := false.B
+    flagUopValid := false.B
   }
 
   when(io.IN_flush) {
@@ -103,14 +109,14 @@ class ROB extends CoreModule {
     robTailPtr := robTailPtr + PopCount(deqValid)
   }
 
-  // val redirect = deqEntry.flag === Flags.MISPREDICT
-  io.OUT_redirect := redirectR
+  io.OUT_flagUop.valid := flagUopValid
+  io.OUT_flagUop.bits := flagUop  
 
   // ** writeback
   for (i <- 0 until MACHINE_WIDTH) {
     val wbPtr = io.IN_writebackUop(i).bits.robPtr
     val wbEntry = rob(wbPtr.index)
-    when (io.IN_writebackUop(i).valid) {
+    when (io.IN_writebackUop(i).valid && io.IN_writebackUop(i).bits.dest === Dest.ROB) {
       wbEntry.executed := true.B
       wbEntry.target := io.IN_writebackUop(i).bits.target
       wbEntry.flag := io.IN_writebackUop(i).bits.flag

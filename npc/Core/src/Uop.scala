@@ -9,6 +9,24 @@ object SrcType extends HasDecodeConfig {
   val PC   = 3.U(2.W)
 }
 
+class PTE extends CoreBundle {
+  val ppn1 = UInt(10.W)
+  val ppn0 = UInt(10.W)
+  val rsw = UInt(2.W)
+  val d = Bool()
+  val a = Bool()
+  val g = Bool()
+  val u = Bool()
+  val x = Bool()
+  val w = Bool()
+  val r = Bool()
+  val v = Bool()
+}
+
+object PTE {
+  def apply() = new PTE
+}
+
 // TODO : add C extension
 // * "With the addition of the C extension, no instructions can 
 // *  raise instruction-address-misaligned exceptions."
@@ -30,8 +48,14 @@ object FlagOp extends HasDecodeConfig {
   // * custom end
   val INST_PAGE_FAULT       = 12.U(FlagWidth.W)
   val LOAD_PAGE_FAULT       = 13.U(FlagWidth.W)
-  // 14
+  // * temporary jump
+  val MISPREDICT            = 14.U(FlagWidth.W)
   val STORE_PAGE_FAULT      = 15.U(FlagWidth.W)
+}
+
+object Dest extends HasDecodeConfig {
+  val ROB = 0.U(1.W) // goes to Rob
+  val PTW = 1.U(1.W) // goes to Page Table Walker
 }
 
 object FuType extends HasDecodeConfig {
@@ -110,6 +134,20 @@ object CSROp extends HasDecodeConfig {
   def EBREAK = "b1011".U(OpcodeWidth.W)
 }
 
+object MULOp extends HasDecodeConfig {
+  def MUL    = 0.U(OpcodeWidth.W)
+  def MULH   = 1.U(OpcodeWidth.W)
+  def MULHSU = 2.U(OpcodeWidth.W)
+  def MULHU  = 3.U(OpcodeWidth.W) 
+}
+
+object DIVOp extends HasDecodeConfig {
+  def DIV  = 0.U(OpcodeWidth.W)
+  def DIVU = 1.U(OpcodeWidth.W)
+  def REM  = 2.U(OpcodeWidth.W)
+  def REMU = 3.U(OpcodeWidth.W)
+}
+
 object ImmType extends HasDecodeConfig{
   def I = 0.U(ImmTypeWidth.W)
   def U = 1.U(ImmTypeWidth.W)
@@ -146,11 +184,6 @@ object CImmType extends HasDecodeConfig {
   }
   def CJ = 14.U(ImmTypeWidth.W)
   def X = BitPat.dontCare(ImmTypeWidth)
-}
-
-object Flags extends HasCoreParameters {
-  val NOTHING = 0.U(FLAG_W)
-  val MISPREDICT = 1.U(FLAG_W)
 }
 
 class DecodeUop extends CoreBundle{  
@@ -230,15 +263,17 @@ class ReadRegUop extends CoreBundle {
   val compressed = Bool()
 }
 
-class TrapUop extends CoreBundle {
-  val prd = UInt(PREG_IDX_W)
+class FlagUop extends CoreBundle {
+  val prd  = UInt(PREG_IDX_W)
   val flag = UInt(FLAG_W)
-  val pc  = UInt(XLEN.W)
+  val pc   = UInt(XLEN.W)
+  val target = UInt(XLEN.W)
 }
 
 class WritebackUop extends CoreBundle {
   val prd = UInt(PREG_IDX_W)
-  val data = UInt(XLEN.W)  
+  val data = UInt(XLEN.W)
+  val dest = UInt(1.W)
   val robPtr = RingBufferPtr(ROB_SIZE)
   val flag = UInt(FLAG_W)
   // * temporary
