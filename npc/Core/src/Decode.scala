@@ -70,7 +70,7 @@ class Decode extends CoreModule {
   def csrrsi     = BitPat("b??????? ????? ????? 110 ????? 11100 11")
   def csrrci     = BitPat("b??????? ????? ????? 111 ????? 11100 11")
   def mret       = BitPat("b0011000 00010 00000 000 00000 11100 11")
-
+  def fence      = BitPat("b???? ???? ???? ????? 000 ????? 00011 11")
   // * RV32M
   def mul        = BitPat("b0000001 ????? ????? 000 ????? 01100 11")
   def mulh       = BitPat("b0000001 ????? ????? 001 ????? 01100 11")
@@ -132,7 +132,7 @@ srl        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU,  ALUOp.RIGHT,  
 sra        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU,  ALUOp.ARITH,       ImmType.X),
 or         -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU,  ALUOp.OR,          ImmType.X),
 and        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.ALU,  ALUOp.AND,         ImmType.X),
-// fence_i    -> List(N, N, ZERO, IMM,  FuType.CSR, CSROp.FENCE_I,   ImmType.X),
+fence      -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.FLAG, FlagOp.NONE,       ImmType.X),
 ecall      -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.FLAG, FlagOp.ECALL,      ImmType.X),
 ebreak     -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.FLAG, FlagOp.BREAKPOINT, ImmType.X),
 csrrw      -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR,  CSROp.CSRRW,       ImmType.I),
@@ -149,8 +149,8 @@ mulhu      -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.MUL,  MULOp.MULHU,  
 div        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.DIV,  DIVOp.DIV,         ImmType.X),
 divu       -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.DIV,  DIVOp.DIVU,        ImmType.X),
 rem        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.DIV,  DIVOp.REM,         ImmType.X),
-remu       -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.DIV,  DIVOp.REMU,        ImmType.X),// * RV32A begin
-amoswap_w  -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.AMO,  AMOOp.SWAP_W,      ImmType.X),
+remu       -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.DIV,  DIVOp.REMU,        ImmType.X),
+amoswap_w  -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.AMO,  AMOOp.SWAP_W,      ImmType.X),// * RV32A begin
 amoadd_w   -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.AMO,  AMOOp.ADD_W,       ImmType.X),
 amoxor_w   -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.AMO,  AMOOp.XOR_W,       ImmType.X),
 amoand_w   -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.AMO,  AMOOp.AND_W,       ImmType.X),
