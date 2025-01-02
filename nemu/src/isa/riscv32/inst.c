@@ -223,7 +223,7 @@ static int decode_exec(Decode *s) {
   __VA_ARGS__ ; \
 }
 
-  // cycle_mtime();
+  cycle_mtime();
 
 
   // interrupt
