@@ -112,7 +112,7 @@ uint8_t uart_io_handler(uint32_t offset, int len, uint8_t wdata,
     uart_base[offset] = 0; /*printf("do not support offset = %d\n", offset);*/
   }
   }
-  printf("uart_base[%d] = %x\n", offset, uart_base[offset]);
+  // printf("uart_base[%d] = %x\n", offset, uart_base[offset]);
   return uart_base[offset];
 }
 
