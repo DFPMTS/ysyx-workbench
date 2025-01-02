@@ -107,7 +107,9 @@ public:
           archTable[*uop.rd] = *uop.prd;
         }
         pc = inst.pc + 4;
+#ifdef DIFFTEST
         difftest();
+#endif
       }
     }
 
