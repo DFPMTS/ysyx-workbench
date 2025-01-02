@@ -22,7 +22,7 @@ extern bool begin_wave;
 static uint32_t dummy = 0;
 
 struct difftest_context_t {
-  uint32_t gpr[16];
+  uint32_t gpr[32];
   uint32_t pc;
 };
 

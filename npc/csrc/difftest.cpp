@@ -63,7 +63,7 @@ static inline bool difftest_check_reg(const char *name, vaddr_t pc, word_t ref,
 
 bool check_context(difftest_context_t *ref, difftest_context_t *dut) {
   bool succ = true;
-  for (int i = 0; i < 16; ++i) {
+  for (int i = 0; i < 32; ++i) {
     succ &= difftest_check_reg(reg_name(i), dut->pc, ref->gpr[i], dut->gpr[i]);
   }
   // succ &= difftest_check_reg("pc", dut->pc, ref->pc, dut->pc);
