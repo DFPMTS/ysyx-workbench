@@ -2,6 +2,7 @@
 #include "cpu.hpp"
 #include "debug.hpp"
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <ctime>
 #include <iostream>
@@ -13,6 +14,7 @@
 
 #define RTC_ADDR (DEVICE_BASE + 0x0000048)
 #define SERIAL_PORT (DEVICE_BASE + 0x00003f8)
+#define UART_BASE 0x10000000
 
 static uint32_t image[128] = {
     0x00200113, // addi x2 x0 2
@@ -56,6 +58,9 @@ static bool in_clock(paddr_t addr) {
   return addr == RTC_ADDR || addr == RTC_ADDR + 4;
 }
 static bool in_serial(paddr_t addr) { return addr == SERIAL_PORT; }
+
+uint8_t uart_io_handler(uint32_t offset, int len, uint8_t wdata, bool is_write);
+bool in_uart(uint32_t addr);
 
 static uint8_t *guest_to_host(paddr_t addr) { return mem + addr - MEM_BASE; }
 static mem_word_t clock_read(paddr_t offset) {
@@ -146,6 +151,10 @@ mem_word_t mem_read(paddr_t addr) {
     valid = true;
     retval = clock_read(addr - RTC_ADDR);
   }
+  if (in_uart(addr)) {
+    valid = true;
+    retval = uart_io_handler(addr - UART_BASE, 1, 0, false);
+  }
 #ifdef MTRACE
   if (valid)
     log_write("<0x%08x / %lu>\n", retval, retval);
@@ -178,6 +187,10 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
     log_write("|serial|\n");
 #endif
     serial_write(addr - SERIAL_PORT, wdata);
+    return;
+  }
+  if (in_uart(addr)) {
+    uart_io_handler(addr - UART_BASE, 1, (uint8_t)wdata, true);
     return;
   }
   assert(0);
