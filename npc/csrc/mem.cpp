@@ -195,6 +195,7 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
   }
   if (in_uart(raw_addr)) {
     access_device = true;
+    wdata >>= (raw_addr - addr) * 8;
     uart_io_handler(raw_addr - UART_BASE, 1, (uint8_t)wdata, true);
     return;
   }
