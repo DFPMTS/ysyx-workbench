@@ -64,7 +64,7 @@ object FuType extends HasDecodeConfig {
   val LSU    = 2.U(FuTypeWidth.W)
   val MUL    = 3.U(FuTypeWidth.W)
   val DIV    = 4.U(FuTypeWidth.W)
-  val AMO = 5.U(FuTypeWidth.W)
+  val AMO    = 5.U(FuTypeWidth.W)
   val CSR    = 6.U(FuTypeWidth.W)
   val FLAG   = 7.U(FuTypeWidth.W)
 }
