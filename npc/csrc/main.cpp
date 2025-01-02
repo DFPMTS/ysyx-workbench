@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
   //   trace_pc();
   // }
   // return 0;
-  begin_wave = true;
+  // begin_wave = true;
   sim_speed.initTimer();
   int T = 400;
   atexit([]() {
