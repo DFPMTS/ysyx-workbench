@@ -66,7 +66,7 @@ class LSU extends CoreModule with HasLSUOps {
 
   val memLen     = Mux(inUop.fuType === FuType.LSU, opcode(2, 1), 2.U)
   val loadU      = opcode(0)
-  val is_read_w  = opcode(3) === R || inUop.fuType === FuType.AMO
+  val is_read_w  = insert1 && (opcode(3) === R || inUop.fuType === FuType.AMO)
   val is_write_w = (insert1 && opcode(3) === W) || (insert2 && inUop.fuType === FuType.AMO)
 
   val addr        = RegEnable(inUop.addr, insert)
@@ -75,7 +75,7 @@ class LSU extends CoreModule with HasLSUOps {
   // ar_valid/aw_valid/w_valid 当一个valid请求进入时置为true,在相应通道握手后为false
   val ar_valid = RegInit(false.B)
   ar_valid := Mux(
-    insert1,
+    insert,
     is_read_w,
     Mux(io.master.ar.fire, false.B, ar_valid)
   )
