@@ -5,6 +5,7 @@
 #include "cpu.hpp"
 #include "difftest.hpp"
 #include "itrace.hpp"
+#include "mem.hpp"
 #include <cstdint>
 #include <cstdio>
 
@@ -78,6 +79,13 @@ public:
         auto &inst = insts[robIndex];
         auto &uop = commitUop[i];
         inst.valid = false;
+        if (inst.fuType == FuType::LSU) {
+          auto addr = inst.src1 + inst.imm;
+          if (addr >= 0x10000000 + 0xbff8 && addr < 0x10000000 + 0xc000 ||
+              addr >= 0x10000000 + 0x4000 && addr < 0x10000000 + 0x4008) {
+            access_device = true;
+          }
+        }
         if (begin_wave) {
           itrace_generate(buf, inst.pc, inst.inst);
           printf("[%3d] %s\n", robIndex, buf);
@@ -138,6 +146,9 @@ public:
         auto &inst = insts[*renameUop[i].robPtr_index];
         auto &uop = renameUop[i];
         inst.inst = *uop.inst;
+        inst.fuType = *uop.fuType;
+        inst.opcode = *uop.opcode;
+        inst.imm = *uop.imm;
         inst.pc = *uop.pc;
 
         inst.rd = *uop.rd;

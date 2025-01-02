@@ -16,7 +16,8 @@ enum class FuType : CData {
   MUL = 3,
   DIV = 4,
   AGU = 5,
-  CSR = 6
+  CSR = 6,
+  FLAG = 7
 };
 
 enum class ALUOp : CData {
@@ -101,6 +102,9 @@ inline CData True = 1;
 struct InstInfo {
   CData valid;
 
+  FuType fuType;
+  CData opcode;
+
   IData pc;
   IData inst;
 
@@ -114,6 +118,7 @@ struct InstInfo {
 
   IData src1;
   IData src2;
+  IData imm;
 
   IData result;
   Flags flag;

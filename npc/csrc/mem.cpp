@@ -152,6 +152,7 @@ mem_word_t mem_read(paddr_t addr) {
     retval = clock_read(addr - RTC_ADDR);
   }
   if (in_uart(addr)) {
+    access_device = true;
     valid = true;
     retval = uart_io_handler(addr - UART_BASE, 1, 0, false);
   }
@@ -190,6 +191,7 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
     return;
   }
   if (in_uart(addr)) {
+    access_device = true;
     uart_io_handler(addr - UART_BASE, 1, (uint8_t)wdata, true);
     return;
   }
