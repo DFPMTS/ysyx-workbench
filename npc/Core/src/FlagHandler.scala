@@ -2,24 +2,77 @@ import chisel3._
 import chisel3.util._
 import utils._
 
-// class FlagHandlerIO extends CoreBundle {
-//   val IN_exception = Flipped(Valid(new FlagUop))
-//   val OUT_flush = Output(Bool())
-//   val OUT_redirect = Output(new RedirectSignal)  
-// }
+class FlagHandlerIO extends CoreBundle {
+  val IN_flagUop = Flipped(Valid(new FlagUop))
+  val IN_trapCSR = Flipped(new TrapCSR)
 
+  val OUT_flush = Bool()
+  val OUT_CSRCtrl = new CSRCtrl
+  val OUT_redirect = new RedirectSignal
+}
 
-// class FlagHandler extends CoreModule {
-//   val io = IO(new FlagHandlerIO)
+class CSRCtrl extends CoreBundle {
+  // * trap
+  val trap  = Bool()
+  val pc    = UInt(XLEN.W)
+  val cause = UInt(5.W)
+  // * mret/sret
+  val mret  = Bool()
+  val sret  = Bool()
+}
+// 
+class FlagHandler extends CoreModule {
+  val io = IO(new FlagHandlerIO)
 
-//   val flush = RegInit(false.B)
-//   val PC = Reg(UInt(32.W))
+  val flag = io.IN_flagUop.bits.flag
 
-//   when(io.IN_exception.valid) {
-//     flush := true.B
-//     PC := io.IN_exception.bits.pc
-//   }
+  val flush = Reg(Bool())
+  val redirect = Reg(new RedirectSignal)
+  val CSRCtrl = Reg(new CSRCtrl)
+  val CSRCtrlNext = WireInit(0.U.asTypeOf(new CSRCtrl))
 
-//   io.OUT_flush := flush
-//   io.OUT_PC := PC
-// }
+  flush := false.B
+  redirect.pc := 0.U
+  redirect.valid := false.B
+  CSRCtrl := CSRCtrlNext
+
+  when (io.IN_flagUop.valid) {
+    when (flag === FlagOp.MISPREDICT) {
+      redirect.valid := true.B
+      redirect.pc := io.IN_flagUop.bits.target
+      flush := true.B
+    }
+    when(flag === FlagOp.ECALL) {
+      redirect.valid := true.B
+      redirect.pc := io.IN_trapCSR.mtvec
+
+      flush := true.B
+
+      CSRCtrlNext.trap := true.B
+      CSRCtrlNext.cause := FlagOp.ECALL + io.IN_trapCSR.priv
+      CSRCtrlNext.pc := io.IN_flagUop.bits.pc
+    }
+    when((flag >= FlagOp.INST_ACCESS_FAULT && flag <= FlagOp.STORE_ACCESS_FAULT) ||
+         flag === FlagOp.INST_PAGE_FAULT || flag === FlagOp.LOAD_PAGE_FAULT ||
+         flag === FlagOp.STORE_PAGE_FAULT) {
+      redirect.valid := true.B
+      redirect.pc := io.IN_trapCSR.mtvec
+      flush := true.B
+      
+      CSRCtrlNext.trap := true.B
+      CSRCtrlNext.cause := flag
+      CSRCtrlNext.pc := io.IN_flagUop.bits.pc
+    }
+    when(flag === FlagOp.MRET) {
+      redirect.valid := true.B
+      redirect.pc := io.IN_trapCSR.mepc
+      flush := true.B
+      
+      CSRCtrlNext.mret := true.B
+    }
+  }
+
+  io.OUT_flush := flush
+  io.OUT_redirect := redirect  
+  io.OUT_CSRCtrl := CSRCtrl
+}

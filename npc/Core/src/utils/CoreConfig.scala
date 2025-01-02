@@ -53,6 +53,9 @@ trait HasCoreParameters {
   // * Flag
   def FLAG_W = 4.W
 
+  // * Page Number Length
+  def PAGE_NR_LEN = 20
+
 
   def ZERO = 0.U
 }

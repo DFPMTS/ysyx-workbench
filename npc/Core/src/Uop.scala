@@ -9,6 +9,24 @@ object SrcType extends HasDecodeConfig {
   val PC   = 3.U(2.W)
 }
 
+class PTE extends CoreBundle {
+  val ppn1 = UInt(10.W)
+  val ppn0 = UInt(10.W)
+  val rsw = UInt(2.W)
+  val d = Bool()
+  val a = Bool()
+  val g = Bool()
+  val u = Bool()
+  val x = Bool()
+  val w = Bool()
+  val r = Bool()
+  val v = Bool()
+}
+
+object PTE {
+  def apply() = new PTE
+}
+
 // TODO : add C extension
 // * "With the addition of the C extension, no instructions can 
 // *  raise instruction-address-misaligned exceptions."
@@ -30,8 +48,14 @@ object FlagOp extends HasDecodeConfig {
   // * custom end
   val INST_PAGE_FAULT       = 12.U(FlagWidth.W)
   val LOAD_PAGE_FAULT       = 13.U(FlagWidth.W)
-  // 14
+  // * temporary jump
+  val MISPREDICT            = 14.U(FlagWidth.W)
   val STORE_PAGE_FAULT      = 15.U(FlagWidth.W)
+}
+
+object Dest extends HasDecodeConfig {
+  val ROB = 0.U(1.W) // goes to Rob
+  val PTW = 1.U(1.W) // goes to Page Table Walker
 }
 
 object FuType extends HasDecodeConfig {
@@ -162,11 +186,6 @@ object CImmType extends HasDecodeConfig {
   def X = BitPat.dontCare(ImmTypeWidth)
 }
 
-object Flags extends HasCoreParameters {
-  val NOTHING = 0.U(FLAG_W)
-  val MISPREDICT = 1.U(FLAG_W)
-}
-
 class DecodeUop extends CoreBundle{  
   val rd = UInt(5.W)
   val rs1 = UInt(5.W)
@@ -244,15 +263,17 @@ class ReadRegUop extends CoreBundle {
   val compressed = Bool()
 }
 
-class TrapUop extends CoreBundle {
-  val prd = UInt(PREG_IDX_W)
+class FlagUop extends CoreBundle {
+  val prd  = UInt(PREG_IDX_W)
   val flag = UInt(FLAG_W)
-  val pc  = UInt(XLEN.W)
+  val pc   = UInt(XLEN.W)
+  val target = UInt(XLEN.W)
 }
 
 class WritebackUop extends CoreBundle {
   val prd = UInt(PREG_IDX_W)
-  val data = UInt(XLEN.W)  
+  val data = UInt(XLEN.W)
+  val dest = UInt(1.W)
   val robPtr = RingBufferPtr(ROB_SIZE)
   val flag = UInt(FLAG_W)
   // * temporary

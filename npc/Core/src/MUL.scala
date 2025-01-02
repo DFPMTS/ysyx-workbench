@@ -21,7 +21,7 @@ class MUL extends CoreModule {
   dummyMUL.io.src1 := io.IN_readRegUop.bits.src1
   dummyMUL.io.src2 := io.IN_readRegUop.bits.src2
 
-
+  uop(0).dest := Dest.ROB
   uop(0).prd := io.IN_readRegUop.bits.prd
   uop(0).data := dummyMUL.io.out
   uop(0).robPtr := io.IN_readRegUop.bits.robPtr

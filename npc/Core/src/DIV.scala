@@ -42,6 +42,7 @@ class DIV extends CoreModule {
   dummyDIV.io.src2 := io.IN_readRegUop.bits.src2
 
   when(io.IN_readRegUop.valid && state === sIdle) {
+    uop.dest := Dest.ROB
     uop.prd := io.IN_readRegUop.bits.prd
     uop.data := dummyDIV.io.out
     uop.robPtr := io.IN_readRegUop.bits.robPtr
