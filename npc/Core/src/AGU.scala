@@ -118,7 +118,7 @@ class AGU extends CoreModule {
   when(inValid) {
     uopNextValid := true.B
     uopNext.prd := inUop.prd
-    uopNext.addr := inUop.src1 + inUop.imm
+    uopNext.addr := Mux(inUop.fuType === FuType.AMO, inUop.src1, inUop.src1 + inUop.imm)
     uopNext.wdata := inUop.src2
 
     uopNext.dest := Dest.ROB

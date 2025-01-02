@@ -66,7 +66,7 @@ bool check_context(difftest_context_t *ref, difftest_context_t *dut) {
   for (int i = 0; i < 32; ++i) {
     succ &= difftest_check_reg(reg_name(i), dut->pc, ref->gpr[i], dut->gpr[i]);
   }
-  // succ &= difftest_check_reg("pc", dut->pc, ref->pc, dut->pc);
+  succ &= difftest_check_reg("pc", dut->pc, ref->pc, dut->pc);
   return succ;
 }
 

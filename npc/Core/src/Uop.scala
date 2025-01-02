@@ -59,14 +59,14 @@ object Dest extends HasDecodeConfig {
 }
 
 object FuType extends HasDecodeConfig {
-  val ALU = 0.U(FuTypeWidth.W)
-  val BRU = 1.U(FuTypeWidth.W)
-  val LSU = 2.U(FuTypeWidth.W)
-  val MUL = 3.U(FuTypeWidth.W)
-  val DIV = 4.U(FuTypeWidth.W)
-  val AGU = 5.U(FuTypeWidth.W)
-  val CSR = 6.U(FuTypeWidth.W)
-  val FLAG = 7.U(FuTypeWidth.W)
+  val ALU    = 0.U(FuTypeWidth.W)
+  val BRU    = 1.U(FuTypeWidth.W)
+  val LSU    = 2.U(FuTypeWidth.W)
+  val MUL    = 3.U(FuTypeWidth.W)
+  val DIV    = 4.U(FuTypeWidth.W)
+  val AMO = 5.U(FuTypeWidth.W)
+  val CSR    = 6.U(FuTypeWidth.W)
+  val FLAG   = 7.U(FuTypeWidth.W)
 }
 
 object ALUOp extends HasDecodeConfig {
@@ -116,6 +116,20 @@ object LSUOp extends HasDecodeConfig {
   def SB  = "b1000".U(OpcodeWidth.W)
   def SH  = "b1010".U(OpcodeWidth.W)
   def SW  = "b1100".U(OpcodeWidth.W)
+}
+
+object AMOOp extends HasDecodeConfig {
+  def LR_W      = "b0000".U(OpcodeWidth.W)
+  def SC_W      = "b0001".U(OpcodeWidth.W)
+  def SWAP_W = "b0010".U(OpcodeWidth.W)
+  def ADD_W  = "b0011".U(OpcodeWidth.W)
+  def XOR_W  = "b0100".U(OpcodeWidth.W)
+  def AND_W  = "b0101".U(OpcodeWidth.W)
+  def OR_W   = "b0110".U(OpcodeWidth.W)
+  def MIN_W  = "b0111".U(OpcodeWidth.W)
+  def MAX_W  = "b1000".U(OpcodeWidth.W)
+  def MINU_W = "b1001".U(OpcodeWidth.W)
+  def MAXU_W = "b1010".U(OpcodeWidth.W)
 }
 
 object CSROp extends HasDecodeConfig {
