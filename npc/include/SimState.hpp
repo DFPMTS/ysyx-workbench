@@ -78,7 +78,7 @@ public:
         auto robIndex = *commitUop[i].robPtr_index;
         auto &inst = insts[robIndex];
         auto &uop = commitUop[i];
-        inst.valid = false;
+        // inst.valid = false;
         if (inst.fuType == FuType::LSU) {
           auto addr = inst.src1 + inst.imm;
           if (addr >= 0x11000000 + 0xbff8 && addr < 0x11000000 + 0xc000 ||
@@ -176,6 +176,10 @@ public:
                inst.rs2);
         printf("      prd = %2d  prs1 = %2d  prs2 = %2d\n", inst.prd, inst.prs1,
                inst.prs2);
+        printf("      src1   = %d/%u/0x%x\n", inst.src1, inst.src1, inst.src1);
+        printf("      src2   = %d/%u/0x%x\n", inst.src2, inst.src2, inst.src2);
+        printf("      result = %d/%u/0x%x\n", inst.result, inst.result,
+               inst.result);
       }
     }
   }
