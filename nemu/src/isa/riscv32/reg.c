@@ -47,6 +47,7 @@ void isa_reg_display() {
   printf("mtval\t%x\n", cpu.mtval);
   printf("mepc\t%x\n", cpu.mepc);
   printf("mscratch\t%x\n", cpu.mscratch);
+  printf("satp\t%x\n", cpu.satp);
   printf("stvec\t%x\n", cpu.stvec);  
   printf("stval\t%x\n", cpu.stval);
   printf("sepc\t%x\n", cpu.sepc);  
