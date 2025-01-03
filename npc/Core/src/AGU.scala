@@ -9,14 +9,17 @@ class MMUResp extends CoreBundle {
     Mux(isSuper, Cat(pte.ppn1, vaddr(21, 0)), Cat(pte.ppn1, pte.ppn0, vaddr(11, 0)))
   }
   def loadStorePermFail(write: Bool, vmCSR: VMCSR) = {
-    !pte.v || !pte.a || // * Invalid or not Accessed
-    Mux(write, !pte.r || !pte.w || !pte.d, !pte.r && !(vmCSR.mxr && pte.x)) || // * r/w perm fail
+    !pte.v || // * Invalid
+    // !pte.a || // * svadu
+    Mux(write, !pte.r || !pte.w /*|| !pte.d*/, 
+               !pte.r && !(vmCSR.mxr && pte.x)) || // * r/w perm fail
     (!pte.u && vmCSR.epm === Priv.U) || // * User program can only access page with U bit set
     (pte.u && !vmCSR.sum && vmCSR.epm === Priv.S) || // * SUM
     (isSuper && pte.ppn0 =/= 0.U) // * Super page must align to 4MB
   }
   def executePermFail(vmCSR: VMCSR) = {
-    !pte.v || !pte.a || // * Invalid or not Accessed
+    !pte.v || // * Invalid
+    // !pte.a || // * svadu
     !pte.x || // * Execute perm fail
     (!pte.r && pte.w) || // * illegal combination
     (!pte.u && vmCSR.priv === Priv.U) || // * User program can only access page with U bit set
