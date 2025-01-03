@@ -82,7 +82,8 @@ int main(int argc, char *argv[]) {
     fst->close();
 #endif
   });
-  while (running) {
+  T = 100000;
+  while (T--) {
     cpu_step();
     state.log(totalCycles);
     ++totalCycles;
