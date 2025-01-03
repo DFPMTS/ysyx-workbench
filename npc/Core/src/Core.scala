@@ -84,7 +84,7 @@ class Core extends CoreModule {
   dontTouch(commitUop)  
 
   // * flag
-  val flagUop = Wire(new FlagUop)
+  val flagUop = Wire(Valid(new FlagUop))
   dontTouch(flagUop)
 
   // * IF
