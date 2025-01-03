@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
   //   trace_pc();
   // }
   // return 0;
-  // begin_wave = true;
+  begin_wave = true;
   sim_speed.initTimer();
   int T = 400;
   atexit([]() {
@@ -86,9 +86,9 @@ int main(int argc, char *argv[]) {
     cpu_step();
     state.log(totalCycles);
     ++totalCycles;
-    if (totalCycles > 21280000) {
-      begin_wave = true;
-    }
+    // if (totalCycles > 21280000) {
+    //   begin_wave = true;
+    // }
     //     ++totalCycles;
     // #ifdef NVBOARD
     //     nvboard_update();
