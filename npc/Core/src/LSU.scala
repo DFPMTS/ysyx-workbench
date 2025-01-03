@@ -66,8 +66,8 @@ class LSU extends CoreModule with HasLSUOps {
 
   val memLen     = Mux(inUop.fuType === FuType.LSU, opcode(2, 1), 2.U)
   val loadU      = opcode(0)
-  val is_read_w  = insert1 && (opcode(3) === R || inUop.fuType === FuType.AMO)
-  val is_write_w = (insert1 && opcode(3) === W) || (insert2 && inUop.fuType === FuType.AMO)
+  val is_read_w  = insert1 && ((inUop.fuType === FuType.LSU && opcode(3) === R) || inUop.fuType === FuType.AMO)
+  val is_write_w = (insert1 && (inUop.fuType === FuType.LSU && opcode(3) === W)) || (insert2 && inUop.fuType === FuType.AMO)
 
   val addr        = inUop.addr
   val addr_offset = addr(1, 0)
