@@ -3,9 +3,11 @@
 
 #include "Uop.hpp"
 #include "cpu.hpp"
+#include "debug.hpp"
 #include "difftest.hpp"
 #include "itrace.hpp"
 #include "mem.hpp"
+#include "status.hpp"
 #include <cstdint>
 #include <cstdio>
 
@@ -77,7 +79,8 @@ public:
       printf("cycle: %ld\n", cycle);
     }
     if (cycle > lastCommit + 100) {
-      exit(114);
+      Log("CPU hangs");
+      running = false;
     }
     // * flag
 
