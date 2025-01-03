@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     cpu_step();
     state.log(totalCycles);
     ++totalCycles;
-    if (totalCycles > 29940000) {
+    if (totalCycles > 21280000) {
       begin_wave = true;
     }
     //     ++totalCycles;

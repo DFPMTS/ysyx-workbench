@@ -162,10 +162,12 @@ mem_word_t mem_read(paddr_t addr) {
     retval <<= (raw_addr - addr) * 8;
   }
 #ifdef MTRACE
-  if (valid)
-    log_write("<0x%08x / %lu>\n", retval, retval);
-  else
-    log_write("NOT VALID / NOT VALID\n");
+  if (begin_wave) {
+    if (valid)
+      log_write("<0x%08x / %lu>\n", retval, retval);
+    else
+      log_write("NOT VALID / NOT VALID\n");
+  }
 #endif
   if (valid) {
     return retval;
