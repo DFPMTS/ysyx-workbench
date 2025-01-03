@@ -291,7 +291,9 @@ word_t csrr_(word_t csr_addr, uint32_t rd, uint32_t rs1, word_t value, CSR_OP op
     panic("Unknown op: %d\n", op);
     break;
   }
-
+  if (csr_addr == CSR_MSCRATCH) {
+    Log("mscratch: 0x%x", csr_write_val);
+  }
   if (write) {
     csr_write(csr_addr, csr_write_val, csr);
   }
