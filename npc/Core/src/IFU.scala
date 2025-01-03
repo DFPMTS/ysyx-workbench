@@ -55,7 +55,6 @@ class IFU extends Module with HasPerfCounters {
   io.OUT_TLBReq.valid := doTranslate
   io.OUT_TLBReq.bits.vpn := vpc(31, 12)
   pcValidNext := !doTranslate || io.IN_TLBResp.valid
-  pageFault := doTranslate && io.IN_TLBResp.bits.executePermFail(io.IN_VMCSR)
   pcNext := Mux(doTranslate, io.IN_TLBResp.bits.vaddrToPaddr(vpc), vpc)    
 
   when(flushFin) {
@@ -67,6 +66,7 @@ class IFU extends Module with HasPerfCounters {
     vpc := Mux(pcValidNext && insert, vpc + 4.U, vpc)
     validBuffer := Mux(insert, pcValidNext, validBuffer)
     arValid := Mux(insert, pcValidNext, Mux(icache.io.in.fire, false.B, arValid))
+    pageFault := Mux(insert, doTranslate && io.IN_TLBResp.valid && io.IN_TLBResp.bits.executePermFail(io.IN_VMCSR), pageFault)
   }
 
   // ** PTW Req logic
@@ -85,7 +85,7 @@ class IFU extends Module with HasPerfCounters {
   // * pc -> icache
   insert := (~validBuffer || io.out.fire) || flushFin
   
-  pc := Mux(insert, pcNext, pc)
+  pc := Mux(insert && pcValidNext, pcNext, pc)
   vpc1 := Mux(insert, vpc, vpc1)
 
   io.master <> icache.io.master
