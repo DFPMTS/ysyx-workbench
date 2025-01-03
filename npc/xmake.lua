@@ -18,7 +18,6 @@ target("Vtop")
   add_files("csrc/*.cpp")
   add_files("csrc/*.cc")
   if get_config("sim_target") == "npc" then
-    add_values("verilator.flags", "--threads", "2")
     add_values("verilator.flags", "--trace-fst")
     add_values("verilator.flags", "-sv")
   else 
