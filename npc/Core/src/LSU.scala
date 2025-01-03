@@ -109,11 +109,10 @@ class LSU extends CoreModule with HasLSUOps {
     true.B,
     Mux(io.master.w.fire, false.B, w_valid)
   )
-  val wData = Reg(UInt(XLEN.W))
-  wData := Mux(
-    insert1,
+  val wData = Mux(
+    state === sWaitResp,
     inUop.wdata << (addr_offset << 3.U),
-    Mux(insert2, amoALU.io.OUT_res, wData)
+    amoALU.io.OUT_res
   )
   io.master.w.valid     := w_valid && uopWrite
   io.master.w.bits.data := wData
