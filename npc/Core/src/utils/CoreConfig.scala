@@ -31,7 +31,7 @@ trait HasCoreParameters {
   def IDIV_DELAY = 3
 
   // * Physical Register
-  def NUM_PREG = 32
+  def NUM_PREG = 64
   def PREG_IDX_W = log2Up(NUM_PREG).W
 
   // * ROB 

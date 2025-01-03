@@ -160,7 +160,7 @@ class AXI_Arbiter extends Module {
 
     
 
-  val readMMIO = win.ar.bits.addr < 0x80000000L.U
+  val readMMIO = win.ar.bits.addr(31,24) === 0x11.U
   val readMMIOReg = RegInit(false.B)
   val readMMIOData = WireInit(0.U(32.W))
   readMMIOReg := Mux(
@@ -186,7 +186,7 @@ class AXI_Arbiter extends Module {
   toIn.r.bits.last := Mux(readMMIOReg, true.B, io.winMaster.r.bits.last)
   toIn.r.bits.data := Mux(readMMIOReg, readMMIOData, io.winMaster.r.bits.data)
 
-  val writeMMIO = win.aw.valid && win.w.valid && win.ar.bits.addr < 0x80000000L.U
+  val writeMMIO = win.aw.valid && win.w.valid && win.aw.bits.addr(31,24) === 0x11.U
   val writeMMIOReg = RegInit(false.B)
 
   writeMMIOReg := Mux(

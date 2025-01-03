@@ -22,7 +22,7 @@ extern bool begin_wave;
 static uint32_t dummy = 0;
 
 struct difftest_context_t {
-  uint32_t gpr[16];
+  uint32_t gpr[32];
   uint32_t pc;
 };
 
@@ -35,5 +35,8 @@ void get_context(difftest_context_t *dut);
 void isa_reg_display(difftest_context_t *ctx);
 void init_cpu();
 void cpu_step();
+
+#define UART_BASE 0x10000000
+#define UART_SIZE 9
 
 #endif

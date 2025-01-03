@@ -84,9 +84,13 @@ class VMCSR extends CoreBundle {
 }
 
 class TrapCSR extends CoreBundle {
-  val mtvec = UInt(XLEN.W)
-  val mepc  = UInt(XLEN.W)
-  val priv  = UInt(2.W)
+  val mtvec   = UInt(XLEN.W)
+  val mepc    = UInt(XLEN.W)  
+  val stvec   = UInt(XLEN.W)
+  val sepc    = UInt(XLEN.W)
+  val mideleg = UInt(XLEN.W)
+  val medeleg = UInt(XLEN.W)
+  val priv    = UInt(2.W)
 }
 
 class CSRIO extends CoreBundle {
@@ -232,17 +236,27 @@ class CSR extends Module {
   val trapCause = io.IN_CSRCtrl.cause
   val trapPC    = io.IN_CSRCtrl.pc
   val mret      = io.IN_CSRCtrl.mret
+  val sret      = io.IN_CSRCtrl.sret
 
   val uop = Reg(new WritebackUop)
   val uopValid = RegInit(false.B)
 
   when(trapValid) {
-    mcause := trapCause
-    mepc := trapPC
-    mstatus.MPIE := mstatus.MIE
-    mstatus.MIE := 0.U
-    mstatus.MPP := priv
-    priv := Priv.M    
+    when(io.IN_CSRCtrl.delegate) {
+      scause := trapCause
+      sepc := trapPC
+      mstatus.SPIE := mstatus.SIE
+      mstatus.SIE := 0.U
+      mstatus.SPP := priv
+      priv := Priv.S
+    }.otherwise {
+      mcause := trapCause
+      mepc := trapPC
+      mstatus.MPIE := mstatus.MIE
+      mstatus.MIE := 0.U
+      mstatus.MPP := priv
+      priv := Priv.M    
+    }
   }
 
   when(mret) {
@@ -253,6 +267,16 @@ class CSR extends Module {
     mstatus.MPIE := 1.U
     mstatus.MPP := Priv.U
     priv := mstatus.MPP
+  }
+
+  when(sret) {
+    when(mstatus.SPP < Priv.M) {
+      mstatus.MPRV := 0.U
+    }
+    mstatus.SIE := mstatus.SPIE
+    mstatus.SPIE := 1.U
+    mstatus.SPP := Priv.U
+    priv := mstatus.SPP
   }
 
   rdata := 0.U
@@ -349,6 +373,9 @@ class CSR extends Module {
     when(addr === CSRList.marchid) { // * 0xF12
       rdata := 23060238.U
     }
+    when(addr === CSRList.mhartid) { // * 0xF14
+      rdata := 0.U
+    }
   }
 
   when(doWrite) {
@@ -428,6 +455,7 @@ class CSR extends Module {
       menvcfg.FIOM := envcfg.FIOM
     }
     when(addr === CSRList.mscratch) { // * 0x340
+      printf("write mscratch: %x %x\n", inUop.src1, wdata)
       mscratch := wdata
     }
     when(addr === CSRList.mepc) { // * 0x341
@@ -452,6 +480,10 @@ class CSR extends Module {
   // * Trap control
   io.OUT_trapCSR.mtvec := mtvec
   io.OUT_trapCSR.mepc := mepc
+  io.OUT_trapCSR.stvec := stvec
+  io.OUT_trapCSR.sepc := sepc
+  io.OUT_trapCSR.mideleg := mideleg
+  io.OUT_trapCSR.medeleg := medeleg
   io.OUT_trapCSR.priv := priv
 
   val error = Module(new Error)

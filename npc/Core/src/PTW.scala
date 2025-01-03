@@ -1,6 +1,7 @@
 import chisel3._
 import chisel3.util._
 import utils._
+import os.read.inputStream
 
 class PTWUop extends CoreBundle {
   val addr = UInt(XLEN.W)
@@ -27,7 +28,8 @@ class PTW extends CoreModule {
   val vpn = Reg(UInt(PAGE_NR_LEN.W))
   val id  = Reg(UInt(1.W))
   val pte = Reg(new PTE)
-  val nextLevel = pte.v && !pte.r && !pte.w && !pte.x  // * Next level page table
+  val inPTE = io.IN_writebackUop.bits.data.asTypeOf(new PTE)
+  val nextLevel = inPTE.v && !inPTE.r && !inPTE.w && !inPTE.x  // * Next level page table
   val hasLoadRepl = io.IN_writebackUop.valid && io.IN_writebackUop.bits.dest === Dest.PTW
 
   val ptwReq = Wire(Decoupled(new PTWReq))
@@ -42,17 +44,19 @@ class PTW extends CoreModule {
     reqId := 0.U
   }
 
-  state := MuxLookup(state, sIdle) (Seq(
+  val stateNext = MuxLookup(state, sIdle) (Seq(
     (sIdle -> Mux(ptwReq.valid, sL1, sIdle)),
     (sL1 -> Mux(hasLoadRepl, Mux(nextLevel, sL0, sIdle), sL1)),
     (sL0 -> Mux(hasLoadRepl, sIdle, sL0))
   ))
+  state := stateNext
 
   val vpn1 = vpn(PAGE_NR_LEN-1, 10)
   val vpn0 = vpn(9, 0)
 
   val PTWUopValid = RegInit(false.B)
-  when((state === sL1 || state === sL0) && !hasLoadRepl) {
+  when((state === sIdle && stateNext === sL1) ||
+       (state === sL1 && stateNext === sL0)) {
     PTWUopValid := true.B
   }
   when(io.OUT_PTWUop.fire) {

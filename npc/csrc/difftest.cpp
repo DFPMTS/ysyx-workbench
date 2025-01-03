@@ -4,6 +4,7 @@
 #include "ftrace.hpp"
 #include "itrace.hpp"
 #include "mem.hpp"
+#include "status.hpp"
 #include <dlfcn.h>
 
 ref_difftest_init_t ref_difftest_init;
@@ -63,7 +64,7 @@ static inline bool difftest_check_reg(const char *name, vaddr_t pc, word_t ref,
 
 bool check_context(difftest_context_t *ref, difftest_context_t *dut) {
   bool succ = true;
-  for (int i = 0; i < 16; ++i) {
+  for (int i = 0; i < 32; ++i) {
     succ &= difftest_check_reg(reg_name(i), dut->pc, ref->gpr[i], dut->gpr[i]);
   }
   // succ &= difftest_check_reg("pc", dut->pc, ref->pc, dut->pc);
@@ -89,7 +90,8 @@ void difftest() {
   ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
   if (!check_context(&ref, &dut)) {
     isa_reg_display(&dut);
-    assert(0);
+    Log("Difftest failed\n");
+    running = false;
   }
   // isa_reg_display(&ref);
 }

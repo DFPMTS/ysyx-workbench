@@ -89,6 +89,10 @@ class ROB extends CoreModule {
     flagUopNext.flag := deqEntry(i).flag
     flagUopNext.prd := deqEntry(i).prd
     flagUopNext.pc := deqEntry(i).pc
+    when(flagUopNextValid && deqEntry(i).flag =/= FlagOp.MISPREDICT) {
+      commitUop(i).rd := ZERO
+      commitUop(i).prd := ZERO
+    }
   }
 
   robStall := flagUopNextValid

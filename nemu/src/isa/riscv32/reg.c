@@ -46,9 +46,11 @@ void isa_reg_display() {
   printf("mtvec\t%x\n", cpu.mtvec);
   printf("mtval\t%x\n", cpu.mtval);
   printf("mepc\t%x\n", cpu.mepc);
+  printf("mscratch\t%x\n", cpu.mscratch);
+  printf("satp\t%x\n", cpu.satp);
   printf("stvec\t%x\n", cpu.stvec);  
   printf("stval\t%x\n", cpu.stval);
-  printf("sepc\t%x\n", cpu.sepc);
+  printf("sepc\t%x\n", cpu.sepc);  
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
