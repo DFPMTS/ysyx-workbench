@@ -18,10 +18,10 @@ target("Vtop")
   add_files("csrc/*.cpp")
   add_files("csrc/*.cc")
   if get_config("sim_target") == "npc" then
+    add_values("verilator.flags", "--threads", "4")
     add_values("verilator.flags", "--trace-fst")
     add_values("verilator.flags", "-sv")
   else 
-    add_values("verilator.flags", "--threads", "4")
     add_values("verilator.flags", "--trace-fst", "--timescale", "1ns/1ps", "--no-timing", "--top-module", "ysyxSoCFull", "--autoflush", "-Wno-WIDTHEXPAND")
     add_values("verilator.flags","-I../ysyxSoC/perip/uart16550/rtl")
     add_values("verilator.flags","-I../ysyxSoC/perip/spi/rtl")
