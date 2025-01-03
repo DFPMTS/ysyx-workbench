@@ -16,6 +16,7 @@ class CSRCtrl extends CoreBundle {
   val trap  = Bool()
   val pc    = UInt(XLEN.W)
   val cause = UInt(5.W)
+  val delegate = Bool()
   // * mret/sret
   val mret  = Bool()
   val sret  = Bool()
@@ -35,6 +36,12 @@ class FlagHandler extends CoreModule {
   redirect.pc := 0.U
   redirect.valid := false.B
   CSRCtrl := CSRCtrlNext
+  val priv = io.IN_trapCSR.priv
+  val medeleg = io.IN_trapCSR.medeleg
+  val exceptionDelegate = priv < Priv.M && medeleg(CSRCtrlNext.cause)
+  val xtvec = Mux(exceptionDelegate, io.IN_trapCSR.stvec, io.IN_trapCSR.mtvec)
+  
+  CSRCtrlNext.delegate := exceptionDelegate
 
   when (io.IN_flagUop.valid) {
     when (flag === FlagOp.MISPREDICT) {
@@ -44,8 +51,7 @@ class FlagHandler extends CoreModule {
     }
     when(flag === FlagOp.ECALL) {
       redirect.valid := true.B
-      redirect.pc := io.IN_trapCSR.mtvec
-
+      redirect.pc := xtvec
       flush := true.B
 
       CSRCtrlNext.trap := true.B
@@ -56,7 +62,7 @@ class FlagHandler extends CoreModule {
          flag === FlagOp.INST_PAGE_FAULT || flag === FlagOp.LOAD_PAGE_FAULT ||
          flag === FlagOp.STORE_PAGE_FAULT) {
       redirect.valid := true.B
-      redirect.pc := io.IN_trapCSR.mtvec
+      redirect.pc := xtvec
       flush := true.B
       
       CSRCtrlNext.trap := true.B
@@ -69,6 +75,13 @@ class FlagHandler extends CoreModule {
       flush := true.B
       
       CSRCtrlNext.mret := true.B
+    }
+    when(flag === FlagOp.SRET) {
+      redirect.valid := true.B
+      redirect.pc := io.IN_trapCSR.sepc
+      flush := true.B
+      
+      CSRCtrlNext.sret := true.B
     }
   }
 

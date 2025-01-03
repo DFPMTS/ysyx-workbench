@@ -70,6 +70,7 @@ class Decode extends CoreModule {
   def csrrsi     = BitPat("b??????? ????? ????? 110 ????? 11100 11")
   def csrrci     = BitPat("b??????? ????? ????? 111 ????? 11100 11")
   def mret       = BitPat("b0011000 00010 00000 000 00000 11100 11")
+  def sret       = BitPat("b0001000 00010 00000 000 00000 11100 11")
   def fence      = BitPat("b???? ???? ???? ????? 000 ????? 00011 11")
   def sfence_vma = BitPat("b0001001 ????? ????? 000 ????? 11100 11")
   // * RV32M
@@ -144,6 +145,7 @@ csrrwi     -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR,  CSROp.CSRRWI, 
 csrrsi     -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR,  CSROp.CSRRSI,      ImmType.I),
 csrrci     -> List(N, Y, SrcType.REG,  SrcType.ZERO, FuType.CSR,  CSROp.CSRRCI,      ImmType.I),
 mret       -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.FLAG, FlagOp.MRET,       ImmType.X),
+sret       -> List(N, N, SrcType.ZERO, SrcType.ZERO, FuType.FLAG, FlagOp.SRET,       ImmType.X),
 mul        -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.MUL,  MULOp.MUL,         ImmType.X),// * RV32M begin
 mulh       -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.MUL,  MULOp.MULH,        ImmType.X),
 mulhsu     -> List(N, Y, SrcType.REG,  SrcType.REG,  FuType.MUL,  MULOp.MULHSU,      ImmType.X),

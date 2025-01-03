@@ -43,7 +43,7 @@ object FlagOp extends HasDecodeConfig {
   // * custom begin
   val ECALL                 = 8.U(FlagWidth.W)
   val MRET                  = 9.U(FlagWidth.W)
-  val FENCE_I               = 9.U(FlagWidth.W)
+  val SRET                  = 9.U(FlagWidth.W)
   val SFENCE_VMA            = 10.U(FlagWidth.W)
   // * custom end
   val INST_PAGE_FAULT       = 12.U(FlagWidth.W)
