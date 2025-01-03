@@ -59,14 +59,12 @@ class LSU extends CoreModule with HasLSUOps {
     )
   )
 
-  val uopRead  = (state === sIdle) && (inUop.opcode(3) === R || inUop.fuType === FuType.AMO)
-  val uopWrite = ((state === sIdle && inUop.opcode(3) === W) || 
-                  (state === sWaitResp && inUop.fuType === FuType.AMO))
+  val uopRead  = state === sWaitResp && ((inUop.fuType === FuType.LSU && opcode(3) === R) || inUop.fuType === FuType.AMO)
+  val uopWrite = (state === sWaitResp && (inUop.fuType === FuType.LSU && opcode(3) === W)) || 
+                 (state === sWaitAmoSave && inUop.fuType === FuType.AMO)
 
   val memLen     = Mux(inUop.fuType === FuType.LSU, opcode(2, 1), 2.U)
   val loadU      = opcode(0)
-  val is_read_w  = insert1 && ((inUop.fuType === FuType.LSU && opcode(3) === R) || inUop.fuType === FuType.AMO)
-  val is_write_w = (insert1 && (inUop.fuType === FuType.LSU && opcode(3) === W)) || (insert2 && inUop.fuType === FuType.AMO)
 
   val addr        = inUop.addr
   val addr_offset = addr(1, 0)
@@ -75,10 +73,10 @@ class LSU extends CoreModule with HasLSUOps {
   val ar_valid = RegInit(false.B)
   ar_valid := Mux(
     insert,
-    is_read_w,
+    true.B,
     Mux(io.master.ar.fire, false.B, ar_valid)
   )
-  io.master.ar.valid      := ar_valid
+  io.master.ar.valid      := ar_valid && uopRead
   io.master.ar.bits.addr  := addr
   io.master.ar.bits.id    := 0.U
   io.master.ar.bits.len   := 0.U
@@ -95,10 +93,10 @@ class LSU extends CoreModule with HasLSUOps {
   val aw_valid = RegInit(false.B)
   aw_valid := Mux(
     insert,
-    is_write_w,
+    true.B,
     Mux(io.master.aw.fire, false.B, aw_valid)
   )
-  io.master.aw.valid      := aw_valid
+  io.master.aw.valid      := aw_valid && uopWrite
   io.master.aw.bits.addr  := addr
   io.master.aw.bits.id    := 0.U
   io.master.aw.bits.len   := 0.U
@@ -108,7 +106,7 @@ class LSU extends CoreModule with HasLSUOps {
   val w_valid = RegInit(false.B)
   w_valid := Mux(
     insert,
-    is_write_w,
+    true.B,
     Mux(io.master.w.fire, false.B, w_valid)
   )
   val wData = Reg(UInt(XLEN.W))
@@ -117,7 +115,7 @@ class LSU extends CoreModule with HasLSUOps {
     inUop.wdata << (addr_offset << 3.U),
     Mux(insert2, amoALU.io.OUT_res, wData)
   )
-  io.master.w.valid     := w_valid
+  io.master.w.valid     := w_valid && uopWrite
   io.master.w.bits.data := wData
   io.master.w.bits.strb := MuxLookup(memLen, 0.U(4.W))(
     Seq(
