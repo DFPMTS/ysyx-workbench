@@ -349,6 +349,9 @@ class CSR extends Module {
     when(addr === CSRList.marchid) { // * 0xF12
       rdata := 23060238.U
     }
+    when(addr === CSRList.mhartid) { // * 0xF14
+      rdata := 0.U
+    }
   }
 
   when(doWrite) {

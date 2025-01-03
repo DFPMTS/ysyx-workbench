@@ -79,6 +79,8 @@ public:
     if (cycle > lastCommit + 100) {
       exit(114);
     }
+    // * flag
+
     // * commit
     char buf[512];
     for (int i = 0; i < 1; ++i) {
