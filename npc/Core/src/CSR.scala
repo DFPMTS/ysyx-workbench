@@ -482,6 +482,8 @@ class CSR extends Module {
   io.OUT_trapCSR.mepc := mepc
   io.OUT_trapCSR.stvec := stvec
   io.OUT_trapCSR.sepc := sepc
+  io.OUT_trapCSR.mideleg := mideleg
+  io.OUT_trapCSR.medeleg := medeleg
   io.OUT_trapCSR.priv := priv
 
   val error = Module(new Error)
