@@ -119,8 +119,8 @@ object LSUOp extends HasDecodeConfig {
 }
 
 object AMOOp extends HasDecodeConfig {
-  def LR_W      = "b0000".U(OpcodeWidth.W)
-  def SC_W      = "b0001".U(OpcodeWidth.W)
+  def LR_W   = "b0000".U(OpcodeWidth.W)
+  def SC_W   = "b0001".U(OpcodeWidth.W)
   def SWAP_W = "b0010".U(OpcodeWidth.W)
   def ADD_W  = "b0011".U(OpcodeWidth.W)
   def XOR_W  = "b0100".U(OpcodeWidth.W)

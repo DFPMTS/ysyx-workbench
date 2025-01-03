@@ -49,6 +49,7 @@ class PTW extends CoreModule {
     (sL1 -> Mux(hasLoadRepl, Mux(nextLevel, sL0, sIdle), sL1)),
     (sL0 -> Mux(hasLoadRepl, sIdle, sL0))
   ))
+  state := stateNext
 
   val vpn1 = vpn(PAGE_NR_LEN-1, 10)
   val vpn0 = vpn(9, 0)
