@@ -428,6 +428,7 @@ class CSR extends Module {
       menvcfg.FIOM := envcfg.FIOM
     }
     when(addr === CSRList.mscratch) { // * 0x340
+      printf("write mscratch: %x %x\n", inUop.src1, wdata)
       mscratch := wdata
     }
     when(addr === CSRList.mepc) { // * 0x341
