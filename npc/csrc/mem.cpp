@@ -135,7 +135,9 @@ void host_write(uint8_t *addr, mem_word_t wdata, unsigned char wmask) {
 extern "C" {
 mem_word_t mem_read(paddr_t addr) {
 #ifdef MTRACE
-  log_write("(%lu)read:  0x%08x : ", eval_time, addr);
+  if (begin_wave) {
+    log_write("(%lu)read:  0x%08x : ", eval_time, addr);
+  }
 #endif
   auto raw_addr = addr;
   addr &= ADDR_MASK;
@@ -181,8 +183,10 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
   auto raw_addr = addr;
   addr &= ADDR_MASK;
 #ifdef MTRACE
-  log_write("(%lu)write: 0x%08x - %x : 0x%08x / %lu\n", eval_time, addr, wmask,
-            wdata, wdata);
+  if (begin_wave) {
+    log_write("(%lu)write: 0x%08x - %x : 0x%08x / %lu\n", eval_time, addr,
+              wmask, wdata, wdata);
+  }
 #endif
   if (in_pmem(addr)) {
     host_write(guest_to_host(addr), wdata, wmask);
