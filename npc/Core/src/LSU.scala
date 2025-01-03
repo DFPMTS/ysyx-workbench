@@ -41,15 +41,14 @@ class LSU extends CoreModule with HasLSUOps {
   val sIdle :: sWaitResp :: sWaitAmoSave :: Nil = Enum(3)
   val state = RegInit(sIdle)
 
-  val inUop = io.IN_AGUUop.bits
+  val inUop = RegEnable(io.IN_AGUUop.bits, insert1)
   val opcode = inUop.opcode
   val respValid = io.master.r.fire || io.master.b.fire
   val insert1 = (state === sIdle && io.IN_AGUUop.valid)
   val insert2 = (state === sWaitResp && respValid)
   val insert = insert1 || insert2
   
-  io.IN_AGUUop.ready := (state === sWaitResp && respValid && inUop.fuType === FuType.LSU) ||
-                        (state === sWaitAmoSave && io.master.b.fire)
+  io.IN_AGUUop.ready := state === sIdle
 
   state := MuxLookup(state, sIdle)(
     Seq(
