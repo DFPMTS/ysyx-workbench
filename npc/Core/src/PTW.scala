@@ -44,7 +44,7 @@ class PTW extends CoreModule {
     reqId := 0.U
   }
 
-  state := MuxLookup(state, sIdle) (Seq(
+  val stateNext = MuxLookup(state, sIdle) (Seq(
     (sIdle -> Mux(ptwReq.valid, sL1, sIdle)),
     (sL1 -> Mux(hasLoadRepl, Mux(nextLevel, sL0, sIdle), sL1)),
     (sL0 -> Mux(hasLoadRepl, sIdle, sL0))
@@ -54,7 +54,8 @@ class PTW extends CoreModule {
   val vpn0 = vpn(9, 0)
 
   val PTWUopValid = RegInit(false.B)
-  when((state === sL1 || state === sL0) && !hasLoadRepl) {
+  when((state === sIdle && stateNext === sL1) ||
+       (state === sL1 && stateNext === sL0)) {
     PTWUopValid := true.B
   }
   when(io.OUT_PTWUop.fire) {

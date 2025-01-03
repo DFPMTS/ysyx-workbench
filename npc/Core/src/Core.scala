@@ -53,6 +53,7 @@ class Core extends CoreModule {
   val flagHandler = Module(new FlagHandler)
   flagHandler.io.OUT_CSRCtrl <> csr.io.IN_CSRCtrl
   flagHandler.io.IN_trapCSR <> csr.io.OUT_trapCSR
+  flagHandler.io.IN_flagUop <> flagUop
   val flush = flagHandler.io.OUT_flush
   val redirect = flagHandler.io.OUT_redirect
 
@@ -81,6 +82,10 @@ class Core extends CoreModule {
   // * commit
   val commitUop = Wire(Vec(COMMIT_WIDTH, Valid(new CommitUop)))
   dontTouch(commitUop)  
+
+  // * flag
+  val flagUop = Wire(new FlagUop)
+  dontTouch(flagUop)
 
   // * IF
   ifu.io.redirect := redirect
@@ -119,7 +124,7 @@ class Core extends CoreModule {
   rob.io.IN_flush := flush
 
   rob.io.OUT_renameUopReady <> renameRobReady
-  rob.io.OUT_flagUop <> flagHandler.io.IN_flagUop
+  rob.io.OUT_flagUop <> flagUop
   rob.io.OUT_commitUop <> commitUop
 
   // * Scheduler

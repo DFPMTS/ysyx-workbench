@@ -15,6 +15,7 @@ public:
   WritebackUop writebackUop[4];
   ReadRegUop readRegUop[4];
   CommitUop commitUop[4];
+  FlagUop flagUop[1];
 
   InstInfo insts[128];
   uint32_t archTable[32] = {};
@@ -61,6 +62,14 @@ public:
 
     REPEAT_1(BIND_FIELDS)
     REPEAT_1(BIND_VALID)
+
+    // * flagUop
+#define UOP flagUop
+#define V_UOP V_FLAG_UOP
+#define V_UOP_VALID V_FLAG_VALID
+#define UOP_FIELDS FLAG_FIELDS
+
+    REPEAT_1(BIND_FIELDS)
   }
 
   void log(uint64_t cycle) {

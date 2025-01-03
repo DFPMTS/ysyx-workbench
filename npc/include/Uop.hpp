@@ -192,6 +192,13 @@ struct CommitUop : Uop {
   CData *robPtr_index;
 };
 
+struct FlagUop : Uop {
+  CData *prd;
+  CData *flag;
+  IData *pc;
+  IData *target;
+};
+
 // * rename
 #define V_RENAME_UOP(i, field)                                                 \
   top->rootp->npc_top__DOT__npc__DOT__renameUop_##i##_##field
@@ -223,6 +230,12 @@ struct CommitUop : Uop {
 
 #define V_READREG_READY(i)                                                     \
   top->rootp->npc_top__DOT__npc__DOT__readRegUop_##i##_ready
+
+// * flag
+#define V_FLAG_UOP(i, field)                                                   \
+  top->rootp->npc_top__DOT__npc__DOT__flagUop_bits_##field
+#define V_FLAG_VALID(i, field)                                                 \
+  top->rootp->npc_top__DOT__npc__DOT__flagUop_bits_##field
 
 #define RENAME_FIELDS(X, i)                                                    \
   X(i, rd)                                                                     \
@@ -278,6 +291,12 @@ struct CommitUop : Uop {
   X(i, opcode)                                                                 \
   X(i, predTarget)                                                             \
   X(i, compressed)
+
+#define FLAG_FIELDS(X, i)                                                      \
+  X(i, prd)                                                                    \
+  X(i, flag)                                                                   \
+  X(i, pc)                                                                     \
+  X(i, target)
 
 #define BIND_ONE_FIELD(i, field)                                               \
   UOP[i].field = (decltype(UOP[i].field))&V_UOP(i, field);
