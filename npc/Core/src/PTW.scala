@@ -1,6 +1,7 @@
 import chisel3._
 import chisel3.util._
 import utils._
+import os.read.inputStream
 
 class PTWUop extends CoreBundle {
   val addr = UInt(XLEN.W)
@@ -27,7 +28,8 @@ class PTW extends CoreModule {
   val vpn = Reg(UInt(PAGE_NR_LEN.W))
   val id  = Reg(UInt(1.W))
   val pte = Reg(new PTE)
-  val nextLevel = pte.v && !pte.r && !pte.w && !pte.x  // * Next level page table
+  val inPTE = io.IN_writebackUop.bits.data.asTypeOf(new PTE)
+  val nextLevel = inPTE.v && !inPTE.r && !inPTE.w && !inPTE.x  // * Next level page table
   val hasLoadRepl = io.IN_writebackUop.valid && io.IN_writebackUop.bits.dest === Dest.PTW
 
   val ptwReq = Wire(Decoupled(new PTWReq))
