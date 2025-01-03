@@ -51,11 +51,8 @@ class Core extends CoreModule {
   val arbiter = Module(new AXI_Arbiter)
 
   val flagHandler = Module(new FlagHandler)
-  flagHandler.io.OUT_CSRCtrl <> csr.io.IN_CSRCtrl
-  flagHandler.io.IN_trapCSR <> csr.io.OUT_trapCSR
-  flagHandler.io.IN_flagUop <> flagUop
-  val flush = flagHandler.io.OUT_flush
-  val redirect = flagHandler.io.OUT_redirect
+  val flush = Wire(Bool())
+  val redirect = Wire(new RedirectSignal)
 
   // * rename
   val renameUop = Wire(Vec(ISSUE_WIDTH, new RenameUop))
@@ -126,6 +123,13 @@ class Core extends CoreModule {
   rob.io.OUT_renameUopReady <> renameRobReady
   rob.io.OUT_flagUop <> flagUop
   rob.io.OUT_commitUop <> commitUop
+
+  // * flag handler
+  flagHandler.io.OUT_CSRCtrl <> csr.io.IN_CSRCtrl
+  flagHandler.io.IN_trapCSR <> csr.io.OUT_trapCSR
+  flagHandler.io.IN_flagUop <> flagUop
+  flush := flagHandler.io.OUT_flush
+  redirect := flagHandler.io.OUT_redirect
 
   // * Scheduler
   scheduler.io.IN_issueQueueValid := renameIQValid
