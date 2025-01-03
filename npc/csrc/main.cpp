@@ -86,9 +86,9 @@ int main(int argc, char *argv[]) {
     cpu_step();
     state.log(totalCycles);
     ++totalCycles;
-    // if (totalCycles > 18189000) {
-    //   begin_wave = true;
-    // }
+    if (totalCycles > 23100000) {
+      begin_wave = true;
+    }
     //     ++totalCycles;
     // #ifdef NVBOARD
     //     nvboard_update();
