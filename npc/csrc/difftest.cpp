@@ -4,6 +4,7 @@
 #include "ftrace.hpp"
 #include "itrace.hpp"
 #include "mem.hpp"
+#include "status.hpp"
 #include <dlfcn.h>
 
 ref_difftest_init_t ref_difftest_init;
@@ -89,7 +90,8 @@ void difftest() {
   ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
   if (!check_context(&ref, &dut)) {
     isa_reg_display(&dut);
-    assert(0);
+    printf("Difftest failed");
+    running = false;
   }
   // isa_reg_display(&ref);
 }

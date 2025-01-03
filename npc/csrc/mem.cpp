@@ -1,6 +1,7 @@
 #include "mem.hpp"
 #include "cpu.hpp"
 #include "debug.hpp"
+#include "status.hpp"
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -167,8 +168,10 @@ mem_word_t mem_read(paddr_t addr) {
   if (valid) {
     return retval;
   }
-  if (running)
-    assert(0);
+  if (running) {
+    running = false;
+    Log("Invalid read to 0x%08x\n", raw_addr);
+  }
   return 0;
 }
 
@@ -199,7 +202,8 @@ void mem_write(paddr_t addr, mem_word_t wdata, unsigned char wmask) {
     uart_io_handler(raw_addr - UART_BASE, 1, (uint8_t)wdata, true);
     return;
   }
-  assert(0);
+  Log("Invalid write to 0x%08x\n", raw_addr);
+  running = false;
 }
 
 mem_word_t inst_fetch(paddr_t pc) { return mem_read(pc); }
