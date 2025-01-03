@@ -90,7 +90,7 @@ void difftest() {
   ref_difftest_regcpy(&ref, DIFFTEST_TO_DUT);
   if (!check_context(&ref, &dut)) {
     isa_reg_display(&dut);
-    printf("Difftest failed");
+    Log("Difftest failed\n");
     running = false;
   }
   // isa_reg_display(&ref);
