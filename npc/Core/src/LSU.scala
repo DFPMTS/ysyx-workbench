@@ -729,9 +729,7 @@ class NewLSU extends CoreModule with HasLSUOps {
   io.OUT_specWakeUp.bits.prd := stage(0).prd
 
   // * Wake Up
-  io.OUT_wakeUp.valid := stageValid(1) && LSUOp.isLoad(stage(1).opcode) && stage1LoadHit
-  io.OUT_wakeUp.bits := DontCare
-  io.OUT_wakeUp.bits.prd := stage(1).prd
+  io.OUT_wakeUp := loadResultBuffer.io.OUT_wakeUp
 
   cacheUopReq.index := stage(1).addr(log2Up(CACHE_LINE_B) + log2Up(DCACHE_SETS) - 1, log2Up(CACHE_LINE_B))
   cacheUopReq.rtag := stage(1).addr(XLEN - 1, XLEN - 1 - DCACHE_TAG + 1)

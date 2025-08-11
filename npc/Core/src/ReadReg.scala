@@ -12,6 +12,7 @@ class ReadRegIO extends CoreBundle {
   val IN_readRegVal = Flipped(Vec(MACHINE_WIDTH, Vec(2, UInt(XLEN.W))))
   val OUT_readRegUop = Vec(MACHINE_WIDTH, Decoupled(new ReadRegUop))
   val IN_flush = Input(Bool())
+  val IN_flushStqPtr = Flipped(RingBufferPtr(STQ_SIZE))
 }
 
 class ReadReg extends CoreModule {
@@ -91,17 +92,15 @@ class ReadReg extends CoreModule {
       }
     }
 
-    def getShiftedData(data: UInt, addrOffset: UInt): UInt = {
-     (data << (addrOffset << 3))(XLEN - 1, 0)
-    }
-
     storeDataValid := io.IN_storeDataReadReq.fire
     storeData.stqPtr := io.IN_storeDataReadReq.bits.stqPtr
-    storeData.data := getShiftedData(port3Src2, io.IN_storeDataReadReq.bits.addrOffset)
+    storeData.data := port3Src2
 
     when(io.IN_flush) {
       uopValid := VecInit(Seq.fill(MACHINE_WIDTH)(false.B))
-      // storeDataValid := false.B
+      when(!io.IN_storeDataReadReq.bits.stqPtr.isBefore(io.IN_flushStqPtr)) {
+        storeDataValid := false.B
+      }
     }
 
     // ** Output

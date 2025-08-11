@@ -25,6 +25,8 @@ class LoadResultBufferIO extends CoreBundle {
   val OUT_zeroCycleForward = Valid(new WritebackUop)
   val OUT_writebackUop = Valid(new WritebackUop)
 
+  val OUT_wakeUp = Valid(new WritebackUop)
+
   val IN_flush = Flipped(Bool())
 }
 
@@ -133,6 +135,10 @@ class LoadResultBuffer extends CoreModule with HasLSUOps {
     io.OUT_zeroCycleForward.valid := false.B
   }
   io.OUT_zeroCycleForward.bits := loadResultToWriteback(inHitLoadResult)
+
+  io.OUT_wakeUp.valid := inLoadResultWriteback
+  io.OUT_wakeUp.bits := DontCare
+  io.OUT_wakeUp.bits.prd := inHitLoadResult.prd
 
   io.OUT_writebackUop.valid := wbUopValid
   io.OUT_writebackUop.bits := wbUop

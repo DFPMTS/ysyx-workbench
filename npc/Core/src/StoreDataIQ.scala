@@ -92,7 +92,7 @@ class StoreDataIQ extends CoreModule {
   io.IN_renameUop.ready := !enqStall
 
   val flushVec = VecInit(queue.map(e => {
-    !e.stqPtr.isBefore(io.IN_flushStqPtr) || !e.ready(0)
+    !e.stqPtr.isBefore(io.IN_flushStqPtr) || !e.ready(0) || !e.stqPtr.isBefore(stqLimitPtr)
   }))
   val flushHeadIndex = PriorityEncoder(flushVec.appended(true.B))
   dontTouch(flushVec)
@@ -128,7 +128,7 @@ class StoreDataIQ extends CoreModule {
     val renameUop = io.IN_renameUop.bits
     queue(enqIndex).prs := renameUop.prs2
     queue(enqIndex).stqPtr := renameUop.stqPtr
-    queue(enqIndex).ready(0) := false.B
+    queue(enqIndex).ready(0) := true.B
     queue(enqIndex).ready(1) := renameUop.src2Ready
     // * fix srcReady
     for (i <- 0 until MACHINE_WIDTH) {
@@ -144,6 +144,12 @@ class StoreDataIQ extends CoreModule {
 
   when (updateValid) {
     uopValid := hasReady
+  }
+
+  when (io.IN_flush) {
+    when(!uop.stqPtr.isBefore(io.IN_flushStqPtr)) {
+      uopValid := false.B
+    }
   }
 
   // ** Output

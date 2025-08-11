@@ -37,8 +37,9 @@ class StoreQueue extends CoreModule {
   when(io.IN_AGUUop.fire && (io.IN_AGUUop.bits.fuType === FuType.LSU && LSUOp.isStore(io.IN_AGUUop.bits.opcode))) {
     stq(io.IN_AGUUop.bits.stqPtr.index)       := io.IN_AGUUop.bits
     stqValid(io.IN_AGUUop.bits.stqPtr.index)  := true.B
+    stq(io.IN_AGUUop.bits.stqPtr.index).wdata := stq(io.IN_AGUUop.bits.stqPtr.index).wdata
     // committed(io.IN_AGUUop.bits.stqPtr.index)  := false.B
-    stqDataReady(io.IN_AGUUop.bits.stqPtr.index) := false.B
+    // stqDataReady(io.IN_AGUUop.bits.stqPtr.index) := false.B
   }
 
   when(io.IN_storeData.valid) {
@@ -99,7 +100,10 @@ class StoreQueue extends CoreModule {
   io.OUT_storeBypassResp.mask := bypassDataMask.asUInt
   io.OUT_storeBypassResp.notReady := bypassDataNotReady.asUInt
   val wmask = stq.map(_.mask)
-  val shiftedData = stq.map(_.wdata)
+  def getShiftedData(aguUop: AGUUop): UInt = {
+     (aguUop.wdata << (aguUop.addr(1, 0) << 3))(XLEN - 1, 0)
+  }
+  val shiftedData = stq.map(getShiftedData(_))
 
   when(addrMatch(io.IN_storeBypassReq.addr, uop.addr) && uopValid) {
     val uopWmask = uop.mask
@@ -157,6 +161,7 @@ class StoreQueue extends CoreModule {
 
   when(io.OUT_stUop.ready || !uopValid) {    
     uop := stq(stqIssueIndex)
+    uop.wdata := getShiftedData(stq(stqIssueIndex))
     uopValid := hasIssueReady
     when(hasIssueReady) {
       stqBasePtr := stqBasePtr + 1.U
@@ -166,8 +171,7 @@ class StoreQueue extends CoreModule {
   }
 
   when(io.IN_flush) {
-    stqLoadLimitPtr := io.IN_commitStqPtr
-    when(io.IN_commitStqPtr.flag =/= stqBasePtr.flag) {
+    when(io.IN_flushStqPtr.flag =/= stqBasePtr.flag) {
       for (i <- 0 until STQ_SIZE) {
         when(i.U < stqBasePtr.index && i.U >= io.IN_flushStqPtr.index) {
           stqValid(i) := false.B

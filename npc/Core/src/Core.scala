@@ -322,6 +322,7 @@ class Core extends CoreModule {
   }
   readReg.io.IN_zeroCycleForward := zeroCycleForward
   readReg.io.IN_storeDataReadReq <> storeDataIQ.io.OUT_storeDataReadReq
+  readReg.io.IN_flushStqPtr := flagHandler.io.OUT_flushStqPtr
   readReg.io.IN_flush := flush
 
   // * PReg
